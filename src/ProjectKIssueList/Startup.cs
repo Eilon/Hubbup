@@ -59,19 +59,14 @@ namespace ProjectKIssueList
             {
                 // Add Error handling middleware which catches all application specific errors and
                 // send the request to the following path or controller action.
-                app.UseErrorHandler("/Home/Error");
+                app.UseErrorHandler("/Error");
             }
 
             // Add static files to the request pipeline.
             app.UseStaticFiles();
 
             // Add MVC to the request pipeline.
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvc();
         }
     }
 }

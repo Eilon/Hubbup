@@ -1,63 +1,85 @@
-﻿using System;
+﻿using Microsoft.AspNet.Mvc;
+using Microsoft.Framework.Configuration;
+using Octokit;
+using Octokit.Internal;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
-using Octokit;
-using System.Collections.Concurrent;
-using Octokit.Internal;
-using Microsoft.Framework.Configuration;
 using WebApplication5.Models;
 
 namespace WebApplication5.Controllers
 {
-    public class HomeController : Controller
+    public class IssueListController : Controller
     {
-        private static readonly string[] Repos = new[]
+        private static readonly Dictionary<string, string[]> RepoSets = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
-            "aspnet-docker",
-            "BasicMiddleware",
-            "Caching",
-            //"CoreCLR",
-            "DataProtection",
-            "dnvm",
-            "dnx",
-            "Entropy",
-            "FileSystem",
-            //"Helios",
-            "homebrew-dnx",
-            "Hosting",
-            "HttpAbstractions",
-            "HttpClient",
-            "KestrelHttpServer",
-            "Logging",
-            "Proxy",
-            "ResponseCaching",
-            //"Roslyn",
-            "Security",
-            "ServerTests",
-            "Session",
-            //"Setup",
-            "SignalR-Client-Cpp",
-            "SignalR-Client-Java",
-            "SignalR-Client-JS",
-            "SignalR-Client-Net",
-            "SignalR-Redis",
-            "SignalR-Server",
-            "SignalR-ServiceBus",
-            "SignalR-SqlServer",
-            "Signing",
-            "StaticFiles",
-            "UserSecrets",
-            //"WebListener",
-            "WebSockets",
-            "Mvc",
-            "Razor",
+            {
+                "kcore",
+                new string[] {
+                    "aspnet-docker",
+                    "BasicMiddleware",
+                    "Caching",
+                    //"CoreCLR",
+                    "DataProtection",
+                    "dnvm",
+                    "dnx",
+                    "Entropy",
+                    "FileSystem",
+                    //"Helios",
+                    "homebrew-dnx",
+                    "Hosting",
+                    "HttpAbstractions",
+                    "HttpClient",
+                    "KestrelHttpServer",
+                    "Logging",
+                    "Proxy",
+                    "ResponseCaching",
+                    //"Roslyn",
+                    "Security",
+                    "ServerTests",
+                    "Session",
+                    //"Setup",
+                    "SignalR-Client-Cpp",
+                    "SignalR-Client-Java",
+                    "SignalR-Client-JS",
+                    "SignalR-Client-Net",
+                    "SignalR-Redis",
+                    "SignalR-Server",
+                    "SignalR-ServiceBus",
+                    "SignalR-SqlServer",
+                    "Signing",
+                    "StaticFiles",
+                    "UserSecrets",
+                    //"WebListener",
+                    "WebSockets",
+                }
+            },
+            {
+                "mvc",
+                new string[] {
+                    "Antiforgery",
+                    "Common",
+                    "CORS",
+                    "DependencyInjection",
+                    "Diagnostics",
+                    "EventNotification",
+                    "jquery-ajax-unobtrusive",
+                    "jquery-validation-unobtrusive",
+                    "Localization",
+                    "MusicStore",
+                    "Mvc",
+                    "Razor",
+                    //"RazorTooling",
+                    "Routing",
+                }
+            },
         };
 
         public IConfiguration Configuration { get; private set; }
 
-        public HomeController(IConfiguration configuration)
+        public IssueListController(IConfiguration configuration)
         {
             Configuration = configuration;
         }
@@ -81,11 +103,17 @@ namespace WebApplication5.Controllers
             return ghc.Issue.GetAllForRepository("aspnet", repo, repositoryIssueRequest);
         }
 
-        public IActionResult Index()
+        [Route("{repoSet?}")]
+        public IActionResult Index(string repoSet)
         {
+            var repos =
+                RepoSets.ContainsKey(repoSet ?? string.Empty)
+                ? RepoSets[repoSet]
+                : RepoSets.SelectMany(x => x.Value);
+
             var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
 
-            Parallel.ForEach(Repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo));
+            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo));
 
             Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
 

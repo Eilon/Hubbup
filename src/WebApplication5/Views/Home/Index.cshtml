@@ -1,0 +1,114 @@
+﻿@model HomeViewModel
+
+@{
+    ViewData["Title"] = "Project K issue list";
+}
+
+<div>
+    <ul class="nav nav-pills" id="app-tabs">
+        <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
+        <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
+        <li class=""><a href="#group-by-repo">Group by repo</a></li>
+    </ul>
+</div>
+
+<br />
+
+<div class="tab-content">
+    <div class="tab-pane active" id="group-by-assignee">
+        @foreach (var assignee in Model.GroupByAssignee.Assignees)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong>@assignee.Assignee</strong> <span class="badge">@assignee.Issues.Count</span></h3>
+                </div>
+                <div class="panel-body">
+                    @if (assignee.Issues.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var issue in assignee.Issues)
+                            {
+                                <li class="list-group-item">
+                                    @await Html.PartialAsync("_Issue", issue)
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        @* TODO: Is this needed? There wouldn't be an assignee if they have no issues... *@
+                        <h3>No issues assigned</h3>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="tab-pane" id="group-by-milestone">
+        @foreach (var milestone in Model.GroupByMilestone.Milestones)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong>@milestone.Milestone</strong> <span class="badge">@milestone.Issues.Count</span></h3>
+                </div>
+                <div class="panel-body">
+                    @if (milestone.Issues.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var issue in milestone.Issues)
+                            {
+                                <li class="list-group-item">
+                                    @await Html.PartialAsync("_Issue", issue)
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        @* TODO: Is this needed? There wouldn't be an milestone if it has no issues... *@
+                        <h3>No issues in this milestone</h3>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="tab-pane" id="group-by-repo">
+        @foreach (var repo in Model.GroupByRepo.Repos)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong>@repo.RepoName</strong> <span class="badge">@repo.Issues.Count</span></h3>
+                </div>
+                <div class="panel-body">
+                    @if (repo.Issues.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var issue in repo.Issues)
+                            {
+                                <li class="list-group-item">
+                                    @await Html.PartialAsync("_Issue", issue)
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <h3>No issues in this repo</h3>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+@section scripts
+{
+    <script type="text/javascript">
+        $('#app-tabs a').click(function (e) {
+            e.preventDefault()
+            $(this).tab('show')
+        })
+    </script>
+}

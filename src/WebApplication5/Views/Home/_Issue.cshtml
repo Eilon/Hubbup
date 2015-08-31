@@ -1,0 +1,10 @@
+﻿@model IssueWithRepo
+
+<img style="float:left; margin:0.5em" height="32" width="32" src="@Model.Issue.Assignee.AvatarUrl" />
+
+<div><strong>@Model.Issue.Title</strong></div>
+
+#<a href="@Model.Issue.HtmlUrl">@Model.Issue.Number</a>
+
+<span class="badge">@Model.Issue.Milestone.Title</span>
+<span class="badge">@Model.RepoName</span>

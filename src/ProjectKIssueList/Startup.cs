@@ -12,7 +12,7 @@ using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
 
-namespace WebApplication5
+namespace ProjectKIssueList
 {
     public class Startup
     {

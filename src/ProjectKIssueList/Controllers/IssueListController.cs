@@ -7,9 +7,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WebApplication5.Models;
+using ProjectKIssueList.Models;
 
-namespace WebApplication5.Controllers
+namespace ProjectKIssueList.Controllers
 {
     public class IssueListController : Controller
     {

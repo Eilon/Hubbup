@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.Configuration;
-using Octokit;
-using Octokit.Internal;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Mvc;
+using Octokit;
+using Octokit.Internal;
 using ProjectKIssueList.Models;
 
 namespace ProjectKIssueList.Controllers
@@ -77,22 +78,13 @@ namespace ProjectKIssueList.Controllers
             },
         };
 
-        public IConfiguration Configuration { get; private set; }
-
-        public IssueListController(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
-        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string repo)
+        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string repo, string gitHubAccessToken)
         {
             // TODO: Change TestApp name
 
-            // TODO: Use GitHub app authorization instead: http://haacked.com/archive/2014/04/24/octokit-oauth/
-
             var ghc = new GitHubClient(
                 new ProductHeaderValue("TestApp"),
-                new InMemoryCredentialStore(new Credentials(Configuration["GitHubAuthToken"])));
+                new InMemoryCredentialStore(new Credentials(gitHubAccessToken)));
 
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
@@ -106,6 +98,17 @@ namespace ProjectKIssueList.Controllers
         [Route("{repoSet?}")]
         public IActionResult Index(string repoSet)
         {
+            var gitHubAccessToken = Context.Session.GetString("GitHubAccessToken");
+            if (string.IsNullOrEmpty(gitHubAccessToken))
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return new ChallengeResult("GitHub", new AuthenticationProperties { RedirectUri = "/" + repoSet });
+                }
+                gitHubAccessToken = Context.User.FindFirst("access_token")?.Value;
+                Context.Session.SetString("GitHubAccessToken", gitHubAccessToken);
+            }
+
             var repos =
                 RepoSets.ContainsKey(repoSet ?? string.Empty)
                 ? RepoSets[repoSet]
@@ -113,7 +116,7 @@ namespace ProjectKIssueList.Controllers
 
             var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
 
-            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo));
+            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubAccessToken));
 
             Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
 
@@ -122,9 +125,6 @@ namespace ProjectKIssueList.Controllers
                 Issue = issue,
                 RepoName = issueList.Key,
             })).ToList();
-
-            // TODO: Get list of milestones
-            // TODO: Client UI to group by person, by repo, or by milestone
 
             return View(new HomeViewModel
             {
@@ -178,25 +178,6 @@ namespace ProjectKIssueList.Controllers
                             .AsReadOnly()
                 }
             });
-        }
-
-        public IActionResult About()
-        {
-            ViewData["Message"] = "Your application description page.";
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
-        public IActionResult Error()
-        {
-            return View("~/Views/Shared/Error.cshtml");
         }
     }
 }

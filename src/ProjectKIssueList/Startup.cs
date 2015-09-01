@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNet.Authentication;
+using Microsoft.AspNet.Authentication.Cookies;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Diagnostics;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Routing;
+using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Configuration;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.Runtime;
 
 namespace ProjectKIssueList
 {
@@ -36,7 +32,16 @@ namespace ProjectKIssueList
         // This method gets called by the runtime.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddInstance<IConfiguration>(Configuration);
+            services.AddCaching();
+
+            services.AddSession();
+
+            services.AddAuthentication();
+
+            services.Configure<SharedAuthenticationOptions>(options =>
+            {
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            });
 
             // Add MVC services to the services container.
             services.AddMvc();
@@ -53,7 +58,7 @@ namespace ProjectKIssueList
             // Add the following to the request pipeline only in development environment.
             if (env.IsDevelopment())
             {
-                app.UseErrorPage(ErrorPageOptions.ShowAll);
+                app.UseErrorPage();
             }
             else
             {
@@ -64,6 +69,23 @@ namespace ProjectKIssueList
 
             // Add static files to the request pipeline.
             app.UseStaticFiles();
+
+            app.UseCookieAuthentication(options =>
+            {
+                options.AutomaticAuthentication = true;
+                options.AuthenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.LoginPath = new PathString("/signin");
+            });
+
+            app.UseGitHubAuthentication(options =>
+            {
+                options.ClientId = Configuration["GitHubClientId"];
+                options.ClientSecret = Configuration["GitHubClientSecret"];
+                options.Scope.Add("repo");
+                options.SaveTokensAsClaims = true;
+            });
+
+            app.UseSession();
 
             // Add MVC to the request pipeline.
             app.UseMvc();

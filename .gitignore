@@ -1,3 +1,6 @@
+[Oo]bj/
+[Bb]in/
 /.vs/
 PublishProfiles/
 *.user
+project.lock.json

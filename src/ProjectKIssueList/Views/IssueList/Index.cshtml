@@ -21,7 +21,7 @@
         {
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><strong>@assignee.Assignee</strong> <span class="badge">@assignee.Issues.Count</span></h3>
+                    <h3 class="panel-title"><strong>@(assignee.Assignee ?? "<not assigned>")</strong> <span class="badge">@assignee.Issues.Count</span></h3>
                 </div>
                 <div class="panel-body">
                     @if (assignee.Issues.Any())
@@ -50,7 +50,7 @@
         {
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><strong>@milestone.Milestone</strong> <span class="badge">@milestone.Issues.Count</span></h3>
+                    <h3 class="panel-title"><strong>@(milestone.Milestone ?? "<no milestone>")</strong> <span class="badge">@milestone.Issues.Count</span></h3>
                 </div>
                 <div class="panel-body">
                     @if (milestone.Issues.Any())

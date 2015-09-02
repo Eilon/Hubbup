@@ -14,70 +14,6 @@ namespace ProjectKIssueList.Controllers
 {
     public class IssueListController : Controller
     {
-        private static readonly Dictionary<string, string[]> RepoSets = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
-        {
-            {
-                "kcore",
-                new string[] {
-                    "aspnet-docker",
-                    "BasicMiddleware",
-                    "Caching",
-                    //"CoreCLR",
-                    "DataProtection",
-                    "dnvm",
-                    "dnx",
-                    "Entropy",
-                    "FileSystem",
-                    //"Helios",
-                    "homebrew-dnx",
-                    "Hosting",
-                    "HttpAbstractions",
-                    "HttpClient",
-                    "KestrelHttpServer",
-                    "Logging",
-                    "Proxy",
-                    "ResponseCaching",
-                    //"Roslyn",
-                    "Security",
-                    "ServerTests",
-                    "Session",
-                    //"Setup",
-                    "SignalR-Client-Cpp",
-                    "SignalR-Client-Java",
-                    "SignalR-Client-JS",
-                    "SignalR-Client-Net",
-                    "SignalR-Redis",
-                    "SignalR-Server",
-                    "SignalR-ServiceBus",
-                    "SignalR-SqlServer",
-                    "Signing",
-                    "StaticFiles",
-                    "UserSecrets",
-                    //"WebListener",
-                    "WebSockets",
-                }
-            },
-            {
-                "mvc",
-                new string[] {
-                    "Antiforgery",
-                    "Common",
-                    "CORS",
-                    "DependencyInjection",
-                    "Diagnostics",
-                    "EventNotification",
-                    "jquery-ajax-unobtrusive",
-                    "jquery-validation-unobtrusive",
-                    "Localization",
-                    "MusicStore",
-                    "Mvc",
-                    "Razor",
-                    //"RazorTooling",
-                    "Routing",
-                }
-            },
-        };
-
         private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string repo, string gitHubAccessToken)
         {
             // TODO: Change TestApp name
@@ -121,9 +57,9 @@ namespace ProjectKIssueList.Controllers
             // Authenticated and all claims have been read
 
             var repos =
-                RepoSets.ContainsKey(repoSet ?? string.Empty)
-                ? RepoSets[repoSet]
-                : RepoSets.SelectMany(x => x.Value);
+                RepoSets.HasRepoSet(repoSet ?? string.Empty)
+                ? RepoSets.GetRepoSet(repoSet)
+                : RepoSets.GetAllRepos();
 
             var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
 
@@ -147,7 +83,7 @@ namespace ProjectKIssueList.Controllers
                 {
                     Assignees =
                         allIssues
-                            .GroupBy(issue => issue.Issue.Assignee.Login)
+                            .GroupBy(issue => issue.Issue.Assignee?.Login)
                             .Select(group =>
                                 new GroupByAssigneeAssignee
                                 {
@@ -163,7 +99,7 @@ namespace ProjectKIssueList.Controllers
                 {
                     Milestones =
                         allIssues
-                            .GroupBy(issue => issue.Issue.Milestone.Title)
+                            .GroupBy(issue => issue.Issue.Milestone?.Title)
                             .Select(group =>
                                 new GroupByMilestoneMilestone
                                 {

@@ -1,10 +1,10 @@
 ﻿@model IssueWithRepo
 
-<img style="float:left; margin:0.5em" height="32" width="32" src="@Model.Issue.Assignee.AvatarUrl" />
+<img style="float:left; margin:0.5em" height="32" width="32" src="@(Model.Issue.Assignee?.AvatarUrl ?? "https://avatars1.githubusercontent.com/u/583231?v=3")" />
 
 <div><strong>@Model.Issue.Title</strong></div>
 
 #<a href="@Model.Issue.HtmlUrl">@Model.Issue.Number</a>
 
-<span class="badge">@Model.Issue.Milestone.Title</span>
+<span class="badge">@(Model.Issue.Milestone?.Title ?? "<no milestone>")</span>
 <span class="badge">@Model.RepoName</span>

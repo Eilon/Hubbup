@@ -99,15 +99,26 @@ namespace ProjectKIssueList.Controllers
         public IActionResult Index(string repoSet)
         {
             var gitHubAccessToken = Context.Session.GetString("GitHubAccessToken");
+            var gitHubName = Context.Session.GetString("GitHubName");
+
+            // If session state didn't have our data, either there's no one logged in, or they just logged in
+            // but the claims haven't yet been read.
             if (string.IsNullOrEmpty(gitHubAccessToken))
             {
                 if (!User.Identity.IsAuthenticated)
                 {
+                    // Not authenticated at all? Go to GitHub to authorize the app
                     return new ChallengeResult("GitHub", new AuthenticationProperties { RedirectUri = "/" + repoSet });
                 }
+
+                // Authenticated but haven't read the claims? Process the claims
                 gitHubAccessToken = Context.User.FindFirst("access_token")?.Value;
+                gitHubName = Context.User.Identity.Name;
                 Context.Session.SetString("GitHubAccessToken", gitHubAccessToken);
+                Context.Session.SetString("GitHubName", gitHubName);
             }
+
+            // Authenticated and all claims have been read
 
             var repos =
                 RepoSets.ContainsKey(repoSet ?? string.Empty)
@@ -129,6 +140,8 @@ namespace ProjectKIssueList.Controllers
             return View(new HomeViewModel
             {
                 TotalIssues = allIssues.Count,
+
+                Name = gitHubName,
 
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {

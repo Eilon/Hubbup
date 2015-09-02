@@ -15,6 +15,7 @@ namespace ProjectKIssueList.Models
     public class HomeViewModel
     {
         public int TotalIssues { get; set; }
+        public string Name { get; internal set; }
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
         public GroupByMilestoneViewModel GroupByMilestone { get; set; }
         public GroupByRepoViewModel GroupByRepo { get; set; }

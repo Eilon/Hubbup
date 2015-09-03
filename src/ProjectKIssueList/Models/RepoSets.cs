@@ -14,6 +14,8 @@ namespace ProjectKIssueList.Models
                     "aspnet-docker",
                     "BasicMiddleware",
                     "Caching",
+                    "Coherence",
+                    "Coherence-Signed",
                     "CoreCLR",
                     "DataProtection",
                     "dnvm",
@@ -44,6 +46,7 @@ namespace ProjectKIssueList.Models
                     "SignalR-SqlServer",
                     "Signing",
                     "StaticFiles",
+                    "Universe",
                     "UserSecrets",
                     "WebListener",
                     "WebSockets",
@@ -53,10 +56,12 @@ namespace ProjectKIssueList.Models
                 "mvc",
                 new string[] {
                     "Antiforgery",
+                    "aspnet.xunit",
                     "Common",
                     "CORS",
                     "DependencyInjection",
                     "Diagnostics",
+                    "DnxTools",
                     "EventNotification",
                     "jquery-ajax-unobtrusive",
                     "jquery-validation-unobtrusive",
@@ -66,6 +71,7 @@ namespace ProjectKIssueList.Models
                     "Razor",
                     "RazorTooling",
                     "Routing",
+                    "Testing",
                 }
             },
             {
@@ -95,11 +101,7 @@ namespace ProjectKIssueList.Models
                 "engineering",
                 new string[] {
                     "Announcements",
-                    "aspnet.xunit",
                     "BugTracker",
-                    "Coherence",
-                    "Coherence-Signed",
-                    "DnxTools",
                     "EndToEnd",
                     "External",
                     "IBC",
@@ -112,8 +114,6 @@ namespace ProjectKIssueList.Models
                     "specs",
                     "Stress",
                     "TeamCityTrigger",
-                    "Testing",
-                    "Universe",
                     "xunit",
                 }
             },

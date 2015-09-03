@@ -1,0 +1,10 @@
+﻿@model PullRequestWithRepo
+
+<img style="float:left; margin:0.5em" height="32" width="32" src="@(Model.PullRequest.User.AvatarUrl ?? "https://avatars1.githubusercontent.com/u/583231?v=3")" />
+
+<div><strong>@Model.PullRequest.Title</strong></div>
+
+#<a href="@Model.PullRequest.HtmlUrl">@Model.PullRequest.Number</a>
+
+<span class="badge">@Model.PullRequest.CreatedAt.Date.ToLongDateString()</span>
+<span class="badge">@Model.RepoName</span>

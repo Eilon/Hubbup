@@ -12,6 +12,12 @@ namespace ProjectKIssueList.Models
         public string RepoName { get; set; }
     }
 
+    public class PullRequestWithRepo
+    {
+        public PullRequest PullRequest { get; set; }
+        public string RepoName { get; set; }
+    }
+
     public class HomeViewModel
     {
         public int TotalIssues { get; set; }
@@ -19,6 +25,7 @@ namespace ProjectKIssueList.Models
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
         public GroupByMilestoneViewModel GroupByMilestone { get; set; }
         public GroupByRepoViewModel GroupByRepo { get; set; }
+        public List<PullRequestWithRepo> PullRequests { get; set; }
     }
 
     public class GroupByAssigneeViewModel

@@ -70,16 +70,31 @@ namespace ProjectKIssueList.Controllers
                 : RepoSets.GetAllRepos();
 
             var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
+            var allPullRequestsByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<PullRequest>>>();
 
             Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, GetGitHubClient(gitHubAccessToken)));
+            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, GetGitHubClient(gitHubAccessToken)));
 
             Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
+            Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value).ToArray());
 
-            var allIssues = allIssuesByRepo.SelectMany(issueList => issueList.Value.Result.Select(issue => new IssueWithRepo
-            {
-                Issue = issue,
-                RepoName = issueList.Key,
-            })).ToList();
+            var allIssues = allIssuesByRepo.SelectMany(
+                issueList => issueList.Value.Result.Select(
+                    issue => new IssueWithRepo
+                    {
+                        Issue = issue,
+                        RepoName = issueList.Key,
+                    })).ToList();
+
+            var allPullRequests = allPullRequestsByRepo.SelectMany(
+                pullRequestList => pullRequestList.Value.Result.Select(
+                    pullRequest => new PullRequestWithRepo
+                    {
+                        PullRequest = pullRequest,
+                        RepoName = pullRequestList.Key,
+                    }))
+                    .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
+                    .ToList();
 
             return View(new HomeViewModel
             {
@@ -133,7 +148,9 @@ namespace ProjectKIssueList.Controllers
                             .OrderByDescending(group => group.Issues.Count)
                             .ToList()
                             .AsReadOnly()
-                }
+                },
+
+                PullRequests = allPullRequests,
             });
         }
     }

@@ -14,21 +14,29 @@ namespace ProjectKIssueList.Controllers
 {
     public class IssueListController : Controller
     {
-        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string repo, string gitHubAccessToken)
+        private GitHubClient GetGitHubClient(string gitHubAccessToken)
         {
-            // TODO: Change TestApp name
-
             var ghc = new GitHubClient(
-                new ProductHeaderValue("TestApp"),
+                new ProductHeaderValue("Project-K-Issue-List"),
                 new InMemoryCredentialStore(new Credentials(gitHubAccessToken)));
 
+            return ghc;
+        }
+
+        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string repo, GitHubClient gitHubClient)
+        {
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
                 State = ItemState.Open,
             };
             repositoryIssueRequest.Labels.Add("2 - Working");
 
-            return ghc.Issue.GetAllForRepository("aspnet", repo, repositoryIssueRequest);
+            return gitHubClient.Issue.GetAllForRepository("aspnet", repo, repositoryIssueRequest);
+        }
+
+        private Task<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string repo, GitHubClient gitHubClient)
+        {
+            return gitHubClient.PullRequest.GetAllForRepository("aspnet", repo);
         }
 
         [Route("{repoSet?}")]
@@ -63,7 +71,7 @@ namespace ProjectKIssueList.Controllers
 
             var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
 
-            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubAccessToken));
+            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, GetGitHubClient(gitHubAccessToken)));
 
             Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
 

@@ -1,6 +1,8 @@
 ﻿@model PullRequestWithRepo
 
-<img style="float:left; margin:0.5em" height="32" width="32" src="@(Model.PullRequest.User.AvatarUrl ?? "https://avatars1.githubusercontent.com/u/583231?v=3")" />
+<a href="@Model.PullRequest.User.HtmlUrl">
+    <img style="float:left; margin:0.5em" height="32" width="32" src="@(Model.PullRequest.User.AvatarUrl ?? "https://avatars1.githubusercontent.com/u/583231?v=3")" title="@Model.PullRequest.User.Login" />
+</a>
 
 <div><strong>@Model.PullRequest.Title</strong></div>
 

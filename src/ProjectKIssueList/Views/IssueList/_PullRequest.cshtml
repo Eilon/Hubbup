@@ -1,10 +1,20 @@
 ﻿@model PullRequestWithRepo
 
+@{
+    var isOld = Model.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14);
+}
+
 <a href="@Model.PullRequest.User.HtmlUrl">
     <img style="float:left; margin:0.5em" height="32" width="32" src="@(Model.PullRequest.User.AvatarUrl ?? "https://avatars1.githubusercontent.com/u/583231?v=3")" title="@Model.PullRequest.User.Login" />
 </a>
 
-<div><strong>@Model.PullRequest.Title</strong></div>
+<div>
+    <strong>@Model.PullRequest.Title</strong>
+    @if (isOld)
+    {
+        <span class="label label-danger">Stale!</span>
+    }
+</div>
 
 #<a href="@Model.PullRequest.HtmlUrl">@Model.PullRequest.Number</a>
 

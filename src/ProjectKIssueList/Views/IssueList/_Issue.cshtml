@@ -11,5 +11,10 @@
 
 #<a href="@Model.Issue.HtmlUrl">@Model.Issue.Number</a>
 
+@foreach (var label in Model.Issue.Labels)
+{
+    <span class="label" style="background-color: #@label.Color">@label.Name</span>
+}
+
 <span class="badge">@(Model.Issue.Milestone?.Title ?? "<no milestone>")</span>
 <span class="badge">@Model.RepoName</span>

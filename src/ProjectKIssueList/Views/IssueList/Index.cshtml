@@ -34,7 +34,27 @@
 </div>
 
 <div class="row">
-    <div class="col-md-10">
+    <div class="col-md-2 col-md-push-10">
+        <h3>Issues</h3>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in Backlog milestone">
+            Open <span class="badge">@Model.TotalIssues</span>
+        </div>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues with '2 - Working' label">
+            Working <span class="badge">@Model.WorkingIssues</span>
+        </div>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in a milestone">
+            Untriaged <span class="badge">@Model.UntriagedIssues</span>
+        </div>
+        <h3>PRs</h3>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open PRs">
+            Open <span class="badge">@Model.PullRequests.Count</span>
+        </div>
+        <div class="alert alert-danger" data-toggle="tooltip" data-placement="left" title="Open PRs over 14 days old">
+            Stale <span class="badge">@Model.PullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count()</span>
+        </div>
+    </div>
+
+    <div class="col-md-10 col-md-pull-2">
         <div class="tab-content">
             <div class="tab-pane active" id="group-by-assignee">
                 @foreach (var assignee in Model.GroupByAssignee.Assignees)
@@ -144,25 +164,6 @@
                     <h3>No open pull requests, go write some code!</h3>
                 }
             </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <h3>Issues</h3>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in Backlog milestone">
-            Open <span class="badge">@Model.TotalIssues</span>
-        </div>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues with '2 - Working' label">
-            Working <span class="badge">@Model.WorkingIssues</span>
-        </div>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in a milestone">
-            Untriaged <span class="badge">@Model.UntriagedIssues</span>
-        </div>
-        <h3>PRs</h3>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open PRs">
-            Open <span class="badge">@Model.PullRequests.Count</span>
-        </div>
-        <div class="alert alert-danger" data-toggle="tooltip" data-placement="left" title="Open PRs over 14 days old">
-            Stale <span class="badge">@Model.PullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count()</span>
         </div>
     </div>
 </div>

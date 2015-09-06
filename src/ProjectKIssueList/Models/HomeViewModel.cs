@@ -22,6 +22,8 @@ namespace ProjectKIssueList.Models
     {
         public string Name { get; internal set; }
         public int TotalIssues { get; set; }
+        public object WorkingIssues { get; internal set; }
+        public object UntriagedIssues { get; internal set; }
         public string[] ReposIncluded { get; internal set; }
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
         public GroupByMilestoneViewModel GroupByMilestone { get; set; }

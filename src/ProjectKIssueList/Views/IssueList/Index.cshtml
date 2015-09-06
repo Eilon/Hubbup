@@ -6,14 +6,29 @@
 }
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-5">
         <ul class="nav nav-pills" id="app-tabs">
             <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
             <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
             <li class=""><a href="#group-by-repo">Group by repo</a></li>
         </ul>
     </div>
-    <div class="col-md-4 text-right">
+    <div class="col-md-7 text-right">
+        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open issues not in Backlog milestone">
+            Open <span class="badge">@Model.TotalIssues</span>
+        </span>
+        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open issues with '2 - Working' label">
+            Working <span class="badge">@Model.WorkingIssues</span>
+        </span>
+        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open issues not in a milestone">
+            Untriaged <span class="badge">@Model.UntriagedIssues</span>
+        </span>
+        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open PRs">
+            PRs <span class="badge">@Model.PullRequests.Count</span>
+        </span>
+        <span class="label label-danger" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open PRs over 14 days old">
+            Stale PRs <span class="badge">@Model.PullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count()</span>
+        </span>
         <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#collapseExample">
             Included repos <span class="badge">@Model.ReposIncluded.Length</span>
         </button>
@@ -153,6 +168,10 @@
         $('#app-tabs a').click(function (e) {
             e.preventDefault()
             $(this).tab('show')
-        })
+        });
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
     </script>
 }

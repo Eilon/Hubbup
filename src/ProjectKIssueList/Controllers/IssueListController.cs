@@ -29,7 +29,6 @@ namespace ProjectKIssueList.Controllers
             {
                 State = ItemState.Open,
             };
-            repositoryIssueRequest.Labels.Add("2 - Working");
 
             return gitHubClient.Issue.GetAllForRepository("aspnet", repo, repositoryIssueRequest);
         }
@@ -79,12 +78,20 @@ namespace ProjectKIssueList.Controllers
             Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value).ToArray());
 
             var allIssues = allIssuesByRepo.SelectMany(
-                issueList => issueList.Value.Result.Select(
+                issueList => issueList.Value.Result
+                .Where(issue => issue.Milestone?.Title != "Backlog")
+                .Select(
                     issue => new IssueWithRepo
                     {
                         Issue = issue,
                         RepoName = issueList.Key,
                     })).ToList();
+
+            var workingIssues = allIssues
+                .Where(issue => issue.Issue.Labels.Any(label => label.Name == "2 - Working")).ToList();
+
+            var untriagedIssues = allIssues
+                .Where(issue => issue.Issue.Assignee == null).ToList();
 
             var allPullRequests = allPullRequestsByRepo.SelectMany(
                 pullRequestList => pullRequestList.Value.Result.Select(
@@ -101,13 +108,15 @@ namespace ProjectKIssueList.Controllers
                 Name = gitHubName,
 
                 TotalIssues = allIssues.Count,
+                WorkingIssues = workingIssues.Count,
+                UntriagedIssues = untriagedIssues.Count,
 
                 ReposIncluded = repos.OrderBy(repo => repo.ToLowerInvariant()).ToArray(),
 
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {
                     Assignees =
-                        allIssues
+                        workingIssues
                             .GroupBy(issue => issue.Issue.Assignee?.Login)
                             .Select(group =>
                                 new GroupByAssigneeAssignee
@@ -123,7 +132,7 @@ namespace ProjectKIssueList.Controllers
                 GroupByMilestone = new GroupByMilestoneViewModel
                 {
                     Milestones =
-                        allIssues
+                        workingIssues
                             .GroupBy(issue => issue.Issue.Milestone?.Title)
                             .Select(group =>
                                 new GroupByMilestoneMilestone
@@ -139,7 +148,7 @@ namespace ProjectKIssueList.Controllers
                 GroupByRepo = new GroupByRepoViewModel
                 {
                     Repos =
-                        allIssues
+                        workingIssues
                             .GroupBy(issue => issue.RepoName)
                             .Select(group =>
                                 new GroupByRepoRepo

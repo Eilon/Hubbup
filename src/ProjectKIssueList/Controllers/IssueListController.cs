@@ -98,9 +98,11 @@ namespace ProjectKIssueList.Controllers
 
             return View(new HomeViewModel
             {
+                Name = gitHubName,
+
                 TotalIssues = allIssues.Count,
 
-                Name = gitHubName,
+                ReposIncluded = repos.OrderBy(repo => repo.ToLowerInvariant()).ToArray(),
 
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {

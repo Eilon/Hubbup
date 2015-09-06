@@ -5,15 +5,33 @@
     ViewData["Name"] = Model.Name;
 }
 
-<div>
-    <ul class="nav nav-pills" id="app-tabs">
-        <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
-        <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
-        <li class=""><a href="#group-by-repo">Group by repo</a></li>
-    </ul>
+<div class="row">
+    <div class="col-md-8">
+        <ul class="nav nav-pills" id="app-tabs">
+            <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
+            <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
+            <li class=""><a href="#group-by-repo">Group by repo</a></li>
+        </ul>
+    </div>
+    <div class="col-md-4 text-right">
+        <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#collapseExample">
+            Included repos <span class="badge">@Model.ReposIncluded.Length</span>
+        </button>
+    </div>
 </div>
 
 <br />
+
+<div class="collapse" id="collapseExample">
+    <div class="well">
+        <ol>
+            @foreach (var repo in Model.ReposIncluded)
+            {
+                <li>@repo</li>
+            }
+        </ol>
+    </div>
+</div>
 
 <div class="tab-content">
     <div class="tab-pane active" id="group-by-assignee">

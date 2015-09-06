@@ -91,7 +91,7 @@ namespace ProjectKIssueList.Controllers
                 .Where(issue => issue.Issue.Labels.Any(label => label.Name == "2 - Working")).ToList();
 
             var untriagedIssues = allIssues
-                .Where(issue => issue.Issue.Assignee == null).ToList();
+                .Where(issue => issue.Issue.Milestone == null).ToList();
 
             var allPullRequests = allPullRequestsByRepo.SelectMany(
                 pullRequestList => pullRequestList.Value.Result.Select(

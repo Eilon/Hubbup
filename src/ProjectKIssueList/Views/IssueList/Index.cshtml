@@ -6,29 +6,14 @@
 }
 
 <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-8">
         <ul class="nav nav-pills" id="app-tabs">
             <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
             <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
             <li class=""><a href="#group-by-repo">Group by repo</a></li>
         </ul>
     </div>
-    <div class="col-md-7 text-right">
-        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open issues not in Backlog milestone">
-            Open <span class="badge">@Model.TotalIssues</span>
-        </span>
-        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open issues with '2 - Working' label">
-            Working <span class="badge">@Model.WorkingIssues</span>
-        </span>
-        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open issues not in a milestone">
-            Untriaged <span class="badge">@Model.UntriagedIssues</span>
-        </span>
-        <span class="label label-info" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open PRs">
-            PRs <span class="badge">@Model.PullRequests.Count</span>
-        </span>
-        <span class="label label-danger" style="margin:3px; padding:4px; font-size:small" data-toggle="tooltip" data-placement="bottom" title="Open PRs over 14 days old">
-            Stale PRs <span class="badge">@Model.PullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count()</span>
-        </span>
+    <div class="col-md-4 text-right">
         <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#collapseExample">
             Included repos <span class="badge">@Model.ReposIncluded.Length</span>
         </button>
@@ -48,118 +33,139 @@
     </div>
 </div>
 
-<div class="tab-content">
-    <div class="tab-pane active" id="group-by-assignee">
-        @foreach (var assignee in Model.GroupByAssignee.Assignees)
-        {
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><strong>@(assignee.Assignee ?? "<not assigned>")</strong> <span class="badge">@assignee.Issues.Count</span></h3>
-                </div>
-                <div class="panel-body">
-                    @if (assignee.Issues.Any())
-                    {
-                        <ul class="list-group">
-                            @foreach (var issue in assignee.Issues)
-                            {
-                                <li class="list-group-item">
-                                    @await Html.PartialAsync("_Issue", issue)
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        @* TODO: Is this needed? There wouldn't be an assignee if they have no issues... *@
-                        <h3>No issues assigned</h3>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    <div class="tab-pane" id="group-by-milestone">
-        @foreach (var milestone in Model.GroupByMilestone.Milestones)
-        {
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><strong>@(milestone.Milestone ?? "<no milestone>")</strong> <span class="badge">@milestone.Issues.Count</span></h3>
-                </div>
-                <div class="panel-body">
-                    @if (milestone.Issues.Any())
-                    {
-                        <ul class="list-group">
-                            @foreach (var issue in milestone.Issues)
-                            {
-                                <li class="list-group-item">
-                                    @await Html.PartialAsync("_Issue", issue)
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        @* TODO: Is this needed? There wouldn't be an milestone if it has no issues... *@
-                        <h3>No issues in this milestone</h3>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    <div class="tab-pane" id="group-by-repo">
-        @foreach (var repo in Model.GroupByRepo.Repos)
-        {
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><strong>@repo.RepoName</strong> <span class="badge">@repo.Issues.Count</span></h3>
-                </div>
-                <div class="panel-body">
-                    @if (repo.Issues.Any())
-                    {
-                        <ul class="list-group">
-                            @foreach (var issue in repo.Issues)
-                            {
-                                <li class="list-group-item">
-                                    @await Html.PartialAsync("_Issue", issue)
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <h3>No issues in this repo</h3>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-</div>
-
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h3 class="panel-title"><strong>Pull Requests <span class="badge">@Model.PullRequests.Count</span></h3>
-    </div>
-    <div class="panel-body">
-        @if (Model.PullRequests.Any())
-        {
-            <ul class="list-group">
-                @foreach (var pullRequest in Model.PullRequests)
+<div class="row">
+    <div class="col-md-10">
+        <div class="tab-content">
+            <div class="tab-pane active" id="group-by-assignee">
+                @foreach (var assignee in Model.GroupByAssignee.Assignees)
                 {
-                    <li class="list-group-item">
-                        @await Html.PartialAsync("_PullRequest", pullRequest)
-                    </li>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"><strong>@(assignee.Assignee ?? "<not assigned>")</strong> <span class="badge">@assignee.Issues.Count</span></h3>
+                        </div>
+                        <div class="panel-body">
+                            @if (assignee.Issues.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var issue in assignee.Issues)
+                                    {
+                                        <li class="list-group-item">
+                                            @await Html.PartialAsync("_Issue", issue)
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                @* TODO: Is this needed? There wouldn't be an assignee if they have no issues... *@
+                                <h3>No issues assigned</h3>
+                            }
+                        </div>
+                    </div>
                 }
-            </ul>
-        }
-        else
-        {
-            <h3>No open pull requests, go write some code!</h3>
-        }
+            </div>
+
+            <div class="tab-pane" id="group-by-milestone">
+                @foreach (var milestone in Model.GroupByMilestone.Milestones)
+                {
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"><strong>@(milestone.Milestone ?? "<no milestone>")</strong> <span class="badge">@milestone.Issues.Count</span></h3>
+                        </div>
+                        <div class="panel-body">
+                            @if (milestone.Issues.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var issue in milestone.Issues)
+                                    {
+                                        <li class="list-group-item">
+                                            @await Html.PartialAsync("_Issue", issue)
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                @* TODO: Is this needed? There wouldn't be an milestone if it has no issues... *@
+                                <h3>No issues in this milestone</h3>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="tab-pane" id="group-by-repo">
+                @foreach (var repo in Model.GroupByRepo.Repos)
+                {
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"><strong>@repo.RepoName</strong> <span class="badge">@repo.Issues.Count</span></h3>
+                        </div>
+                        <div class="panel-body">
+                            @if (repo.Issues.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var issue in repo.Issues)
+                                    {
+                                        <li class="list-group-item">
+                                            @await Html.PartialAsync("_Issue", issue)
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <h3>No issues in this repo</h3>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><strong>Pull Requests <span class="badge">@Model.PullRequests.Count</span></h3>
+            </div>
+            <div class="panel-body">
+                @if (Model.PullRequests.Any())
+                {
+                    <ul class="list-group">
+                        @foreach (var pullRequest in Model.PullRequests)
+                {
+                            <li class="list-group-item">
+                                @await Html.PartialAsync("_PullRequest", pullRequest)
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <h3>No open pull requests, go write some code!</h3>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <h3>Issues</h3>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in Backlog milestone">
+            Open <span class="badge">@Model.TotalIssues</span>
+        </div>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues with '2 - Working' label">
+            Working <span class="badge">@Model.WorkingIssues</span>
+        </div>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in a milestone">
+            Untriaged <span class="badge">@Model.UntriagedIssues</span>
+        </div>
+        <h3>PRs</h3>
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open PRs">
+            Open <span class="badge">@Model.PullRequests.Count</span>
+        </div>
+        <div class="alert alert-danger" data-toggle="tooltip" data-placement="left" title="Open PRs over 14 days old">
+            Stale <span class="badge">@Model.PullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count()</span>
+        </div>
     </div>
 </div>
-
-
 
 
 @section scripts

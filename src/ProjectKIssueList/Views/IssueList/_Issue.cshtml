@@ -19,7 +19,7 @@
 
         @foreach (var label in Model.Issue.Labels)
         {
-            <span class="label" style="background-color: #@label.Color">@label.Name</span>
+            <span class="label" style="background-color: #@label.Color; color: #@ColorMath.GetHexForeColorForBackColor(label.Color)">@label.Name</span>
         }
 
         <span class="badge pull-right" style="margin-left: 4px">@(Model.Issue.Milestone?.Title ?? "<no milestone>")</span>

@@ -111,6 +111,11 @@ namespace ProjectKIssueList.Models
             },
         };
 
+        public static IDictionary<string, string[]> GetRepoSetLists()
+        {
+            return RepoSetList;
+        }
+
         public static string[] GetAllRepos()
         {
             return RepoSetList.SelectMany(repoSet => repoSet.Value).ToArray();

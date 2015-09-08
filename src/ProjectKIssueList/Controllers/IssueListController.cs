@@ -3,10 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.Internal;
 using Octokit;
 using Octokit.Internal;
 using ProjectKIssueList.Models;
@@ -38,39 +35,7 @@ namespace ProjectKIssueList.Controllers
         {
             return gitHubClient.PullRequest.GetAllForRepository("aspnet", repo);
         }
-
-        public class GitHubAuthDataAttribute : ActionFilterAttribute
-        {
-            public override void OnActionExecuting(ActionExecutingContext context)
-            {
-                var gitHubAccessToken = context.HttpContext.Session.GetString("GitHubAccessToken");
-                var gitHubName = context.HttpContext.Session.GetString("GitHubName");
-
-                // If session state didn't have our data, either there's no one logged in, or they just logged in
-                // but the claims haven't yet been read.
-                if (string.IsNullOrEmpty(gitHubAccessToken))
-                {
-                    if (!context.HttpContext.User.Identity.IsAuthenticated)
-                    {
-                        // Not authenticated at all? Go to GitHub to authorize the app
-                        context.Result = new ChallengeResult(
-                            authenticationScheme: "GitHub",
-                            properties: new AuthenticationProperties { RedirectUri = "/" });
-                        return;
-                    }
-
-                    // Authenticated but haven't read the claims? Process the claims
-                    gitHubAccessToken = context.HttpContext.User.FindFirst("access_token")?.Value;
-                    gitHubName = context.HttpContext.User.Identity.Name;
-                    context.HttpContext.Session.SetString("GitHubAccessToken", gitHubAccessToken);
-                    context.HttpContext.Session.SetString("GitHubName", gitHubName);
-                }
-
-                context.ActionArguments.Add("gitHubAccessToken", gitHubAccessToken);
-                context.ActionArguments.Add("gitHubName", gitHubName);
-            }
-        }
-
+     
         [Route("{repoSet}")]
         [GitHubAuthData]
         public IActionResult Index(string repoSet, string gitHubAccessToken, string gitHubName)
@@ -117,7 +82,7 @@ namespace ProjectKIssueList.Controllers
                     .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
                     .ToList();
 
-            return View(new HomeViewModel
+            return View(new IssueListViewModel
             {
                 Name = gitHubName,
 

@@ -1,0 +1,37 @@
+﻿@model HomeViewModel
+
+@{
+    ViewData["Title"] = "Project K issue list";
+    ViewData["Name"] = Model.Name;
+}
+
+<div class="row">
+    <div class="col-md-12">
+        @foreach (var repoSet in Model.RepoSetLists)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong><a href="/@repoSet.Key">@repoSet.Key</a></strong> <span class="badge">@repoSet.Value.Length</span></h3>
+                </div>
+                <div class="panel-body">
+                    @if (repoSet.Value.Length > 0)
+                    {
+                        <ul class="list-inline">
+                            @foreach (var repo in repoSet.Value)
+                            {
+                                <li class="list-group-item">
+                                    @repo
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        @* TODO: Is this needed? There shouldn't be empty repo sets... *@
+                        <h3>No repos in this repo set</h3>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

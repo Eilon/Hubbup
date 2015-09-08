@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
+﻿using Microsoft.AspNet.Mvc;
+using ProjectKIssueList.Models;
 
 namespace ProjectKIssueList.Controllers
 {
     public class HomeController : Controller
     {
         [Route("")]
-        public IActionResult Index()
+        [GitHubAuthData]
+        public IActionResult Index(string gitHubName)
         {
-            return View();
+            return View(new HomeViewModel
+            {
+                Name = gitHubName,
+                RepoSetLists = RepoSets.GetRepoSetLists(),
+            });
         }
     }
 }

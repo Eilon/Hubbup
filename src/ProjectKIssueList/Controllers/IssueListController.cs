@@ -35,7 +35,18 @@ namespace ProjectKIssueList.Controllers
         {
             return gitHubClient.PullRequest.GetAllForRepository("aspnet", repo);
         }
-     
+
+        private static readonly string[] ExcludedRepos = new[] {
+            "Backlog",
+            "Discussion",
+            "Discussions",
+        };
+
+        private static bool IsExcludedRepo(string repoName)
+        {
+            return ExcludedRepos.Contains(repoName, StringComparer.OrdinalIgnoreCase);
+        }
+
         [Route("{repoSet}")]
         [GitHubAuthData]
         public IActionResult Index(string repoSet, string gitHubAccessToken, string gitHubName)
@@ -58,7 +69,7 @@ namespace ProjectKIssueList.Controllers
 
             var allIssues = allIssuesByRepo.SelectMany(
                 issueList => issueList.Value.Result
-                .Where(issue => issue.Milestone?.Title != "Backlog")
+                .Where(issue => !IsExcludedRepo(issue.Milestone?.Title))
                 .Select(
                     issue => new IssueWithRepo
                     {

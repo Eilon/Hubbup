@@ -60,6 +60,7 @@ namespace ProjectKIssueList.Models
                     "Localization",
                     "MusicStore",
                     "Mvc",
+                    "PackageSearch",
                     "Razor",
                     "RazorTooling",
                     "Routing",
@@ -86,7 +87,6 @@ namespace ProjectKIssueList.Models
                     "Docs-internal",
                     "Home",
                     "NerdDinner",
-                    "PackageSearch",
                 }
             },
             {

@@ -17,11 +17,13 @@ namespace ProjectKIssueList.Models
 
     public class IssueListViewModel
     {
-        public string Name { get; internal set; }
+        public string GitHubUserName { get; set; }
+        public string RepoSetName { get; set; }
+        public string[] RepoSetNames { get; set; }
         public int TotalIssues { get; set; }
-        public object WorkingIssues { get; internal set; }
-        public object UntriagedIssues { get; internal set; }
-        public string[] ReposIncluded { get; internal set; }
+        public object WorkingIssues { get; set; }
+        public object UntriagedIssues { get; set; }
+        public string[] ReposIncluded { get; set; }
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
         public GroupByMilestoneViewModel GroupByMilestone { get; set; }
         public GroupByRepoViewModel GroupByRepo { get; set; }

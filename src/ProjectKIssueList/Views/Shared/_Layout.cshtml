@@ -1,9 +1,15 @@
-﻿<!DOCTYPE html>
+﻿@{ 
+    var pageTitle = (string)ViewData["PageTitlePrefix"];
+    var repoSetNames = (string[])ViewData["RepoSetNames"];
+    var currentRepoSetName = (string)ViewData["CurrentRepoSetName"];
+    var gitHubUserName = (string)ViewData["GitHubUserName"];
+}
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>@ViewData["Title"] - ProjectKIssueList</title>
+        <title>@pageTitle - ProjectKIssueList</title>
 
         <environment names="Development">
             <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -21,15 +27,14 @@
             <div class="container">
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li><a asp-controller="Home" asp-action="Index">Home</a></li>
-                        <li><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="kcore">K-Core</a></li>
-                        <li><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="mvc">MVC</a></li>
-                        <li><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="data">Data</a></li>
-                        <li><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="pm">PM</a></li>
-                        <li><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="engineering">Engineering</a></li>
+                        <li class="@(currentRepoSetName == "" ? "active" : "")"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        @foreach (var repoSetName in repoSetNames)
+                        {
+                            <li class="@(currentRepoSetName == repoSetName ? "active" : "")"><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@repoSetName">@repoSetName</a></li>
+                        }
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        <li><p class="navbar-text">Signed in as <a href="https://github.com/@ViewData["Name"]">@ViewData["Name"]</a></p></li>
+                        <li><p class="navbar-text">Signed in as <a href="https://github.com/@gitHubUserName">@gitHubUserName</a></p></li>
                     </ul>
                 </div>
             </div>

@@ -4,7 +4,8 @@ namespace ProjectKIssueList.Models
 {
     public class HomeViewModel
     {
-        public string Name { get; internal set; }
+        public string GitHubUserName { get; set; }
+        public string[] RepoSetNames { get; set; }
         public IDictionary<string, string[]> RepoSetLists { get; set; }
     }
 }

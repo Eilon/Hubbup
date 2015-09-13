@@ -1,8 +1,10 @@
 ﻿@model HomeViewModel
 
 @{
-    ViewData["Title"] = "Project K issue list";
-    ViewData["Name"] = Model.Name;
+    ViewData["PageTitlePrefix"] = "Home";
+    ViewData["GitHubUserName"] = Model.GitHubUserName;
+    ViewData["RepoSetNames"] = Model.RepoSetNames;
+    ViewData["CurrentRepoSetName"] = ""; // Home page has no repo set name
 }
 
 <div class="row">

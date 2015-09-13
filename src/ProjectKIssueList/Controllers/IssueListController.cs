@@ -12,6 +12,13 @@ namespace ProjectKIssueList.Controllers
 {
     public class IssueListController : Controller
     {
+        public IssueListController(IRepoSetProvider repoSetProvider)
+        {
+            RepoSetProvider = repoSetProvider;
+        }
+
+        public IRepoSetProvider RepoSetProvider { get; private set; }
+
         private GitHubClient GetGitHubClient(string gitHubAccessToken)
         {
             var ghc = new GitHubClient(
@@ -54,9 +61,9 @@ namespace ProjectKIssueList.Controllers
             // Authenticated and all claims have been read
 
             var repos =
-                RepoSets.HasRepoSet(repoSet ?? string.Empty)
-                ? RepoSets.GetRepoSet(repoSet)
-                : RepoSets.GetAllRepos();
+                RepoSetProvider.RepoSetExists(repoSet ?? string.Empty)
+                ? RepoSetProvider.GetRepoSet(repoSet)
+                : RepoSetProvider.GetAllRepos();
 
             var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
             var allPullRequestsByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<PullRequest>>>();
@@ -95,7 +102,10 @@ namespace ProjectKIssueList.Controllers
 
             return View(new IssueListViewModel
             {
-                Name = gitHubName,
+                GitHubUserName = gitHubName,
+
+                RepoSetName = repoSet,
+                RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
 
                 TotalIssues = allIssues.Count,
                 WorkingIssues = workingIssues.Count,

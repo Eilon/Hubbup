@@ -7,6 +7,7 @@ using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Configuration;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
+using ProjectKIssueList.Models;
 
 namespace ProjectKIssueList
 {
@@ -32,6 +33,8 @@ namespace ProjectKIssueList
         // This method gets called by the runtime.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddInstance<IRepoSetProvider>(new StaticRepoSetProvider());
+
             services.AddCaching();
 
             services.AddSession();

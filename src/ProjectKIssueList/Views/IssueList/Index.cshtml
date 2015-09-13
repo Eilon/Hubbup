@@ -1,8 +1,10 @@
 ﻿@model IssueListViewModel
 
 @{
-    ViewData["Title"] = "Project K issue list";
-    ViewData["Name"] = Model.Name;
+    ViewData["PageTitlePrefix"] = Model.RepoSetName;
+    ViewData["GitHubUserName"] = Model.GitHubUserName;
+    ViewData["RepoSetNames"] = Model.RepoSetNames;
+    ViewData["CurrentRepoSetName"] = Model.RepoSetName;
 }
 
 <div class="row">

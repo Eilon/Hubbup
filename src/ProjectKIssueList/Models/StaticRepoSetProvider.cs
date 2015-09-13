@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ProjectKIssueList.Models
 {
-    public static class RepoSets
+    public class StaticRepoSetProvider : IRepoSetProvider
     {
         private static readonly Dictionary<string, string[]> RepoSetList = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
@@ -106,27 +106,26 @@ namespace ProjectKIssueList.Models
                     "specs",
                     "Stress",
                     "TeamCityTrigger",
-                    "xunit",
                 }
             },
         };
 
-        public static IDictionary<string, string[]> GetRepoSetLists()
+        public IDictionary<string, string[]> GetRepoSetLists()
         {
             return RepoSetList;
         }
 
-        public static string[] GetAllRepos()
+        public string[] GetAllRepos()
         {
             return RepoSetList.SelectMany(repoSet => repoSet.Value).ToArray();
         }
 
-        public static string[] GetRepoSet(string repoSet)
+        public string[] GetRepoSet(string repoSet)
         {
             return RepoSetList[repoSet];
         }
 
-        public static bool HasRepoSet(string repoSet)
+        public bool RepoSetExists(string repoSet)
         {
             return RepoSetList.ContainsKey(repoSet);
         }

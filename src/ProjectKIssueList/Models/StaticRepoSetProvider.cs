@@ -71,7 +71,6 @@ namespace ProjectKIssueList.Models
                 "data",
                 new string[] {
                     "Configuration",
-                    "DataCommon",
                     "EntityFramework",
                     "EntityFramework.Docs",
                     "Identity",

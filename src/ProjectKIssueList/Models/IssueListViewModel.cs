@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Octokit;
 
 namespace ProjectKIssueList.Models
@@ -7,6 +8,7 @@ namespace ProjectKIssueList.Models
     {
         public Issue Issue { get; set; }
         public string RepoName { get; set; }
+        public DateTimeOffset? WorkingStartTime { get; set; }
     }
 
     public class PullRequestWithRepo

@@ -54,6 +54,25 @@ namespace ProjectKIssueList.Controllers
             return ExcludedRepos.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
+        private static async Task<DateTimeOffset?> GetWorkingStartTime(string repo, Issue issue, GitHubClient gitHubClient)
+        {
+            if (!issue.Labels.Any(label => label.Name == "2 - Working"))
+            {
+                // Item isn't in Working state, so ignore it
+                return null;
+            }
+
+            // Find all "labeled" events for this issue
+            var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue("aspnet", repo, issue.Number);
+            var labelEvent = issueEvents.LastOrDefault(issueEvent => issueEvent.Event == EventInfoState.Labeled && issueEvent.Label.Name == "2 - Working");
+            if (labelEvent == null)
+            {
+                // Couldn't find a "labeled" event where the Working label was added - probably a missing GitHub event?
+                return null;
+            }
+            return labelEvent.CreatedAt;
+        }
+
         [Route("{repoSet}")]
         [GitHubAuthData]
         public IActionResult Index(string repoSet, string gitHubAccessToken, string gitHubName)
@@ -68,8 +87,10 @@ namespace ProjectKIssueList.Controllers
             var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
             var allPullRequestsByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<PullRequest>>>();
 
-            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, GetGitHubClient(gitHubAccessToken)));
-            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, GetGitHubClient(gitHubAccessToken)));
+            var gitHubClient = GetGitHubClient(gitHubAccessToken);
+
+            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubClient));
+            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, gitHubClient));
 
             Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
             Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value).ToArray());
@@ -82,6 +103,7 @@ namespace ProjectKIssueList.Controllers
                     {
                         Issue = issue,
                         RepoName = issueList.Key,
+                        WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
                     })).ToList();
 
             var workingIssues = allIssues

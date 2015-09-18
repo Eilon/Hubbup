@@ -24,7 +24,7 @@
             }
         </div>
 
-        <span class="badge pull-right" style="margin-left: 4px" data-toggle="tooltip" data-placement="bottom" title="Opened on @Model.PullRequest.CreatedAt.Date.ToLongDateString()">Opened @Model.PullRequest.CreatedAt.ToDaysAgo()</span>
+        <span class="badge pull-right" style="margin-left: 4px" data-toggle="tooltip" data-placement="bottom" title="Opened on @Model.PullRequest.CreatedAt.ToPacificTime().ToString()">Opened @Model.PullRequest.CreatedAt.ToTimeAgo()</span>
         <span class="badge pull-right" style="margin-left: 4px">@Model.RepoName</span>
     </div>
 </div>

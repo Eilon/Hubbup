@@ -12,6 +12,7 @@ namespace ProjectKIssueList.Models
                 "kcore",
                 new string[] {
                     "aspnet-docker",
+                    "aspnet-win-docker",
                     "BasicMiddleware",
                     "Caching",
                     "Coherence",
@@ -20,6 +21,7 @@ namespace ProjectKIssueList.Models
                     "DataProtection",
                     "dnvm",
                     "dnx",
+                    "dnx-watch",
                     "Entropy",
                     "FileSystem",
                     "Helios",
@@ -57,6 +59,7 @@ namespace ProjectKIssueList.Models
                     "EventNotification",
                     "jquery-ajax-unobtrusive",
                     "jquery-validation-unobtrusive",
+                    "JsonPatch",
                     "Localization",
                     "MusicStore",
                     "Mvc",

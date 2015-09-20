@@ -50,15 +50,15 @@ namespace ProjectKIssueList.Controllers
             return gitHubClient.PullRequest.GetAllForRepository("aspnet", repo);
         }
 
-        private static readonly string[] ExcludedRepos = new[] {
+        private static readonly string[] ExcludedMilestones = new[] {
             "Backlog",
             "Discussion",
             "Discussions",
         };
 
-        private static bool IsExcludedRepo(string repoName)
+        private static bool IsExcludedMilestone(string repoName)
         {
-            return ExcludedRepos.Contains(repoName, StringComparer.OrdinalIgnoreCase);
+            return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
         private static async Task<DateTimeOffset?> GetWorkingStartTime(string repo, Issue issue, GitHubClient gitHubClient)
@@ -103,11 +103,11 @@ namespace ProjectKIssueList.Controllers
 
             var allReposQuery = GetRepoQuery(repos);
 
-            var openIssuesQuery = GetGitHubQuery("is:issue is:open " + allReposQuery);
+            var openIssuesQuery = GetGitHubQuery("is:issue is:open " + allReposQuery + " " + GetExcludedMilestonesQuery());
             var workingIssuesQuery = GetGitHubQuery("is:issue is:open label:\"2 - Working\" " + allReposQuery);
             var untriagedIssuesQuery = GetGitHubQuery("is:issue is:open no:milestone " + allReposQuery);
             var openPRsQuery = GetGitHubQuery("is:pr is:open " + allReposQuery);
-            var stalePRsQuery = GetGitHubQuery("is:pr is:open created:<" + GetStalePRDate() + " " + allReposQuery);
+            var stalePRsQuery = GetGitHubQuery("is:pr is:open created:<=" + GetStalePRDate() + " " + allReposQuery);
 
             // now wait for queries to finish executing
 
@@ -116,14 +116,14 @@ namespace ProjectKIssueList.Controllers
 
             var allIssues = allIssuesByRepo.SelectMany(
                 issueList => issueList.Value.Result
-                .Where(issue => !IsExcludedRepo(issue.Milestone?.Title))
-                .Select(
-                    issue => new IssueWithRepo
-                    {
-                        Issue = issue,
-                        RepoName = issueList.Key,
-                        WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
-                    })).ToList();
+                    .Where(issue => !IsExcludedMilestone(issue.Milestone?.Title) && issue.PullRequest == null)
+                    .Select(
+                        issue => new IssueWithRepo
+                        {
+                            Issue = issue,
+                            RepoName = issueList.Key,
+                            WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
+                        })).ToList();
 
             var workingIssues = allIssues
                 .Where(issue => issue.Issue.Labels.Any(label => label.Name == "2 - Working")).ToList();
@@ -212,12 +212,15 @@ namespace ProjectKIssueList.Controllers
             });
         }
 
+        private string GetExcludedMilestonesQuery()
+        {
+            return string.Join(" ", ExcludedMilestones.Select(milestone => "-milestone:" + milestone));
+        }
+
         private string GetStalePRDate()
         {
-            // Add 1 to the stale time because the query will find PRs that are at *least* that old
-
             var staleDays = 14;
-            var stalePRDate = DateTimeOffset.UtcNow.ToPacificTime().AddDays(-staleDays + 1);
+            var stalePRDate = DateTimeOffset.UtcNow.ToPacificTime().AddDays(-staleDays);
             // GitHub uses the format 'YYYY-MM-DD'
             return stalePRDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }

@@ -26,6 +26,13 @@ namespace ProjectKIssueList.Models
         public object WorkingIssues { get; set; }
         public object UntriagedIssues { get; set; }
         public string[] ReposIncluded { get; set; }
+
+        public string OpenIssuesQuery { get; set; }
+        public string WorkingIssuesQuery { get; set; }
+        public string UntriagedIssuesQuery { get; set; }
+        public string OpenPRsQuery { get; set; }
+        public string StalePRsQuery { get; set; }
+
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
         public GroupByMilestoneViewModel GroupByMilestone { get; set; }
         public GroupByRepoViewModel GroupByRepo { get; set; }

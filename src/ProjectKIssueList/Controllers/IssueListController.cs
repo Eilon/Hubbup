@@ -1,23 +1,30 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
+using Microsoft.Framework.WebEncoders;
 using Octokit;
 using Octokit.Internal;
 using ProjectKIssueList.Models;
+using ProjectKIssueList.Utils;
 
 namespace ProjectKIssueList.Controllers
 {
     public class IssueListController : Controller
     {
-        public IssueListController(IRepoSetProvider repoSetProvider)
+        public IssueListController(IRepoSetProvider repoSetProvider, IUrlEncoder urlEncoder)
         {
             RepoSetProvider = repoSetProvider;
+            UrlEncoder = urlEncoder;
         }
 
-        public IRepoSetProvider RepoSetProvider { get; private set; }
+        public IRepoSetProvider RepoSetProvider { get; }
+
+        public IUrlEncoder UrlEncoder { get; }
 
         private GitHubClient GetGitHubClient(string gitHubAccessToken)
         {
@@ -92,6 +99,18 @@ namespace ProjectKIssueList.Controllers
             Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubClient));
             Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, gitHubClient));
 
+            // while waiting for queries to run, do some other work...
+
+            var allReposQuery = GetRepoQuery(repos);
+
+            var openIssuesQuery = GetGitHubQuery("is:issue is:open " + allReposQuery);
+            var workingIssuesQuery = GetGitHubQuery("is:issue is:open label:\"2 - Working\" " + allReposQuery);
+            var untriagedIssuesQuery = GetGitHubQuery("is:issue is:open no:milestone " + allReposQuery);
+            var openPRsQuery = GetGitHubQuery("is:pr is:open " + allReposQuery);
+            var stalePRsQuery = GetGitHubQuery("is:pr is:open created:<" + GetStalePRDate() + " " + allReposQuery);
+
+            // now wait for queries to finish executing
+
             Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
             Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value).ToArray());
 
@@ -134,6 +153,12 @@ namespace ProjectKIssueList.Controllers
                 UntriagedIssues = untriagedIssues.Count,
 
                 ReposIncluded = repos.OrderBy(repo => repo.ToLowerInvariant()).ToArray(),
+
+                OpenIssuesQuery = openIssuesQuery,
+                WorkingIssuesQuery = workingIssuesQuery,
+                UntriagedIssuesQuery = untriagedIssuesQuery,
+                OpenPRsQuery = openPRsQuery,
+                StalePRsQuery = stalePRsQuery,
 
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {
@@ -185,6 +210,28 @@ namespace ProjectKIssueList.Controllers
 
                 PullRequests = allPullRequests,
             });
+        }
+
+        private string GetStalePRDate()
+        {
+            // Add 1 to the stale time because the query will find PRs that are at *least* that old
+
+            var staleDays = 14;
+            var stalePRDate = DateTimeOffset.UtcNow.ToPacificTime().AddDays(-staleDays + 1);
+            // GitHub uses the format 'YYYY-MM-DD'
+            return stalePRDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        private static string GetRepoQuery(string[] repos)
+        {
+            return string.Join(" ", repos.Select(repo => "repo:aspnet/" + repo));
+        }
+
+        private string GetGitHubQuery(string rawQuery)
+        {
+            const string GitHubQueryPrefix = "https://github.com/issues?q=";
+
+            return GitHubQueryPrefix + UrlEncoder.UrlEncode(rawQuery);
         }
     }
 }

@@ -232,7 +232,7 @@ namespace ProjectKIssueList.Controllers
 
         private string GetGitHubQuery(string rawQuery)
         {
-            const string GitHubQueryPrefix = "https://github.com/issues?q=";
+            const string GitHubQueryPrefix = "https://github.com/search?q=";
 
             return GitHubQueryPrefix + UrlEncoder.UrlEncode(rawQuery);
         }

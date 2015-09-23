@@ -234,7 +234,7 @@ namespace ProjectKIssueList.Controllers
         {
             const string GitHubQueryPrefix = "https://github.com/search?q=";
 
-            return GitHubQueryPrefix + UrlEncoder.UrlEncode(rawQuery);
+            return GitHubQueryPrefix + UrlEncoder.UrlEncode(rawQuery) + " &s=updated";
         }
     }
 }

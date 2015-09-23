@@ -5,7 +5,7 @@
         @if (Model.Issue.Assignee != null)
         {
             <a href="@Model.Issue.Assignee.HtmlUrl">
-                <img style="margin:0.1em" height="32" width="32" src="@(Model.Issue.Assignee.AvatarUrl ?? "https://avatars1.githubusercontent.com/u/583231?v=3")" title="@Model.Issue.Assignee.Login" />
+                <img style="margin:0.1em" height="32" width="32" src="@(Model.Issue.Assignee.AvatarUrl ?? "https://avatars1.githubusercontent.com/u/583231?v=3")" title="@Model.Issue.Assignee.Login" alt="@Model.Issue.Assignee.Login" />
             </a>
         }
     </div>

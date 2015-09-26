@@ -4,12 +4,12 @@ namespace ProjectKIssueList.Models
 {
     public class RepoDefinition
     {
-        public RepoDefinition(string org, string name)
+        public RepoDefinition(string owner, string name)
         {
-            Org = org;
+            Owner = owner;
             Name = name;
         }
-        public string Org { get; set; }
+        public string Owner { get; set; }
         public string Name { get; set; }
     }
 

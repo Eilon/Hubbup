@@ -35,19 +35,19 @@ namespace ProjectKIssueList.Controllers
             return ghc;
         }
 
-        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string org, string repo, GitHubClient gitHubClient)
+        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string owner, string repo, GitHubClient gitHubClient)
         {
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
                 State = ItemState.Open,
             };
 
-            return gitHubClient.Issue.GetAllForRepository(org, repo, repositoryIssueRequest);
+            return gitHubClient.Issue.GetAllForRepository(owner, repo, repositoryIssueRequest);
         }
 
-        private Task<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string org, string repo, GitHubClient gitHubClient)
+        private Task<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string owner, string repo, GitHubClient gitHubClient)
         {
-            return gitHubClient.PullRequest.GetAllForRepository(org, repo);
+            return gitHubClient.PullRequest.GetAllForRepository(owner, repo);
         }
 
         private static readonly string[] ExcludedMilestones = new[] {
@@ -70,7 +70,7 @@ namespace ProjectKIssueList.Controllers
             }
 
             // Find all "labeled" events for this issue
-            var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue(repo.Org, repo.Name, issue.Number);
+            var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue(repo.Owner, repo.Name, issue.Number);
             var labelEvent = issueEvents.LastOrDefault(issueEvent => issueEvent.Event == EventInfoState.Labeled && issueEvent.Label.Name == "2 - Working");
             if (labelEvent == null)
             {
@@ -96,8 +96,8 @@ namespace ProjectKIssueList.Controllers
 
             var gitHubClient = GetGitHubClient(gitHubAccessToken);
 
-            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Org, repo.Name, gitHubClient));
-            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Org, repo.Name, gitHubClient));
+            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Owner, repo.Name, gitHubClient));
+            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Owner, repo.Name, gitHubClient));
 
             // while waiting for queries to run, do some other work...
 
@@ -152,7 +152,7 @@ namespace ProjectKIssueList.Controllers
                 WorkingIssues = workingIssues.Count,
                 UntriagedIssues = untriagedIssues.Count,
 
-                ReposIncluded = repos.OrderBy(repo => repo.Org.ToLowerInvariant()).ThenBy(repo => repo.Name.ToLowerInvariant()).ToArray(),
+                ReposIncluded = repos.OrderBy(repo => repo.Owner.ToLowerInvariant()).ThenBy(repo => repo.Name.ToLowerInvariant()).ToArray(),
 
                 OpenIssuesQuery = openIssuesQuery,
                 WorkingIssuesQuery = workingIssuesQuery,
@@ -227,7 +227,7 @@ namespace ProjectKIssueList.Controllers
 
         private static string GetRepoQuery(RepoDefinition[] repos)
         {
-            return string.Join(" ", repos.Select(repo => "repo:" + repo.Org + "/" + repo.Name));
+            return string.Join(" ", repos.Select(repo => "repo:" + repo.Owner + "/" + repo.Name));
         }
 
         private string GetGitHubQuery(string rawQuery)

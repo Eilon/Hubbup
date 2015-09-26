@@ -27,6 +27,6 @@
             <span class="badge pull-right" style="margin-left: 4px" data-toggle="tooltip" data-placement="bottom" title="Started working on @Model.WorkingStartTime.Value.ToPacificTime().ToString()">Started working @Model.WorkingStartTime.Value.ToTimeAgo()</span>
         }
         <span class="badge pull-right" style="margin-left: 4px">@(Model.Issue.Milestone?.Title ?? "<no milestone>")</span>
-        <span class="badge pull-right" style="margin-left: 4px">@Model.Repo.Org/@Model.Repo.Name</span>
+        <span class="badge pull-right" style="margin-left: 4px">@Model.Repo.Owner/@Model.Repo.Name</span>
     </div>
 </div>

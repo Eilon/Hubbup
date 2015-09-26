@@ -25,6 +25,6 @@
         </div>
 
         <span class="badge pull-right" style="margin-left: 4px" data-toggle="tooltip" data-placement="bottom" title="Opened on @Model.PullRequest.CreatedAt.ToPacificTime().ToString()">Opened @Model.PullRequest.CreatedAt.ToTimeAgo()</span>
-        <span class="badge pull-right" style="margin-left: 4px">@Model.Repo.Org/@Model.Repo.Name</span>
+        <span class="badge pull-right" style="margin-left: 4px">@Model.Repo.Owner/@Model.Repo.Name</span>
     </div>
 </div>

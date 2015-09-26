@@ -29,7 +29,7 @@
         <ol>
             @foreach (var repo in Model.ReposIncluded)
             {
-                <li><a href="https://github.com/@repo.Org/@repo.Name/issues">@repo.Org/@repo.Name</a></li>
+                <li><a href="https://github.com/@repo.Owner/@repo.Name/issues">@repo.Owner/@repo.Name</a></li>
             }
         </ol>
     </div>
@@ -121,7 +121,7 @@
                 {
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><strong>@repo.Repo.Org/@repo.Repo.Name</strong> <span class="badge">@repo.Issues.Count</span></h3>
+                            <h3 class="panel-title"><strong>@repo.Repo.Owner/@repo.Repo.Name</strong> <span class="badge">@repo.Issues.Count</span></h3>
                         </div>
                         <div class="panel-body">
                             @if (repo.Issues.Any())

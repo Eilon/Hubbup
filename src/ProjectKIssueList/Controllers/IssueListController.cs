@@ -114,16 +114,19 @@ namespace ProjectKIssueList.Controllers
             Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
             Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value).ToArray());
 
-            var allIssues = allIssuesByRepo.SelectMany(
-                issueList => issueList.Value.Result
-                    .Where(issue => !IsExcludedMilestone(issue.Milestone?.Title) && issue.PullRequest == null)
-                    .Select(
-                        issue => new IssueWithRepo
-                        {
-                            Issue = issue,
-                            Repo = issueList.Key,
-                            WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
-                        })).ToList();
+            var allIssues = allIssuesByRepo
+                .SelectMany(
+                    issueList => issueList.Value.Result
+                        .Where(issue => !IsExcludedMilestone(issue.Milestone?.Title) && issue.PullRequest == null)
+                        .Select(
+                            issue => new IssueWithRepo
+                            {
+                                Issue = issue,
+                                Repo = issueList.Key,
+                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
+                            }))
+                .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
+                .ToList();
 
             var workingIssues = allIssues
                 .Where(issue => issue.Issue.Labels.Any(label => label.Name == "2 - Working")).ToList();

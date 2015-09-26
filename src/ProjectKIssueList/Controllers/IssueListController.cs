@@ -35,19 +35,19 @@ namespace ProjectKIssueList.Controllers
             return ghc;
         }
 
-        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string repo, GitHubClient gitHubClient)
+        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string org, string repo, GitHubClient gitHubClient)
         {
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
                 State = ItemState.Open,
             };
 
-            return gitHubClient.Issue.GetAllForRepository("aspnet", repo, repositoryIssueRequest);
+            return gitHubClient.Issue.GetAllForRepository(org, repo, repositoryIssueRequest);
         }
 
-        private Task<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string repo, GitHubClient gitHubClient)
+        private Task<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string org, string repo, GitHubClient gitHubClient)
         {
-            return gitHubClient.PullRequest.GetAllForRepository("aspnet", repo);
+            return gitHubClient.PullRequest.GetAllForRepository(org, repo);
         }
 
         private static readonly string[] ExcludedMilestones = new[] {
@@ -61,7 +61,7 @@ namespace ProjectKIssueList.Controllers
             return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static async Task<DateTimeOffset?> GetWorkingStartTime(string repo, Issue issue, GitHubClient gitHubClient)
+        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, GitHubClient gitHubClient)
         {
             if (!issue.Labels.Any(label => label.Name == "2 - Working"))
             {
@@ -70,7 +70,7 @@ namespace ProjectKIssueList.Controllers
             }
 
             // Find all "labeled" events for this issue
-            var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue("aspnet", repo, issue.Number);
+            var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue(repo.Org, repo.Name, issue.Number);
             var labelEvent = issueEvents.LastOrDefault(issueEvent => issueEvent.Event == EventInfoState.Labeled && issueEvent.Label.Name == "2 - Working");
             if (labelEvent == null)
             {
@@ -91,13 +91,13 @@ namespace ProjectKIssueList.Controllers
                 ? RepoSetProvider.GetRepoSet(repoSet)
                 : RepoSetProvider.GetAllRepos();
 
-            var allIssuesByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<Issue>>>();
-            var allPullRequestsByRepo = new ConcurrentDictionary<string, Task<IReadOnlyList<PullRequest>>>();
+            var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, Task<IReadOnlyList<Issue>>>();
+            var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, Task<IReadOnlyList<PullRequest>>>();
 
             var gitHubClient = GetGitHubClient(gitHubAccessToken);
 
-            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubClient));
-            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, gitHubClient));
+            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Org, repo.Name, gitHubClient));
+            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Org, repo.Name, gitHubClient));
 
             // while waiting for queries to run, do some other work...
 
@@ -121,7 +121,7 @@ namespace ProjectKIssueList.Controllers
                         issue => new IssueWithRepo
                         {
                             Issue = issue,
-                            RepoName = issueList.Key,
+                            Repo = issueList.Key,
                             WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
                         })).ToList();
 
@@ -136,7 +136,7 @@ namespace ProjectKIssueList.Controllers
                     pullRequest => new PullRequestWithRepo
                     {
                         PullRequest = pullRequest,
-                        RepoName = pullRequestList.Key,
+                        Repo = pullRequestList.Key,
                     }))
                     .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
                     .ToList();
@@ -152,7 +152,7 @@ namespace ProjectKIssueList.Controllers
                 WorkingIssues = workingIssues.Count,
                 UntriagedIssues = untriagedIssues.Count,
 
-                ReposIncluded = repos.OrderBy(repo => repo.ToLowerInvariant()).ToArray(),
+                ReposIncluded = repos.OrderBy(repo => repo.Org.ToLowerInvariant()).ThenBy(repo => repo.Name.ToLowerInvariant()).ToArray(),
 
                 OpenIssuesQuery = openIssuesQuery,
                 WorkingIssuesQuery = workingIssuesQuery,
@@ -196,11 +196,11 @@ namespace ProjectKIssueList.Controllers
                 {
                     Repos =
                         workingIssues
-                            .GroupBy(issue => issue.RepoName)
+                            .GroupBy(issue => issue.Repo)
                             .Select(group =>
                                 new GroupByRepoRepo
                                 {
-                                    RepoName = group.Key,
+                                    Repo = group.Key,
                                     Issues = group.ToList().AsReadOnly(),
                                 })
                             .OrderByDescending(group => group.Issues.Count)
@@ -225,9 +225,9 @@ namespace ProjectKIssueList.Controllers
             return stalePRDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
 
-        private static string GetRepoQuery(string[] repos)
+        private static string GetRepoQuery(RepoDefinition[] repos)
         {
-            return string.Join(" ", repos.Select(repo => "repo:aspnet/" + repo));
+            return string.Join(" ", repos.Select(repo => "repo:" + repo.Org + "/" + repo.Name));
         }
 
         private string GetGitHubQuery(string rawQuery)

@@ -7,14 +7,14 @@ namespace ProjectKIssueList.Models
     public class IssueWithRepo
     {
         public Issue Issue { get; set; }
-        public string RepoName { get; set; }
+        public RepoDefinition Repo { get; set; }
         public DateTimeOffset? WorkingStartTime { get; set; }
     }
 
     public class PullRequestWithRepo
     {
         public PullRequest PullRequest { get; set; }
-        public string RepoName { get; set; }
+        public RepoDefinition Repo { get; set; }
     }
 
     public class IssueListViewModel
@@ -25,7 +25,7 @@ namespace ProjectKIssueList.Models
         public int TotalIssues { get; set; }
         public object WorkingIssues { get; set; }
         public object UntriagedIssues { get; set; }
-        public string[] ReposIncluded { get; set; }
+        public RepoDefinition[] ReposIncluded { get; set; }
 
         public string OpenIssuesQuery { get; set; }
         public string WorkingIssuesQuery { get; set; }
@@ -68,7 +68,7 @@ namespace ProjectKIssueList.Models
 
     public class GroupByRepoRepo
     {
-        public string RepoName { get; set; }
+        public RepoDefinition Repo { get; set; }
         public IReadOnlyList<IssueWithRepo> Issues { get; set; }
     }
 }

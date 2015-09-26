@@ -2,13 +2,24 @@
 
 namespace ProjectKIssueList.Models
 {
+    public class RepoDefinition
+    {
+        public RepoDefinition(string org, string name)
+        {
+            Org = org;
+            Name = name;
+        }
+        public string Org { get; set; }
+        public string Name { get; set; }
+    }
+
     public interface IRepoSetProvider
     {
-        IDictionary<string, string[]> GetRepoSetLists();
+        IDictionary<string, RepoDefinition[]> GetRepoSetLists();
 
-        string[] GetAllRepos();
+        RepoDefinition[] GetAllRepos();
 
-        string[] GetRepoSet(string repoSet);
+        RepoDefinition[] GetRepoSet(string repoSet);
 
         bool RepoSetExists(string repoSet);
     }

@@ -13,13 +13,13 @@
         {
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><strong><a href="/@repoSet.Key">@repoSet.Key</a></strong> <span class="badge">@repoSet.Value.Length</span></h3>
+                    <h3 class="panel-title"><strong><a href="/@repoSet.Key">@repoSet.Key</a></strong> <span class="badge">@repoSet.Value.Repos.Length</span></h3>
                 </div>
                 <div class="panel-body">
-                    @if (repoSet.Value.Length > 0)
+                    @if (repoSet.Value.Repos.Length > 0)
                     {
                         <ul class="list-inline">
-                            @foreach (var repo in repoSet.Value)
+                            @foreach (var repo in repoSet.Value.Repos)
                             {
                                 <li class="list-group-item">
                                     @repo.Owner/@repo.Name

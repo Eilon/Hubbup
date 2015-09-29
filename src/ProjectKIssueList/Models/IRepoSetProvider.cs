@@ -15,11 +15,9 @@ namespace ProjectKIssueList.Models
 
     public interface IRepoSetProvider
     {
-        IDictionary<string, RepoDefinition[]> GetRepoSetLists();
+        IDictionary<string, RepoSetDefinition> GetRepoSetLists();
 
-        RepoDefinition[] GetAllRepos();
-
-        RepoDefinition[] GetRepoSet(string repoSet);
+        RepoSetDefinition GetRepoSet(string repoSet);
 
         bool RepoSetExists(string repoSet);
     }

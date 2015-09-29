@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.WebEncoders;
@@ -16,13 +15,16 @@ namespace ProjectKIssueList.Controllers
 {
     public class IssueListController : Controller
     {
-        public IssueListController(IRepoSetProvider repoSetProvider, IUrlEncoder urlEncoder)
+        public IssueListController(IRepoSetProvider repoSetProvider, IPersonSetProvider personSetProvider, IUrlEncoder urlEncoder)
         {
             RepoSetProvider = repoSetProvider;
+            PersonSetProvider = personSetProvider;
             UrlEncoder = urlEncoder;
         }
 
         public IRepoSetProvider RepoSetProvider { get; }
+
+        public IPersonSetProvider PersonSetProvider { get; private set; }
 
         public IUrlEncoder UrlEncoder { get; }
 
@@ -86,22 +88,26 @@ namespace ProjectKIssueList.Controllers
         {
             // Authenticated and all claims have been read
 
-            var repos =
-                RepoSetProvider.RepoSetExists(repoSet ?? string.Empty)
-                ? RepoSetProvider.GetRepoSet(repoSet)
-                : RepoSetProvider.GetAllRepos();
+            if (!RepoSetProvider.RepoSetExists(repoSet))
+            {
+                return HttpNotFound();
+            }
+
+            var repos = RepoSetProvider.GetRepoSet(repoSet);
+            var personSetName = repos.AssociatedPersonSetName;
+            var personSet = PersonSetProvider.GetPersonSet(personSetName);
 
             var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, Task<IReadOnlyList<Issue>>>();
             var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, Task<IReadOnlyList<PullRequest>>>();
 
             var gitHubClient = GetGitHubClient(gitHubAccessToken);
 
-            Parallel.ForEach(repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Owner, repo.Name, gitHubClient));
-            Parallel.ForEach(repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Owner, repo.Name, gitHubClient));
+            Parallel.ForEach(repos.Repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Owner, repo.Name, gitHubClient));
+            Parallel.ForEach(repos.Repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Owner, repo.Name, gitHubClient));
 
             // while waiting for queries to run, do some other work...
 
-            var allReposQuery = GetRepoQuery(repos);
+            var allReposQuery = GetRepoQuery(repos.Repos);
 
             var openIssuesQuery = GetGitHubQuery("is:issue is:open " + allReposQuery + " " + GetExcludedMilestonesQuery());
             var workingIssuesQuery = GetGitHubQuery("is:issue is:open label:\"2 - Working\" " + allReposQuery);
@@ -124,6 +130,7 @@ namespace ProjectKIssueList.Controllers
                                 Issue = issue,
                                 Repo = issueList.Key,
                                 WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
+                                IsInAssociatedPersonSet = IsInAssociatedPersonSet(issue.Assignee?.Login, personSet),
                             }))
                 .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
                 .ToList();
@@ -140,6 +147,7 @@ namespace ProjectKIssueList.Controllers
                     {
                         PullRequest = pullRequest,
                         Repo = pullRequestList.Key,
+                        IsInAssociatedPersonSet = IsInAssociatedPersonSet(pullRequest.User?.Login, personSet),
                     }))
                     .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
                     .ToList();
@@ -155,7 +163,7 @@ namespace ProjectKIssueList.Controllers
                 WorkingIssues = workingIssues.Count,
                 UntriagedIssues = untriagedIssues.Count,
 
-                ReposIncluded = repos.OrderBy(repo => repo.Owner.ToLowerInvariant()).ThenBy(repo => repo.Name.ToLowerInvariant()).ToArray(),
+                ReposIncluded = repos.Repos.OrderBy(repo => repo.Owner.ToLowerInvariant()).ThenBy(repo => repo.Name.ToLowerInvariant()).ToArray(),
 
                 OpenIssuesQuery = openIssuesQuery,
                 WorkingIssuesQuery = workingIssuesQuery,
@@ -172,6 +180,7 @@ namespace ProjectKIssueList.Controllers
                                 new GroupByAssigneeAssignee
                                 {
                                     Assignee = group.Key,
+                                    IsInAssociatedPersonSet = IsInAssociatedPersonSet(group.Key, personSet),
                                     Issues = group.ToList().AsReadOnly(),
                                 })
                             .OrderBy(group => group.Assignee, StringComparer.OrdinalIgnoreCase)
@@ -213,6 +222,21 @@ namespace ProjectKIssueList.Controllers
 
                 PullRequests = allPullRequests,
             });
+        }
+
+        private static bool IsInAssociatedPersonSet(string userLogin, PersonSet personSet)
+        {
+            if (personSet == null)
+            {
+                // If there's no person set, assume the person is in
+                return true;
+            }
+            if (userLogin == null)
+            {
+                // If there's no assignee, mark the person as out
+                return false;
+            }
+            return personSet.People.Contains(userLogin, StringComparer.OrdinalIgnoreCase);
         }
 
         private string GetExcludedMilestonesQuery()

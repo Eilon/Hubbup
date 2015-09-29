@@ -34,6 +34,7 @@ namespace ProjectKIssueList
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddInstance<IRepoSetProvider>(new StaticRepoSetProvider());
+            services.AddInstance<IPersonSetProvider>(new StaticPersonSetProvider());
 
             services.AddCaching();
 

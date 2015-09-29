@@ -71,7 +71,7 @@
                                 <ul class="list-group">
                                     @foreach (var issue in assignee.Issues)
                                     {
-                                        <li class="list-group-item">
+                                        <li class="list-group-item" style="@(issue.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
                                             @await Html.PartialAsync("_Issue", issue)
                                         </li>
                                     }
@@ -100,7 +100,7 @@
                                 <ul class="list-group">
                                     @foreach (var issue in milestone.Issues)
                                     {
-                                        <li class="list-group-item">
+                                        <li class="list-group-item" style="@(issue.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
                                             @await Html.PartialAsync("_Issue", issue)
                                         </li>
                                     }
@@ -129,7 +129,7 @@
                                 <ul class="list-group">
                                     @foreach (var issue in repo.Issues)
                                     {
-                                        <li class="list-group-item">
+                                        <li class="list-group-item" style="@(issue.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
                                             @await Html.PartialAsync("_Issue", issue)
                                         </li>
                                     }
@@ -154,8 +154,8 @@
                 {
                     <ul class="list-group">
                         @foreach (var pullRequest in Model.PullRequests)
-                {
-                            <li class="list-group-item">
+                        {
+                            <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
                                 @await Html.PartialAsync("_PullRequest", pullRequest)
                             </li>
                         }

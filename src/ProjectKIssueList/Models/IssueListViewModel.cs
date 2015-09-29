@@ -9,12 +9,14 @@ namespace ProjectKIssueList.Models
         public Issue Issue { get; set; }
         public RepoDefinition Repo { get; set; }
         public DateTimeOffset? WorkingStartTime { get; set; }
+        public bool IsInAssociatedPersonSet { get; set; }
     }
 
     public class PullRequestWithRepo
     {
         public PullRequest PullRequest { get; set; }
         public RepoDefinition Repo { get; set; }
+        public bool IsInAssociatedPersonSet { get; set; }
     }
 
     public class IssueListViewModel
@@ -47,6 +49,7 @@ namespace ProjectKIssueList.Models
     public class GroupByAssigneeAssignee
     {
         public string Assignee { get; set; }
+        public bool IsInAssociatedPersonSet { get; set; }
         public IReadOnlyList<IssueWithRepo> Issues { get; set; }
     }
 

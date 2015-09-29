@@ -6,6 +6,6 @@ namespace ProjectKIssueList.Models
     {
         public string GitHubUserName { get; set; }
         public string[] RepoSetNames { get; set; }
-        public IDictionary<string, RepoDefinition[]> RepoSetLists { get; set; }
+        public IDictionary<string, RepoSetDefinition> RepoSetLists { get; set; }
     }
 }

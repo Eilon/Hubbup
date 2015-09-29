@@ -67,7 +67,7 @@ namespace ProjectKIssueList.Models
 
         public PersonSet GetPersonSet(string personSetName)
         {
-            return PersonSetList.GetValueNoThrow(personSetName);
+            return PersonSetList.GetValueOrDefault(personSetName);
         }
     }
 }

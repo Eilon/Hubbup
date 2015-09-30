@@ -104,10 +104,18 @@ namespace ProjectKIssueList.Models
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
                     Repos = new RepoDefinition[] {
-                        new RepoDefinition("aspnet", "Docs"),
-                        new RepoDefinition("aspnet", "Docs-internal"),
                         new RepoDefinition("aspnet", "Home"),
                         new RepoDefinition("aspnet", "NerdDinner"),
+                    },
+                }
+            },
+            {
+                "docs",
+                new RepoSetDefinition {
+                    AssociatedPersonSetName = "Docs",
+                    Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "Docs"),
+                        new RepoDefinition("aspnet", "Docs-internal"),
                     },
                 }
             },

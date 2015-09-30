@@ -76,6 +76,24 @@ namespace ProjectKIssueList.Models
                     }
                 }
             },
+            {
+                "NuGet",
+                new PersonSet {
+                    People = new string[]
+                    {
+                        "danliu",
+                        "deepakaravindr",
+                        "emgarten",
+                        "feiling",
+                        "johntaylor",
+                        "MeniZalzman",
+                        "RanjiniM",
+                        "xavierdecoster",
+                        "yishaigalatzer",
+                        "zhili1208",
+                    }
+                }
+            },
         };
 
         public PersonSet GetPersonSet(string personSetName)

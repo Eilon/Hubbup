@@ -37,19 +37,27 @@ namespace ProjectKIssueList.Controllers
             return ghc;
         }
 
-        private Task<IReadOnlyList<Issue>> GetIssuesForRepo(string owner, string repo, GitHubClient gitHubClient)
+        private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(string owner, string repo, GitHubClient gitHubClient)
         {
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
                 State = ItemState.Open,
             };
 
-            return gitHubClient.Issue.GetAllForRepository(owner, repo, repositoryIssueRequest);
+            return new RepoTask<IReadOnlyList<Issue>>
+            {
+                Repo = new RepoDefinition(owner, repo),
+                Task = gitHubClient.Issue.GetAllForRepository(owner, repo, repositoryIssueRequest),
+            };
         }
 
-        private Task<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string owner, string repo, GitHubClient gitHubClient)
+        private RepoTask<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string owner, string repo, GitHubClient gitHubClient)
         {
-            return gitHubClient.PullRequest.GetAllForRepository(owner, repo);
+            return new RepoTask<IReadOnlyList<PullRequest>>
+            {
+                Repo = new RepoDefinition(owner, repo),
+                Task = gitHubClient.PullRequest.GetAllForRepository(owner, repo),
+            };
         }
 
         private static readonly string[] ExcludedMilestones = new[] {
@@ -97,8 +105,8 @@ namespace ProjectKIssueList.Controllers
             var personSetName = repos.AssociatedPersonSetName;
             var personSet = PersonSetProvider.GetPersonSet(personSetName);
 
-            var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, Task<IReadOnlyList<Issue>>>();
-            var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, Task<IReadOnlyList<PullRequest>>>();
+            var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<Issue>>>();
+            var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<PullRequest>>>();
 
             var gitHubClient = GetGitHubClient(gitHubAccessToken);
 
@@ -117,12 +125,48 @@ namespace ProjectKIssueList.Controllers
 
             // now wait for queries to finish executing
 
-            Task.WaitAll(allIssuesByRepo.Select(x => x.Value).ToArray());
-            Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value).ToArray());
+            try
+            {
+                Task.WaitAll(allIssuesByRepo.Select(x => x.Value.Task).ToArray());
+            }
+            catch (AggregateException)
+            {
+                // Just hide the exceptions here - faulted tasks will be aggregated later
+            }
+
+            try
+            {
+                Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value.Task).ToArray());
+            }
+            catch (AggregateException)
+            {
+                // Just hide the exceptions here - faulted tasks will be aggregated later
+            }
+
+            var repoFailures = new List<RepoFailure>();
+            repoFailures.AddRange(
+                allIssuesByRepo
+                    .Where(repoTask => repoTask.Value.Task.IsFaulted)
+                    .Select(repoTask =>
+                        new RepoFailure
+                        {
+                            Repo = repoTask.Key,
+                            FailureMessage = string.Format("Issues couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
+                        }));
+            repoFailures.AddRange(
+                allPullRequestsByRepo
+                    .Where(repoTask => repoTask.Value.Task.IsFaulted)
+                    .Select(repoTask =>
+                        new RepoFailure
+                        {
+                            Repo = repoTask.Key,
+                            FailureMessage = string.Format("Pull requests couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
+                        }));
 
             var allIssues = allIssuesByRepo
-                .SelectMany(
-                    issueList => issueList.Value.Result
+                .Where(repoTask => !repoTask.Value.Task.IsFaulted)
+                .SelectMany(issueList =>
+                    issueList.Value.Task.Result
                         .Where(issue => !IsExcludedMilestone(issue.Milestone?.Title) && issue.PullRequest == null)
                         .Select(
                             issue => new IssueWithRepo
@@ -141,19 +185,24 @@ namespace ProjectKIssueList.Controllers
             var untriagedIssues = allIssues
                 .Where(issue => issue.Issue.Milestone == null).ToList();
 
-            var allPullRequests = allPullRequestsByRepo.SelectMany(
-                pullRequestList => pullRequestList.Value.Result.Select(
-                    pullRequest => new PullRequestWithRepo
-                    {
-                        PullRequest = pullRequest,
-                        Repo = pullRequestList.Key,
-                        IsInAssociatedPersonSet = IsInAssociatedPersonSet(pullRequest.User?.Login, personSet),
-                    }))
-                    .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
-                    .ToList();
+            var allPullRequests = allPullRequestsByRepo
+                .Where(repoTask => !repoTask.Value.Task.IsFaulted)
+                .SelectMany(pullRequestList =>
+                    pullRequestList.Value.Task.Result
+                        .Select(pullRequest =>
+                            new PullRequestWithRepo
+                            {
+                                PullRequest = pullRequest,
+                                Repo = pullRequestList.Key,
+                                IsInAssociatedPersonSet = IsInAssociatedPersonSet(pullRequest.User?.Login, personSet),
+                            }))
+                .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
+                .ToList();
 
             return View(new IssueListViewModel
             {
+                RepoFailures = repoFailures,
+
                 GitHubUserName = gitHubName,
 
                 RepoSetName = repoSet,
@@ -262,6 +311,12 @@ namespace ProjectKIssueList.Controllers
             const string GitHubQueryPrefix = "https://github.com/search?q=";
 
             return GitHubQueryPrefix + UrlEncoder.UrlEncode(rawQuery) + " &s=updated";
+        }
+
+        private class RepoTask<TTaskResult>
+        {
+            public RepoDefinition Repo { get; set; }
+            public Task<TTaskResult> Task { get; set; }
         }
     }
 }

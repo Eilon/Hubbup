@@ -21,6 +21,8 @@ namespace ProjectKIssueList.Models
 
     public class IssueListViewModel
     {
+        public List<RepoFailure> RepoFailures { get; set; }
+
         public string GitHubUserName { get; set; }
         public string RepoSetName { get; set; }
         public string[] RepoSetNames { get; set; }

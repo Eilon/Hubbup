@@ -35,6 +35,11 @@
     </div>
 </div>
 
+@foreach (var repoFailure in Model.RepoFailures)
+{
+    <div class="alert alert-danger"><strong>@repoFailure.Repo.Owner/@repoFailure.Repo.Name</strong>: @repoFailure.FailureMessage</div>
+}
+
 <div class="row">
     <div class="col-md-2 col-md-push-10">
         <h3>Issues</h3>

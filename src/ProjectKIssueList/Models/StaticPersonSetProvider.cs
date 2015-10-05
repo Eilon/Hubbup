@@ -64,6 +64,20 @@ namespace ProjectKIssueList.Models
                 }
             },
             {
+                "perfers",
+                new PersonSet {
+                    People = new string[]
+                    {
+                        "davidfowl",
+                        "halter73",
+                        "loudej",
+                        "lodejard",
+                        "rynowak",
+                        "Tratcher",
+                    }
+                }
+            },
+            {
                 "Docs",
                 new PersonSet {
                     People = new string[]

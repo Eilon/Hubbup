@@ -167,7 +167,11 @@ namespace ProjectKIssueList.Controllers
                 .Where(repoTask => !repoTask.Value.Task.IsFaulted)
                 .SelectMany(issueList =>
                     issueList.Value.Task.Result
-                        .Where(issue => !IsExcludedMilestone(issue.Milestone?.Title) && issue.PullRequest == null)
+                        .Where(
+                            issue =>
+                                !IsExcludedMilestone(issue.Milestone?.Title) &&
+                                issue.PullRequest == null &&
+                                IsFilteredIssue(issue, repos))
                         .Select(
                             issue => new IssueWithRepo
                             {
@@ -271,6 +275,17 @@ namespace ProjectKIssueList.Controllers
 
                 PullRequests = allPullRequests,
             });
+        }
+
+        private static bool IsFilteredIssue(Issue issue, RepoSetDefinition repos)
+        {
+            if (repos.LabelFilter == null)
+            {
+                // If there's no label filter, allow all items
+                return true;
+            }
+
+            return issue.Labels.Any(label => label.Name == repos.LabelFilter);
         }
 
         private static bool IsInAssociatedPersonSet(string userLogin, PersonSet personSet)

@@ -53,6 +53,7 @@ namespace ProjectKIssueList.Models
         public string Assignee { get; set; }
         public bool IsInAssociatedPersonSet { get; set; }
         public IReadOnlyList<IssueWithRepo> Issues { get; set; }
+        public IReadOnlyList<IssueWithRepo> OtherIssues { get; set; }
     }
 
     public class GroupByMilestoneViewModel

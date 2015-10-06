@@ -84,8 +84,31 @@
                             }
                             else
                             {
-                                @* TODO: Is this needed? There wouldn't be an assignee if they have no issues... *@
-                                <h3>No issues assigned</h3>
+                                <h4>Not working on any assigned issues</h4>
+                            }
+
+                            @if (assignee.OtherIssues.Any())
+                            {
+                                <div>
+                                    <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#collapse-otherissues-@assignee.Assignee">
+                                        Other assigned issues <span class="badge">@assignee.OtherIssues.Count</span>
+                                    </button>
+                                </div>
+
+                                <div class="collapse" id="collapse-otherissues-@assignee.Assignee" style="margin-top:10px">
+                                    <ul class="list-group">
+                                        @foreach (var issue in assignee.OtherIssues)
+                                        {
+                                            <li class="list-group-item" style="@(issue.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
+                                                @await Html.PartialAsync("_Issue", issue)
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            else
+                            {
+                                <h4>No other assigned issues</h4>
                             }
                         </div>
                     </div>
@@ -114,7 +137,7 @@
                             else
                             {
                                 @* TODO: Is this needed? There wouldn't be an milestone if it has no issues... *@
-                                <h3>No issues in this milestone</h3>
+                                <h3>Not working on issues in this milestone</h3>
                             }
                         </div>
                     </div>
@@ -142,7 +165,7 @@
                             }
                             else
                             {
-                                <h3>No issues in this repo</h3>
+                                <h3>Not working on issues in this repo</h3>
                             }
                         </div>
                     </div>

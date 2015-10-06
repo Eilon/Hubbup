@@ -229,14 +229,24 @@ namespace ProjectKIssueList.Controllers
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {
                     Assignees =
-                        workingIssues
-                            .GroupBy(issue => issue.Issue.Assignee?.Login)
-                            .Select(group =>
+                        personSet.People
+                            .Concat(allIssues.Select(issueWithRepo => issueWithRepo.Issue.Assignee?.Login))
+                            .Distinct()
+                            .Select(person =>
                                 new GroupByAssigneeAssignee
                                 {
-                                    Assignee = group.Key,
-                                    IsInAssociatedPersonSet = IsInAssociatedPersonSet(group.Key, personSet),
-                                    Issues = group.ToList().AsReadOnly(),
+                                    Assignee = person,
+                                    IsInAssociatedPersonSet = IsInAssociatedPersonSet(person, personSet),
+                                    Issues = workingIssues
+                                        .Where(workingIssue =>
+                                            workingIssue.Issue.Assignee?.Login == person)
+                                        .ToList(),
+                                    OtherIssues = allIssues
+                                        .Where(issue =>
+                                            issue.Issue.Assignee?.Login == person)
+                                        .Except(workingIssues)
+                                        .OrderBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
+                                        .ToList(),
                                 })
                             .OrderBy(group => group.Assignee, StringComparer.OrdinalIgnoreCase)
                             .ToList()

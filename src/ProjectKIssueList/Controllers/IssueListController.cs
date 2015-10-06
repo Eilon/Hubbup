@@ -117,11 +117,13 @@ namespace ProjectKIssueList.Controllers
 
             var allReposQuery = GetRepoQuery(repos.Repos);
 
-            var openIssuesQuery = GetGitHubQuery("is:issue is:open " + allReposQuery + " " + GetExcludedMilestonesQuery());
-            var workingIssuesQuery = GetGitHubQuery("is:issue is:open label:\"2 - Working\" " + allReposQuery);
-            var untriagedIssuesQuery = GetGitHubQuery("is:issue is:open no:milestone " + allReposQuery);
-            var openPRsQuery = GetGitHubQuery("is:pr is:open " + allReposQuery);
-            var stalePRsQuery = GetGitHubQuery("is:pr is:open created:<=" + GetStalePRDate() + " " + allReposQuery);
+            var labelQuery = GetLabelQuery(repos.LabelFilter);
+
+            var openIssuesQuery = GetGitHubQuery("is:issue", "is:open", allReposQuery, GetExcludedMilestonesQuery(), labelQuery);
+            var workingIssuesQuery = GetGitHubQuery("is:issue", "is:open", "label:\"2 - Working\"", allReposQuery, labelQuery);
+            var untriagedIssuesQuery = GetGitHubQuery("is:issue", "is:open", "no:milestone", allReposQuery, labelQuery);
+            var openPRsQuery = GetGitHubQuery("is:pr", "is:open", allReposQuery);
+            var stalePRsQuery = GetGitHubQuery("is:pr", "is:open", "created:<=" + GetStalePRDate(), allReposQuery);
 
             // now wait for queries to finish executing
 
@@ -277,6 +279,15 @@ namespace ProjectKIssueList.Controllers
             });
         }
 
+        private string GetLabelQuery(string labelFilter)
+        {
+            if (string.IsNullOrEmpty(labelFilter))
+            {
+                return string.Empty;
+            }
+            return "label:" + labelFilter;
+        }
+
         private static bool IsFilteredIssue(Issue issue, RepoSetDefinition repos)
         {
             if (repos.LabelFilter == null)
@@ -321,11 +332,11 @@ namespace ProjectKIssueList.Controllers
             return string.Join(" ", repos.Select(repo => "repo:" + repo.Owner + "/" + repo.Name));
         }
 
-        private string GetGitHubQuery(string rawQuery)
+        private string GetGitHubQuery(params string[] rawQueryParts)
         {
             const string GitHubQueryPrefix = "https://github.com/search?q=";
 
-            return GitHubQueryPrefix + UrlEncoder.UrlEncode(rawQuery) + " &s=updated";
+            return GitHubQueryPrefix + UrlEncoder.UrlEncode(string.Join(" ", rawQueryParts)) + "&s=updated";
         }
 
         private class RepoTask<TTaskResult>

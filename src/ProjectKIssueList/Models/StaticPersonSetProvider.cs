@@ -18,6 +18,7 @@ namespace ProjectKIssueList.Models
                         "kirthik",
                         "NTaylorMullen",
                         "pranavkm",
+                        "ryanbrandenburg",
                         "rynowak",
                     }
                 }
@@ -37,6 +38,7 @@ namespace ProjectKIssueList.Models
                         "lodejard",
                         "moozzyk",
                         "muratg",
+                        "pakrym",
                         "Tratcher",
                         "troydai",
                         "victorhurdugaci",

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.WebEncoders;
+using NuGet;
 using Octokit;
 using Octokit.Internal;
 using ProjectKIssueList.Models;
@@ -251,7 +252,9 @@ namespace ProjectKIssueList.Controllers
                                         .Where(issue =>
                                             issue.Issue.Assignee?.Login == person)
                                         .Except(workingIssues)
-                                        .OrderBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
+                                        .OrderBy(issueWithRepo => new PossibleSemanticVersion(issueWithRepo.Issue.Milestone?.Title))
+                                        .ThenBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
+                                        .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
                                         .ToList(),
                                 })
                             .ToList()
@@ -358,6 +361,60 @@ namespace ProjectKIssueList.Controllers
         {
             public RepoDefinition Repo { get; set; }
             public Task<TTaskResult> Task { get; set; }
+        }
+
+        /// <summary>
+        /// Container for comparing milestones that might be semantic versions, or
+        /// might be arbitrary strings.
+        /// </summary>
+        private class PossibleSemanticVersion : IComparable<PossibleSemanticVersion>
+        {
+            public PossibleSemanticVersion(string possibleSemanticVersion)
+            {
+                SemanticVersion semanticVersion;
+                if (SemanticVersion.TryParse(possibleSemanticVersion, out semanticVersion))
+                {
+                    SemanticVersion = semanticVersion;
+                }
+                else
+                {
+                    NonSemanticVersion = possibleSemanticVersion;
+                }
+            }
+
+            public string NonSemanticVersion { get; }
+
+            public SemanticVersion SemanticVersion { get; }
+
+            public int CompareTo(PossibleSemanticVersion other)
+            {
+                if (other == null)
+                {
+                    return 1;
+                }
+
+                if (SemanticVersion != null)
+                {
+                    if (other.SemanticVersion != null)
+                    {
+                        return SemanticVersion.CompareTo(other.SemanticVersion);
+                    }
+                    else
+                    {
+                        return 1;
+                    }
+                }
+                else
+                {
+                    if (other.SemanticVersion != null)
+                    {
+                        return -1;
+                    else
+                    {
+                        return string.Compare(NonSemanticVersion, other.NonSemanticVersion, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+            }
         }
     }
 }

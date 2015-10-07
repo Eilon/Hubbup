@@ -105,6 +105,7 @@ namespace ProjectKIssueList.Controllers
             var repos = RepoSetProvider.GetRepoSet(repoSet);
             var personSetName = repos.AssociatedPersonSetName;
             var personSet = PersonSetProvider.GetPersonSet(personSetName);
+            var peopleInPersonSet = personSet?.People ?? new string[0];
 
             var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<Issue>>>();
             var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<PullRequest>>>();
@@ -230,13 +231,12 @@ namespace ProjectKIssueList.Controllers
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {
                     Assignees =
-                        personSet
-                            .People
+                        peopleInPersonSet
                             .OrderBy(person => person, StringComparer.OrdinalIgnoreCase)
                             .Concat(
                                 allIssues
                                     .Select(issueWithRepo => issueWithRepo.Issue.Assignee?.Login)
-                                    .Except(personSet.People, StringComparer.OrdinalIgnoreCase)
+                                    .Except(peopleInPersonSet, StringComparer.OrdinalIgnoreCase)
                                     .OrderBy(person => person, StringComparer.OrdinalIgnoreCase))
                             .Distinct()
                             .Select(person =>
@@ -409,6 +409,7 @@ namespace ProjectKIssueList.Controllers
                     if (other.SemanticVersion != null)
                     {
                         return -1;
+                    }
                     else
                     {
                         return string.Compare(NonSemanticVersion, other.NonSemanticVersion, StringComparison.OrdinalIgnoreCase);

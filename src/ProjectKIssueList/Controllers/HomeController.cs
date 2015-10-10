@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.AspNet.Mvc;
 using ProjectKIssueList.Models;
+using ProjectKIssueList.ViewModels;
 
 namespace ProjectKIssueList.Controllers
 {

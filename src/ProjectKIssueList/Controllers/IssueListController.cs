@@ -11,6 +11,7 @@ using Octokit;
 using Octokit.Internal;
 using ProjectKIssueList.Models;
 using ProjectKIssueList.Utils;
+using ProjectKIssueList.ViewModels;
 
 namespace ProjectKIssueList.Controllers
 {

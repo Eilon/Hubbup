@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using ProjectKIssueList.Models;
 
-namespace ProjectKIssueList.Models
+namespace ProjectKIssueList.ViewModels
 {
     public class HomeViewModel
     {

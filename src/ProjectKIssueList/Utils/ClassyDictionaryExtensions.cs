@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ProjectKIssueList.Models
+namespace ProjectKIssueList.Utils
 {
     public static class ClassyDictionaryExtensions
     {

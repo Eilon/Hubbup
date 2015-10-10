@@ -15,7 +15,7 @@ namespace ProjectKIssueList.ViewModels
         public int TotalIssues { get; set; }
         public object WorkingIssues { get; set; }
         public object UntriagedIssues { get; set; }
-        public RepoDefinition[] ReposIncluded { get; set; }
+        public List<RepoSummary> ReposIncluded { get; set; }
 
         public string OpenIssuesQuery { get; set; }
         public string WorkingIssuesQuery { get; set; }

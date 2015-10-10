@@ -17,7 +17,7 @@
     </div>
     <div class="col-md-4 text-right">
         <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#collapseExample">
-            Included repos <span class="badge">@Model.ReposIncluded.Length</span>
+            Included repos <span class="badge">@Model.ReposIncluded.Count</span>
         </button>
     </div>
 </div>
@@ -26,12 +26,31 @@
 
 <div class="collapse" id="collapseExample">
     <div class="well">
-        <ol>
-            @foreach (var repo in Model.ReposIncluded)
-            {
-                <li><a href="https://github.com/@repo.Owner/@repo.Name/issues">@repo.Owner/@repo.Name</a></li>
-            }
-        </ol>
+        <table class="table table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>Repo</th>
+                    <th># open</th>
+                    <th># unassigned</th>
+                    <th># working</th>
+                    <th>Open PRs</th>
+                    <th>Stale PRs</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var repo in Model.ReposIncluded)
+                {
+                    <tr>
+                        <td><a href="https://github.com/@repo.Repo.Owner/@repo.Repo.Name/issues">@repo.Repo.Owner/@repo.Repo.Name</a></td>
+                        <td class="@(repo.OpenIssues > 0 ? "success" : "")">@repo.OpenIssues</td>
+                        <td class="@(repo.UnassignedIssues > 0 ? "success" : "")">@repo.UnassignedIssues</td>
+                        <td class="@(repo.WorkingIssues > 0 ? "success" : "")">@repo.WorkingIssues</td>
+                        <td class="@(repo.OpenPRs > 0 ? "success" : "")">@repo.OpenPRs</td>
+                        <td class="@(repo.StalePRs > 0 ? "danger" : "")">@repo.StalePRs</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 

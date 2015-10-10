@@ -222,7 +222,19 @@ namespace ProjectKIssueList.Controllers
                 WorkingIssues = workingIssues.Count,
                 UntriagedIssues = untriagedIssues.Count,
 
-                ReposIncluded = repos.Repos.OrderBy(repo => repo.Owner.ToLowerInvariant()).ThenBy(repo => repo.Name.ToLowerInvariant()).ToArray(),
+                ReposIncluded = repos.Repos
+                    .OrderBy(repo => repo.Owner.ToLowerInvariant())
+                    .ThenBy(repo => repo.Name.ToLowerInvariant())
+                    .Select(repo => new RepoSummary
+                    {
+                        Repo = repo,
+                        OpenIssues = allIssues.Where(issue => issue.Repo == repo).Count(),
+                        UnassignedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Assignee == null).Count(),
+                        WorkingIssues = allIssues.Where(issue => issue.Repo == repo && workingIssues.Contains(issue)).Count(),
+                        OpenPRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo).Count(),
+                        StalePRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo && pullRequest.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
+                    })
+                    .ToList(),
 
                 OpenIssuesQuery = openIssuesQuery,
                 WorkingIssuesQuery = workingIssuesQuery,

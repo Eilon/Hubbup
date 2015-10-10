@@ -212,6 +212,7 @@ namespace ProjectKIssueList.Controllers
                 RepoFailures = repoFailures,
 
                 GitHubUserName = gitHubName,
+                LastUpdated = DateTimeOffset.Now.ToPacificTime().ToString(),
 
                 RepoSetName = repoSet,
                 RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),

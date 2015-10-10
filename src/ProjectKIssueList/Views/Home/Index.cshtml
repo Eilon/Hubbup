@@ -22,7 +22,7 @@
                             @foreach (var repo in repoSet.Value.Repos)
                             {
                                 <li class="list-group-item">
-                                    @repo.Owner/@repo.Name
+                                    <a href="https://github.com/@repo.Owner/@repo.Name/issues">@repo.Owner/@repo.Name</a>
                                 </li>
                             }
                         </ul>

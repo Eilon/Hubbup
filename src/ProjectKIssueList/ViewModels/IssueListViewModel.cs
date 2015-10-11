@@ -13,13 +13,15 @@ namespace ProjectKIssueList.ViewModels
         public string RepoSetName { get; set; }
         public string[] RepoSetNames { get; set; }
         public int TotalIssues { get; set; }
-        public object WorkingIssues { get; set; }
-        public object UntriagedIssues { get; set; }
+        public int UntriagedIssues { get; set; }
+        public int UnassignedIssues { get; set; }
+        public int WorkingIssues { get; set; }
         public List<RepoSummary> ReposIncluded { get; set; }
 
         public string OpenIssuesQuery { get; set; }
-        public string WorkingIssuesQuery { get; set; }
         public string UntriagedIssuesQuery { get; set; }
+        public string UnassignedIssuesQuery { get; set; }
+        public string WorkingIssuesQuery { get; set; }
         public string OpenPRsQuery { get; set; }
         public string StalePRsQuery { get; set; }
 

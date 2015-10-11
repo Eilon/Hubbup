@@ -118,15 +118,14 @@ namespace ProjectKIssueList.Controllers
 
             // while waiting for queries to run, do some other work...
 
-            var allReposQuery = GetRepoQuery(repos.Repos);
-
             var labelQuery = GetLabelQuery(repos.LabelFilter);
 
-            var openIssuesQuery = GetGitHubQuery("is:issue", "is:open", allReposQuery, GetExcludedMilestonesQuery(), labelQuery);
-            var workingIssuesQuery = GetGitHubQuery("is:issue", "is:open", "label:\"2 - Working\"", allReposQuery, labelQuery);
-            var untriagedIssuesQuery = GetGitHubQuery("is:issue", "is:open", "no:milestone", allReposQuery, labelQuery);
-            var openPRsQuery = GetGitHubQuery("is:pr", "is:open", allReposQuery);
-            var stalePRsQuery = GetGitHubQuery("is:pr", "is:open", "created:<=" + GetStalePRDate(), allReposQuery);
+            var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repos.Repos);
+            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.Repos);
+            var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repos.Repos);
+            var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, repos.Repos);
+            var openPRsQuery = GetOpenPRsQuery(repos.Repos);
+            var stalePRsQuery = GetStalePRsQuery(repos.Repos);
 
             // now wait for queries to finish executing
 
@@ -194,6 +193,9 @@ namespace ProjectKIssueList.Controllers
             var untriagedIssues = allIssues
                 .Where(issue => issue.Issue.Milestone == null).ToList();
 
+            var unassignedIssues = allIssues
+                .Where(issue => issue.Issue.Assignee == null).ToList();
+
             var allPullRequests = allPullRequestsByRepo
                 .Where(repoTask => !repoTask.Value.Task.IsFaulted)
                 .SelectMany(pullRequestList =>
@@ -221,6 +223,7 @@ namespace ProjectKIssueList.Controllers
                 TotalIssues = allIssues.Count,
                 WorkingIssues = workingIssues.Count,
                 UntriagedIssues = untriagedIssues.Count,
+                UnassignedIssues = unassignedIssues.Count,
 
                 ReposIncluded = repos.Repos
                     .OrderBy(repo => repo.Owner.ToLowerInvariant())
@@ -229,16 +232,24 @@ namespace ProjectKIssueList.Controllers
                     {
                         Repo = repo,
                         OpenIssues = allIssues.Where(issue => issue.Repo == repo).Count(),
+                        OpenIssuesQueryUrl = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repo),
                         UnassignedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Assignee == null).Count(),
+                        UnassignedIssuesQueryUrl = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repo),
+                        UntriagedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Milestone == null).Count(),
+                        UntriagedIssuesQueryUrl = GetUntriagedIssuesQuery(labelQuery, repo),
                         WorkingIssues = allIssues.Where(issue => issue.Repo == repo && workingIssues.Contains(issue)).Count(),
+                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, repo),
                         OpenPRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo).Count(),
+                        OpenPRsQueryUrl = GetOpenPRsQuery(repo),
                         StalePRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo && pullRequest.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
+                        StalePRsQueryUrl = GetStalePRsQuery(repo),
                     })
                     .ToList(),
 
                 OpenIssuesQuery = openIssuesQuery,
                 WorkingIssuesQuery = workingIssuesQuery,
                 UntriagedIssuesQuery = untriagedIssuesQuery,
+                UnassignedIssuesQuery = unassignedIssuesQuery,
                 OpenPRsQuery = openPRsQuery,
                 StalePRsQuery = stalePRsQuery,
 
@@ -359,7 +370,7 @@ namespace ProjectKIssueList.Controllers
             return stalePRDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
 
-        private static string GetRepoQuery(RepoDefinition[] repos)
+        private static string GetRepoQuery(params RepoDefinition[] repos)
         {
             return string.Join(" ", repos.Select(repo => "repo:" + repo.Owner + "/" + repo.Name));
         }
@@ -369,6 +380,36 @@ namespace ProjectKIssueList.Controllers
             const string GitHubQueryPrefix = "https://github.com/search?q=";
 
             return GitHubQueryPrefix + UrlEncoder.UrlEncode(string.Join(" ", rawQueryParts)) + "&s=updated";
+        }
+
+        private string GetOpenIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)
+        {
+            return GetGitHubQuery("is:issue", "is:open", GetRepoQuery(repos), excludedMilestonesQuery, labelQuery);
+        }
+
+        private string GetWorkingIssuesQuery(string labelQuery, params RepoDefinition[] repos)
+        {
+            return GetGitHubQuery("is:issue", "is:open", "label:\"2 - Working\"", GetRepoQuery(repos), labelQuery);
+        }
+
+        private string GetUntriagedIssuesQuery(string labelQuery, params RepoDefinition[] repos)
+        {
+            return GetGitHubQuery("is:issue", "is:open", "no:milestone", GetRepoQuery(repos), labelQuery);
+        }
+
+        private string GetUnassignedIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)
+        {
+            return GetGitHubQuery("is:issue", "is:open", "no:assignee", GetRepoQuery(repos), excludedMilestonesQuery, labelQuery);
+        }
+
+        private string GetOpenPRsQuery(params RepoDefinition[] repos)
+        {
+            return GetGitHubQuery("is:pr", "is:open", GetRepoQuery(repos));
+        }
+
+        private string GetStalePRsQuery(params RepoDefinition[] repos)
+        {
+            return GetGitHubQuery("is:pr", "is:open", "created:<=" + GetStalePRDate(), GetRepoQuery(repos));
         }
 
         private class RepoTask<TTaskResult>

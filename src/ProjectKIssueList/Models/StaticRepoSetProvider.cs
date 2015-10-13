@@ -233,7 +233,10 @@ namespace ProjectKIssueList.Models
                     AssociatedPersonSetName = "corefx",
                     WorkingLabel = "2 - In Progress",
                     Repos = new RepoDefinition[] {
+                        new RepoDefinition("dotnet", "cli"),
+                        new RepoDefinition("dotnet", "CoreCLR"),
                         new RepoDefinition("dotnet", "corefx"),
+                        new RepoDefinition("dotnet", "wcf"),
                     },
                 }
             },

@@ -66,6 +66,7 @@ namespace ProjectKIssueList.Controllers
             "Backlog",
             "Discussion",
             "Discussions",
+            "Future",
         };
 
         private static bool IsExcludedMilestone(string repoName)
@@ -73,9 +74,9 @@ namespace ProjectKIssueList.Controllers
             return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, GitHubClient gitHubClient)
+        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, string workingLabel, GitHubClient gitHubClient)
         {
-            if (!issue.Labels.Any(label => label.Name == "2 - Working"))
+            if (!issue.Labels.Any(label => string.Equals(label.Name, workingLabel, StringComparison.OrdinalIgnoreCase)))
             {
                 // Item isn't in Working state, so ignore it
                 return null;
@@ -83,7 +84,7 @@ namespace ProjectKIssueList.Controllers
 
             // Find all "labeled" events for this issue
             var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue(repo.Owner, repo.Name, issue.Number);
-            var labelEvent = issueEvents.LastOrDefault(issueEvent => issueEvent.Event == EventInfoState.Labeled && issueEvent.Label.Name == "2 - Working");
+            var labelEvent = issueEvents.LastOrDefault(issueEvent => issueEvent.Event == EventInfoState.Labeled && string.Equals(issueEvent.Label.Name, workingLabel, StringComparison.OrdinalIgnoreCase));
             if (labelEvent == null)
             {
                 // Couldn't find a "labeled" event where the Working label was added - probably a missing GitHub event?
@@ -121,7 +122,7 @@ namespace ProjectKIssueList.Controllers
             var labelQuery = GetLabelQuery(repos.LabelFilter);
 
             var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repos.Repos);
-            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.Repos);
+            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabel, repos.Repos);
             var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repos.Repos);
             var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, repos.Repos);
             var openPRsQuery = GetOpenPRsQuery(repos.Repos);
@@ -181,14 +182,14 @@ namespace ProjectKIssueList.Controllers
                             {
                                 Issue = issue,
                                 Repo = issueList.Key,
-                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, gitHubClient).Result,
+                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, repos.WorkingLabel, gitHubClient).Result,
                                 IsInAssociatedPersonSet = IsInAssociatedPersonSet(issue.Assignee?.Login, personSet),
                             }))
                 .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
                 .ToList();
 
             var workingIssues = allIssues
-                .Where(issue => issue.Issue.Labels.Any(label => label.Name == "2 - Working")).ToList();
+                .Where(issue => issue.Issue.Labels.Any(label => string.Equals(label.Name, repos.WorkingLabel, StringComparison.OrdinalIgnoreCase))).ToList();
 
             var untriagedIssues = allIssues
                 .Where(issue => issue.Issue.Milestone == null).ToList();
@@ -238,7 +239,7 @@ namespace ProjectKIssueList.Controllers
                         UntriagedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Milestone == null).Count(),
                         UntriagedIssuesQueryUrl = GetUntriagedIssuesQuery(labelQuery, repo),
                         WorkingIssues = allIssues.Where(issue => issue.Repo == repo && workingIssues.Contains(issue)).Count(),
-                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, repo),
+                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabel, repo),
                         OpenPRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo).Count(),
                         OpenPRsQueryUrl = GetOpenPRsQuery(repo),
                         StalePRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo && pullRequest.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
@@ -387,9 +388,9 @@ namespace ProjectKIssueList.Controllers
             return GetGitHubQuery("is:issue", "is:open", GetRepoQuery(repos), excludedMilestonesQuery, labelQuery);
         }
 
-        private string GetWorkingIssuesQuery(string labelQuery, params RepoDefinition[] repos)
+        private string GetWorkingIssuesQuery(string labelQuery, string workingLabel, params RepoDefinition[] repos)
         {
-            return GetGitHubQuery("is:issue", "is:open", "label:\"2 - Working\"", GetRepoQuery(repos), labelQuery);
+            return GetGitHubQuery("is:issue", "is:open", $"label:\"{workingLabel}\"", GetRepoQuery(repos), labelQuery);
         }
 
         private string GetUntriagedIssuesQuery(string labelQuery, params RepoDefinition[] repos)

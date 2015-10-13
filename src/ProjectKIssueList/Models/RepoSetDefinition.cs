@@ -6,6 +6,8 @@
 
         public string AssociatedPersonSetName { get; set; }
 
+        public string WorkingLabel { get; set; }
+
         public string LabelFilter { get; set; }
     }
 }

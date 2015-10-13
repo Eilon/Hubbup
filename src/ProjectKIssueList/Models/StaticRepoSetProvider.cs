@@ -11,6 +11,7 @@ namespace ProjectKIssueList.Models
                 "kcore",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Murat",
+                    WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "aspnet-docker"),
                         new RepoDefinition("aspnet", "aspnet-win-docker"),
@@ -54,6 +55,7 @@ namespace ProjectKIssueList.Models
                 "mvc",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Eilon",
+                    WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Antiforgery"),
                         new RepoDefinition("aspnet", "aspnet.xunit"),
@@ -81,6 +83,7 @@ namespace ProjectKIssueList.Models
                 "data",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Diego",
+                    WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Configuration"),
                         new RepoDefinition("aspnet", "EntityFramework"),
@@ -96,6 +99,7 @@ namespace ProjectKIssueList.Models
                 "pm",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
+                    WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Home"),
                         new RepoDefinition("aspnet", "NerdDinner"),
@@ -106,6 +110,7 @@ namespace ProjectKIssueList.Models
                 "docs",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Docs",
+                    WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Docs"),
                         new RepoDefinition("aspnet", "Docs-internal"),
@@ -116,6 +121,7 @@ namespace ProjectKIssueList.Models
                 "engineering",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
+                    WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Announcements"),
                         new RepoDefinition("aspnet", "BugTracker"),
@@ -138,6 +144,7 @@ namespace ProjectKIssueList.Models
                 "k-perf",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "perfers",
+                    WorkingLabel = "2 - Working",
                     LabelFilter = "Perf",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "aspnet-docker"),
@@ -208,6 +215,7 @@ namespace ProjectKIssueList.Models
                 "nuget",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "NuGet",
+                    WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("nuget", "Engineering"),
                         new RepoDefinition("nuget", "Home"),
@@ -216,6 +224,16 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("nuget", "NuGet.Client"),
                         new RepoDefinition("nuget", "NuGet.PackageManagement"),
                         new RepoDefinition("nuget", "NuGet.VisualStudioExtension"),
+                    },
+                }
+            },
+            {
+                "corefx",
+                new RepoSetDefinition {
+                    AssociatedPersonSetName = "corefx",
+                    WorkingLabel = "2 - In Progress",
+                    Repos = new RepoDefinition[] {
+                        new RepoDefinition("dotnet", "corefx"),
                     },
                 }
             },

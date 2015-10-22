@@ -53,6 +53,36 @@
                 }
             </tbody>
         </table>
+
+        <table class="table table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>Repo</th>
+                    @foreach (var milestone in Model.MilestonesAvailable)
+                    {
+                        <th>@(milestone ?? "<no milestone>")</th>
+                    }
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var repoMilestone in Model.MilestoneSummary)
+                {
+                    <tr>
+                        <td><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues">@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name</a></td>
+                        @foreach (var milestone in Model.MilestonesAvailable)
+                        {
+                            var issuesInRepoMilestone = repoMilestone.MilestoneData.SingleOrDefault(repoMilestoneData => repoMilestoneData.Milestone == milestone)?.OpenIssues ?? 0;
+                            <td class="@(issuesInRepoMilestone > 0 ? "success" : "")"><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues?q=is:open%20is:issue%20milestone:@milestone">@issuesInRepoMilestone</a></td>
+                        }
+                        @{
+                            var total = repoMilestone.MilestoneData.Select(milestoneData => milestoneData.OpenIssues).Sum();
+                        }
+                        <td class="@(total > 0 ? "success" : "")">@total</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -73,7 +103,7 @@
         <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not assigned">
             <a href="@Model.UnassignedIssuesQuery">Unassigned</a> <span class="badge">@Model.UnassignedIssues</span>
         </div>
-       <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues with '2 - Working' label">
+        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues with '2 - Working' label">
             <a href="@Model.WorkingIssuesQuery">Working</a> <span class="badge">@Model.WorkingIssues</span>
         </div>
         <h3>PRs</h3>

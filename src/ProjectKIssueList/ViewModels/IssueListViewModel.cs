@@ -17,6 +17,8 @@ namespace ProjectKIssueList.ViewModels
         public int UnassignedIssues { get; set; }
         public int WorkingIssues { get; set; }
         public List<RepoSummary> ReposIncluded { get; set; }
+        public List<MilestoneSummary> MilestoneSummary { get; set; }
+        public List<string> MilestonesAvailable { get; set; }
 
         public string OpenIssuesQuery { get; set; }
         public string UntriagedIssuesQuery { get; set; }

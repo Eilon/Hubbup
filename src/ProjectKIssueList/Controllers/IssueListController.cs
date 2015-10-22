@@ -211,6 +211,30 @@ namespace ProjectKIssueList.Controllers
                 .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
                 .ToList();
 
+
+            var milestoneData = repos.Repos
+                .Select(repo =>
+                    new MilestoneSummary()
+                    {
+                        Repo = repo,
+                        MilestoneData = allIssues
+                            .Where(issue => issue.Repo == repo)
+                            .GroupBy(issue => issue.Issue.Milestone?.Title)
+                            .Select(issueMilestoneGroup => new MilestoneData
+                            {
+                                Milestone = issueMilestoneGroup.Key,
+                                OpenIssues = issueMilestoneGroup.Count(),
+                                // TODO: Need to add PullRequest.Milestone to Octokit
+                                //OpenPRs = allPullRequests.Where(pr => pr.Repo == repo && pr.PullRequest.Milestone?.Title == issueMilestoneGroup.Key),
+                            })
+                            .ToList(),
+                    });
+            var fullSortedMilestoneList = milestoneData
+                .SelectMany(milestone => milestone.MilestoneData)
+                .Select(milestone => milestone.Milestone)
+                .Distinct()
+                .OrderBy(milestone => new PossibleSemanticVersion(milestone));
+
             return View(new IssueListViewModel
             {
                 RepoFailures = repoFailures,
@@ -246,6 +270,9 @@ namespace ProjectKIssueList.Controllers
                         StalePRsQueryUrl = GetStalePRsQuery(repo),
                     })
                     .ToList(),
+
+                MilestoneSummary = milestoneData.ToList(),
+                MilestonesAvailable = fullSortedMilestoneList.ToList(),
 
                 OpenIssuesQuery = openIssuesQuery,
                 WorkingIssuesQuery = workingIssuesQuery,

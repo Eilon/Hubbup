@@ -13,12 +13,14 @@ namespace ProjectKIssueList.Models
                     AssociatedPersonSetName = "Murat",
                     WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "ApplicationAbstractions"),
                         new RepoDefinition("aspnet", "aspnet-docker"),
                         new RepoDefinition("aspnet", "aspnet-win-docker"),
                         new RepoDefinition("aspnet", "BasicMiddleware"),
                         new RepoDefinition("aspnet", "Caching"),
                         new RepoDefinition("aspnet", "Coherence"),
                         new RepoDefinition("aspnet", "Coherence-Signed"),
+                        new RepoDefinition("aspnet", "CompilationAbstractions"),
                         new RepoDefinition("aspnet", "CoreCLR"),
                         new RepoDefinition("aspnet", "DataProtection"),
                         new RepoDefinition("aspnet", "dnvm"),
@@ -71,6 +73,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "JsonPatch"),
                         new RepoDefinition("aspnet", "Localization"),
                         new RepoDefinition("aspnet", "MusicStore"),
+                        new RepoDefinition("aspnet", "MusicStoreAngular2"),
                         new RepoDefinition("aspnet", "Mvc"),
                         new RepoDefinition("aspnet", "NodeServices"),
                         new RepoDefinition("aspnet", "PackageSearch"),
@@ -117,13 +120,14 @@ namespace ProjectKIssueList.Models
                     AssociatedPersonSetName = "Docs",
                     WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "ApiDocs"),
                         new RepoDefinition("aspnet", "Docs"),
                         new RepoDefinition("aspnet", "Docs-internal"),
                     },
                 }
             },
             {
-                "engineering",
+                "k-engr",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
                     WorkingLabel = "2 - Working",
@@ -265,6 +269,8 @@ namespace ProjectKIssueList.Models
                     AssociatedPersonSetName = "",
                     WorkingLabel = "2 - In Progress",
                     Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "BrowserLink"),
+                        new RepoDefinition("aspnet", "Scaffolding"),
                         new RepoDefinition("aspnet", "Templates"),
                         new RepoDefinition("aspnet", "Tooling"),
                         new RepoDefinition("aspnet", "Tooling-Internal"),
@@ -281,6 +287,30 @@ namespace ProjectKIssueList.Models
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "WebHooks"),
                         new RepoDefinition("aspnet", "WebHooks-Signed"),
+                    },
+                }
+            },
+            {
+                "other",
+                new RepoSetDefinition {
+                    AssociatedPersonSetName = "",
+                    //WorkingLabel = "2 - In Progress",
+                    Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "docfx"),
+                        new RepoDefinition("aspnet", "docfx-signed"),
+                        new RepoDefinition("aspnet", "NuGet"),
+                        new RepoDefinition("aspnet", "NuGet.Prototypes"),
+                        new RepoDefinition("aspnet", "SignalR-Client-Cpp"),
+                        new RepoDefinition("aspnet", "SignalR-Client-Java"),
+                        new RepoDefinition("aspnet", "SignalR-Client-JS"),
+                        new RepoDefinition("aspnet", "SignalR-Client-Net"),
+                        new RepoDefinition("aspnet", "SignalR-Redis"),
+                        new RepoDefinition("aspnet", "SignalR-Server"),
+                        new RepoDefinition("aspnet", "SignalR-ServiceBus"),
+                        new RepoDefinition("aspnet", "SignalR-SqlServer"),
+                        new RepoDefinition("aspnet", "Stress-Old"),
+                        new RepoDefinition("aspnet", "teamcity-azure-active-directory"),
+                        new RepoDefinition("aspnet", "WawsTest"),
                     },
                 }
             },

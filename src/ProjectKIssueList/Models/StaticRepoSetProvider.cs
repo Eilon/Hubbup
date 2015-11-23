@@ -24,6 +24,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "dnvm"),
                         new RepoDefinition("aspnet", "dnx"),
                         new RepoDefinition("aspnet", "dnx-watch"),
+                        new RepoDefinition("aspnet", "dotnet-cli-commands"),
                         new RepoDefinition("aspnet", "Entropy"),
                         new RepoDefinition("aspnet", "FileSystem"),
                         new RepoDefinition("aspnet", "Helios"),
@@ -71,6 +72,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "Localization"),
                         new RepoDefinition("aspnet", "MusicStore"),
                         new RepoDefinition("aspnet", "Mvc"),
+                        new RepoDefinition("aspnet", "NodeServices"),
                         new RepoDefinition("aspnet", "PackageSearch"),
                         new RepoDefinition("aspnet", "Razor"),
                         new RepoDefinition("aspnet", "RazorTooling"),
@@ -103,6 +105,9 @@ namespace ProjectKIssueList.Models
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Home"),
                         new RepoDefinition("aspnet", "NerdDinner"),
+                        new RepoDefinition("aspnet", "get.asp.net"),
+                        new RepoDefinition("aspnet", "go.asp.net"),
+                        new RepoDefinition("aspnet", "live.asp.net"),
                     },
                 }
             },
@@ -147,6 +152,7 @@ namespace ProjectKIssueList.Models
                     WorkingLabel = "2 - Working",
                     LabelFilter = "Perf",
                     Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "benchmarks"),
                         new RepoDefinition("aspnet", "aspnet-docker"),
                         new RepoDefinition("aspnet", "aspnet-win-docker"),
                         new RepoDefinition("aspnet", "BasicMiddleware"),
@@ -237,6 +243,44 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("dotnet", "CoreCLR"),
                         new RepoDefinition("dotnet", "corefx"),
                         new RepoDefinition("dotnet", "wcf"),
+                    },
+                }
+            },
+            {
+                "azurecache",
+                new RepoSetDefinition {
+                    AssociatedPersonSetName = "",
+                    //WorkingLabel = "2 - In Progress",
+                    Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "AzureCache"),
+                        new RepoDefinition("aspnet", "AzureCacheCI"),
+                        new RepoDefinition("aspnet", "LocalCache"),
+                        new RepoDefinition("aspnet", "RedisShim"),
+                    },
+                }
+            },
+            {
+                "tooling",
+                new RepoSetDefinition {
+                    AssociatedPersonSetName = "",
+                    WorkingLabel = "2 - In Progress",
+                    Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "Templates"),
+                        new RepoDefinition("aspnet", "Tooling"),
+                        new RepoDefinition("aspnet", "Tooling-Internal"),
+                        new RepoDefinition("aspnet", "vsweb-docs"),
+                        new RepoDefinition("aspnet", "vsweb-publish"),
+                    },
+                }
+            },
+            {
+                "webhooks",
+                new RepoSetDefinition {
+                    AssociatedPersonSetName = "",
+                    WorkingLabel = "2 - In Progress",
+                    Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "WebHooks"),
+                        new RepoDefinition("aspnet", "WebHooks-Signed"),
                     },
                 }
             },

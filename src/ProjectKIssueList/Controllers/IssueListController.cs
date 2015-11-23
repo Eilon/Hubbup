@@ -30,15 +30,6 @@ namespace ProjectKIssueList.Controllers
 
         public IUrlEncoder UrlEncoder { get; }
 
-        private GitHubClient GetGitHubClient(string gitHubAccessToken)
-        {
-            var ghc = new GitHubClient(
-                new ProductHeaderValue("Project-K-Issue-List"),
-                new InMemoryCredentialStore(new Credentials(gitHubAccessToken)));
-
-            return ghc;
-        }
-
         private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(string owner, string repo, GitHubClient gitHubClient)
         {
             var repositoryIssueRequest = new RepositoryIssueRequest
@@ -112,7 +103,7 @@ namespace ProjectKIssueList.Controllers
             var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<Issue>>>();
             var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<PullRequest>>>();
 
-            var gitHubClient = GetGitHubClient(gitHubAccessToken);
+            var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
             Parallel.ForEach(repos.Repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Owner, repo.Name, gitHubClient));
             Parallel.ForEach(repos.Repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Owner, repo.Name, gitHubClient));

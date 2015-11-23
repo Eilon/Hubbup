@@ -4,7 +4,7 @@
     ViewData["PageTitlePrefix"] = "Home";
     ViewData["GitHubUserName"] = Model.GitHubUserName;
     ViewData["RepoSetNames"] = Model.RepoSetNames;
-    ViewData["CurrentRepoSetName"] = ""; // Home page has no repo set name
+    ViewData["CurrentRepoSetName"] = ""; // This page has no repo set name
 }
 
 <div class="row">
@@ -35,5 +35,11 @@
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <a asp-controller="Home" asp-action="MissingRepos">Show missing repos</a>
     </div>
 </div>

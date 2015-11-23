@@ -92,6 +92,8 @@ namespace ProjectKIssueList.Models
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Configuration"),
                         new RepoDefinition("aspnet", "EntityFramework"),
+                        new RepoDefinition("aspnet", "EntityFramework6"),
+                        new RepoDefinition("aspnet", "EntityFramework.Benchmarks"),
                         new RepoDefinition("aspnet", "EntityFramework.Docs"),
                         new RepoDefinition("aspnet", "Identity"),
                         new RepoDefinition("aspnet", "Microsoft.Data.Sqlite"),

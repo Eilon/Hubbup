@@ -377,7 +377,7 @@ namespace ProjectKIssueList.Controllers
 
         private string GetExcludedMilestonesQuery()
         {
-            return string.Join(" ", ExcludedMilestones.Select(milestone => "-milestone:" + milestone));
+            return string.Join(" ", ExcludedMilestones.Select(milestone => "-milestone:\"" + milestone + "\""));
         }
 
         private string GetStalePRDate()

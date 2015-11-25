@@ -73,7 +73,8 @@
                         @foreach (var milestone in Model.MilestonesAvailable)
                         {
                             var issuesInRepoMilestone = repoMilestone.MilestoneData.SingleOrDefault(repoMilestoneData => repoMilestoneData.Milestone == milestone)?.OpenIssues ?? 0;
-                            <td class="@(issuesInRepoMilestone > 0 ? "success" : "")"><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues?q=is:open%20is:issue%20milestone:@milestone">@issuesInRepoMilestone</a></td>
+                            var milestoneQuery = milestone == null ? "no:milestone" : "milestone:\"" + milestone + "\"";
+                            <td class="@(issuesInRepoMilestone > 0 ? "success" : "")"><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues?q=is:open%20is:issue%20@(milestoneQuery)">@issuesInRepoMilestone</a></td>
                         }
                         @{
                             var total = repoMilestone.MilestoneData.Select(milestoneData => milestoneData.OpenIssues).Sum();

@@ -8,7 +8,6 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.WebEncoders;
 using NuGet;
 using Octokit;
-using Octokit.Internal;
 using ProjectKIssueList.Models;
 using ProjectKIssueList.Utils;
 using ProjectKIssueList.ViewModels;

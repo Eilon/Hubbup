@@ -51,6 +51,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "UserSecrets"),
                         new RepoDefinition("aspnet", "WebListener"),
                         new RepoDefinition("aspnet", "WebSockets"),
+                        new RepoDefinition("dotnet", "cli"),
                     },
                 }
             },
@@ -63,6 +64,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "Antiforgery"),
                         new RepoDefinition("aspnet", "aspnet.xunit"),
                         new RepoDefinition("aspnet", "Common"),
+                        new RepoDefinition("aspnet", "Coherence-Signed"),
                         new RepoDefinition("aspnet", "CORS"),
                         new RepoDefinition("aspnet", "DependencyInjection"),
                         new RepoDefinition("aspnet", "Diagnostics"),

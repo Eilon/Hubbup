@@ -15,12 +15,16 @@ namespace ProjectKIssueList.Models
                         "ajaybhargavb",
                         "dougbu",
                         "Eilon",
+                        "javiercn",
                         "kichalla",
                         "kirthik",
+                        "loudej",
+                        "lodejard",
                         "NTaylorMullen",
                         "pranavkm",
                         "ryanbrandenburg",
                         "rynowak",
+                        "sebastienros",
                     }
                 }
             },

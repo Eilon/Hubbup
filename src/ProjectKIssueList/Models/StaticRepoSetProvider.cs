@@ -13,7 +13,6 @@ namespace ProjectKIssueList.Models
                     AssociatedPersonSetName = "Murat",
                     WorkingLabel = "2 - Working",
                     Repos = new RepoDefinition[] {
-                        new RepoDefinition("aspnet", "ApplicationAbstractions"),
                         new RepoDefinition("aspnet", "aspnet-docker"),
                         new RepoDefinition("aspnet", "aspnet-win-docker"),
                         new RepoDefinition("aspnet", "BasicMiddleware"),
@@ -38,6 +37,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "KestrelHttpServer"),
                         new RepoDefinition("aspnet", "libuv-build"),
                         new RepoDefinition("aspnet", "Logging"),
+                        new RepoDefinition("aspnet", "PlatformAbstractions"),
                         new RepoDefinition("aspnet", "Proxy"),
                         new RepoDefinition("aspnet", "ResponseCaching"),
                         new RepoDefinition("aspnet", "Roslyn"),
@@ -70,6 +70,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "Diagnostics"),
                         new RepoDefinition("aspnet", "DnxTools"),
                         new RepoDefinition("aspnet", "EventNotification"),
+                        new RepoDefinition("aspnet", "HtmlAbstractions"),
                         new RepoDefinition("aspnet", "jquery-ajax-unobtrusive"),
                         new RepoDefinition("aspnet", "jquery-validation-unobtrusive"),
                         new RepoDefinition("aspnet", "JsonPatch"),
@@ -163,7 +164,6 @@ namespace ProjectKIssueList.Models
                         // bespoke
                         new RepoDefinition("aspnet", "benchmarks"),
                         // and others
-                        new RepoDefinition("aspnet", "ApplicationAbstractions"),
                         new RepoDefinition("aspnet", "aspnet-docker"),
                         new RepoDefinition("aspnet", "aspnet-win-docker"),
                         new RepoDefinition("aspnet", "BasicMiddleware"),
@@ -188,6 +188,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "KestrelHttpServer"),
                         new RepoDefinition("aspnet", "libuv-build"),
                         new RepoDefinition("aspnet", "Logging"),
+                        new RepoDefinition("aspnet", "PlatformAbstractions"),
                         new RepoDefinition("aspnet", "Proxy"),
                         new RepoDefinition("aspnet", "ResponseCaching"),
                         new RepoDefinition("aspnet", "Roslyn"),
@@ -209,6 +210,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "Diagnostics"),
                         new RepoDefinition("aspnet", "DnxTools"),
                         new RepoDefinition("aspnet", "EventNotification"),
+                        new RepoDefinition("aspnet", "HtmlAbstractions"),
                         new RepoDefinition("aspnet", "jquery-ajax-unobtrusive"),
                         new RepoDefinition("aspnet", "jquery-validation-unobtrusive"),
                         new RepoDefinition("aspnet", "JsonPatch"),
@@ -244,7 +246,6 @@ namespace ProjectKIssueList.Models
                         // bespoke
                         new RepoDefinition("aspnet", "benchmarks"),
                         // and others
-                        new RepoDefinition("aspnet", "ApplicationAbstractions"),
                         new RepoDefinition("aspnet", "BasicMiddleware"),
                         new RepoDefinition("aspnet", "Caching"),
                         new RepoDefinition("aspnet", "Coherence"),
@@ -266,6 +267,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "KestrelHttpServer"),
                         new RepoDefinition("aspnet", "libuv-build"),
                         new RepoDefinition("aspnet", "Logging"),
+                        new RepoDefinition("aspnet", "PlatformAbstractions"),
                         new RepoDefinition("aspnet", "Proxy"),
                         new RepoDefinition("aspnet", "ResponseCaching"),
                         new RepoDefinition("aspnet", "Roslyn"),
@@ -287,6 +289,7 @@ namespace ProjectKIssueList.Models
                         new RepoDefinition("aspnet", "Diagnostics"),
                         new RepoDefinition("aspnet", "DnxTools"),
                         new RepoDefinition("aspnet", "EventNotification"),
+                        new RepoDefinition("aspnet", "HtmlAbstractions"),
                         new RepoDefinition("aspnet", "jquery-ajax-unobtrusive"),
                         new RepoDefinition("aspnet", "jquery-validation-unobtrusive"),
                         new RepoDefinition("aspnet", "JsonPatch"),

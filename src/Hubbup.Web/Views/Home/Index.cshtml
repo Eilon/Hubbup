@@ -1,0 +1,43 @@
+﻿@model HomeViewModel
+
+@{
+    ViewData["PageTitlePrefix"] = "Home";
+    ViewData["GitHubUserName"] = Model.GitHubUserName;
+    ViewData["RepoSetNames"] = Model.RepoSetNames;
+    ViewData["CurrentRepoSetName"] = ""; // This page has no repo set name
+}
+
+<div class="row">
+    <div class="col-md-12">
+        @foreach (var repoSet in Model.RepoSetLists)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong><a href="/@repoSet.Key">@repoSet.Key</a></strong> <span class="badge">@repoSet.Value.Repos.Length</span></h3>
+                </div>
+                <div class="panel-body">
+                    @if (repoSet.Value.Repos.Length > 0)
+                    {
+                        @foreach (var repo in repoSet.Value.Repos)
+                        {
+                            <span class="bg-info" style="padding:5px; margin: 5px; line-height: 2.5em; border: 1px solid #ccc;">
+                                <a style="white-space:nowrap;" href="https://github.com/@repo.Owner/@repo.Name/issues">@repo.Owner/@repo.Name</a>
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        @* TODO: Is this needed? There shouldn't be empty repo sets... *@
+                        <h3>No repos in this repo set</h3>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <a asp-controller="Home" asp-action="MissingRepos">Show missing repos</a>
+    </div>
+</div>

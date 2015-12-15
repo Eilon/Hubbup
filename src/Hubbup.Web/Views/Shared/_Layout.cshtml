@@ -11,11 +11,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>@pageTitle - Hubbup</title>
 
-        <environment names="Development">
+        <environment names="Development,Production">
             <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
             <link rel="stylesheet" href="~/css/site.css" />
         </environment>
-        <environment names="Staging,Production">
+        <environment names="Staging">
             <link rel="stylesheet" href="//ajax.aspnetcdn.com/ajax/bootstrap/3.3.5/css/bootstrap.min.css"
                   asp-fallback-href="~/lib/bootstrap/css/bootstrap.min.css"
                   asp-fallback-test-class="hidden" asp-fallback-test-property="visibility" asp-fallback-test-value="hidden" />
@@ -70,11 +70,11 @@
             </footer>
         </div>
 
-        <environment names="Development">
+        <environment names="Development,Production">
             <script src="~/lib/jquery/dist/jquery.js"></script>
             <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
         </environment>
-        <environment names="Staging,Production">
+        <environment names="Staging">
             <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.4.min.js"
                     asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
                     asp-fallback-test="window.jQuery">

@@ -51,7 +51,6 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "UserSecrets"),
                         new RepoDefinition("aspnet", "WebListener"),
                         new RepoDefinition("aspnet", "WebSockets"),
-                        new RepoDefinition("dotnet", "cli"),
                     },
                 }
             },

@@ -53,6 +53,25 @@
                     </tr>
                 }
             </tbody>
+            <tfoot>
+                <tr>
+                    <td style="font-weight:bold; border-top-width: 2px;">Total</td>
+                    @{ 
+                        var totalOpenIssues = Model.ReposIncluded.Sum(repo => repo.OpenIssues);
+                        var totalUntriagedIssues = Model.ReposIncluded.Sum(repo => repo.UntriagedIssues);
+                        var totalUnassignedIssues = Model.ReposIncluded.Sum(repo => repo.UnassignedIssues);
+                        var totalWorkingIssues = Model.ReposIncluded.Sum(repo => repo.WorkingIssues);
+                        var totalOpenPRs = Model.ReposIncluded.Sum(repo => repo.OpenPRs);
+                        var totalStalePRs = Model.ReposIncluded.Sum(repo => repo.StalePRs);
+                    }
+                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalOpenIssues > 0 ? "info" : "")">@totalOpenIssues</td>
+                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalUntriagedIssues > 0 ? "warning" : "")">@totalUntriagedIssues</td>
+                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalUnassignedIssues > 0 ? "warning" : "")">@totalUnassignedIssues</td>
+                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalWorkingIssues > 0 ? "success" : "")">@totalWorkingIssues</td>
+                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalOpenPRs > 0 ? "success" : "")">@totalOpenPRs</td>
+                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalStalePRs > 0 ? "danger" : "")">@totalStalePRs</td>
+                </tr>
+            </tfoot>
         </table>
 
         <table class="table table-bordered table-condensed">
@@ -84,6 +103,17 @@
                     </tr>
                 }
             </tbody>
+            <tfoot>
+                <tr>
+                    <td style="font-weight:bold; border-top-width: 2px;">Total</td>
+                    @foreach (var milestone in Model.MilestonesAvailable)
+                    {
+                        var issuesInMilestone = Model.MilestoneSummary.Sum(milestoneSummary => milestoneSummary.MilestoneData.SingleOrDefault(repoMilestoneData => repoMilestoneData.Milestone == milestone)?.OpenIssues ?? 0);
+                        <td style="font-weight:bold; border-top-width: 2px;" class="@(issuesInMilestone > 0 ? "success" : "")">@issuesInMilestone</td>
+                    }
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </div>

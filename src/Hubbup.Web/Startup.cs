@@ -15,7 +15,7 @@ namespace Hubbup.Web
     {
         public Startup(IHostingEnvironment env, IApplicationEnvironment appEnv)
         {
-            // Setup configuration sources.
+            // Set up configuration sources
             var builder = new ConfigurationBuilder(appEnv.ApplicationBasePath)
                 .AddJsonFile("config.json")
                 .AddEnvironmentVariables();
@@ -47,7 +47,6 @@ namespace Hubbup.Web
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             });
 
-            // Add MVC services to the services container.
             services.AddMvc();
         }
 
@@ -57,21 +56,15 @@ namespace Hubbup.Web
             loggerFactory.MinimumLevel = LogLevel.Information;
             loggerFactory.AddConsole();
 
-            // Configure the HTTP request pipeline.
-
-            // Add the following to the request pipeline only in development environment.
             if (env.IsDevelopment())
             {
                 app.UseErrorPage();
             }
             else
             {
-                // Add Error handling middleware which catches all application specific errors and
-                // send the request to the following path or controller action.
                 app.UseErrorHandler("/Error");
             }
 
-            // Add static files to the request pipeline.
             app.UseStaticFiles();
 
             app.UseCookieAuthentication(options =>
@@ -91,7 +84,6 @@ namespace Hubbup.Web
 
             app.UseSession();
 
-            // Add MVC to the request pipeline.
             app.UseMvc();
         }
     }

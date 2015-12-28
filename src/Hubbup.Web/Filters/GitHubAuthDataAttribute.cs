@@ -2,7 +2,7 @@
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
 
-namespace Hubbup.Web.Controllers
+namespace Hubbup.Web.Filters
 {
     public class GitHubAuthDataAttribute : ActionFilterAttribute
     {

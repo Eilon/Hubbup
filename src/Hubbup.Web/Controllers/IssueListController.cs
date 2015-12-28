@@ -4,16 +4,19 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Hubbup.Web.Filters;
+using Hubbup.Web.Models;
+using Hubbup.Web.Utils;
+using Hubbup.Web.ViewModels;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Framework.WebEncoders;
 using NuGet;
 using Octokit;
-using Hubbup.Web.Models;
-using Hubbup.Web.Utils;
-using Hubbup.Web.ViewModels;
 
 namespace Hubbup.Web.Controllers
 {
+    [RequireHttpsCustomPort(44347, environmentName: "Development", Order = 1)]
+    [RequireHttps(Order = 2)]
     public class IssueListController : Controller
     {
         public IssueListController(IRepoSetProvider repoSetProvider, IPersonSetProvider personSetProvider, IUrlEncoder urlEncoder)

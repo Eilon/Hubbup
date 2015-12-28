@@ -2,13 +2,16 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
+using Hubbup.Web.Filters;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
+using Microsoft.AspNet.Mvc;
 
 namespace Hubbup.Web.Controllers
 {
+    [RequireHttpsCustomPort(44347, environmentName: "Development", Order = 1)]
+    [RequireHttps(Order = 2)]
     public class HomeController : Controller
     {
         public HomeController(IRepoSetProvider repoSetProvider)

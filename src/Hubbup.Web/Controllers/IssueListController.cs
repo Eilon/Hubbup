@@ -9,7 +9,7 @@ using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.WebEncoders;
+using Microsoft.Extensions.WebEncoders;
 using NuGet;
 using Octokit;
 

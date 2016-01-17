@@ -3,6 +3,7 @@ using System.Globalization;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace Hubbup.Web.Filters
 {

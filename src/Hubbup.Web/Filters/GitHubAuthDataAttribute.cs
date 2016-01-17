@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace Hubbup.Web.Filters
 {

@@ -56,7 +56,7 @@
             <tfoot>
                 <tr>
                     <td style="font-weight:bold; border-top-width: 2px;">Total</td>
-                    @{ 
+                    @{
                         var totalOpenIssues = Model.ReposIncluded.Sum(repo => repo.OpenIssues);
                         var totalUntriagedIssues = Model.ReposIncluded.Sum(repo => repo.UntriagedIssues);
                         var totalUnassignedIssues = Model.ReposIncluded.Sum(repo => repo.UnassignedIssues);
@@ -101,7 +101,7 @@
                         }
                         <td class="@(total > 0 ? "success" : "")">@total</td>
                     </tr>
-                }
+                            }
             </tbody>
             <tfoot>
                 <tr>
@@ -129,22 +129,32 @@
         <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in Backlog milestone">
             <a href="@Model.OpenIssuesQuery">Open</a> <span class="badge">@Model.TotalIssues</span>
         </div>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in a milestone">
+        <div class="alert alert-warning" data-toggle="tooltip" data-placement="left" title="Open issues not in a milestone">
             <a href="@Model.UntriagedIssuesQuery">Untriaged</a> <span class="badge">@Model.UntriagedIssues</span>
         </div>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not assigned">
+        <div class="alert alert-warning" data-toggle="tooltip" data-placement="left" title="Open issues not assigned">
             <a href="@Model.UnassignedIssuesQuery">Unassigned</a> <span class="badge">@Model.UnassignedIssues</span>
         </div>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues with '2 - Working' label">
+        <div class="alert alert-success" data-toggle="tooltip" data-placement="left" title="Open issues with '2 - Working' label">
             <a href="@Model.WorkingIssuesQuery">Working</a> <span class="badge">@Model.WorkingIssues</span>
         </div>
         <h3>PRs</h3>
-        <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open PRs">
+        <div class="alert alert-success" data-toggle="tooltip" data-placement="left" title="Open PRs">
             <a href="@Model.OpenPRsQuery">Open</a> <span class="badge">@Model.PullRequests.Count</span>
         </div>
         <div class="alert alert-danger" data-toggle="tooltip" data-placement="left" title="Open PRs over 14 days old">
             <a href="@Model.StalePRsQuery">Stale</a> <span class="badge">@Model.PullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count()</span>
         </div>
+        @if (Model.ExtraLinks != null && Model.ExtraLinks.Count > 0)
+        {
+            <h3>Links</h3>
+            @foreach (var extraLink in Model.ExtraLinks)
+            {
+                <div class="alert alert-info">
+                    <a href="@extraLink.Url">@extraLink.Title</a>
+                </div>
+            }
+        }
     </div>
 
     <div class="col-md-10 col-md-pull-2">

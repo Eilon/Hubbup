@@ -9,6 +9,7 @@ namespace Hubbup.Web.ViewModels
 
         public string GitHubUserName { get; set; }
         public string LastUpdated { get; set; }
+        public List<RepoExtraLink> ExtraLinks { get; set; }
 
         public string RepoSetName { get; set; }
         public string[] RepoSetNames { get; set; }

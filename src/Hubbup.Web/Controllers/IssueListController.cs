@@ -235,6 +235,8 @@ namespace Hubbup.Web.Controllers
                 GitHubUserName = gitHubName,
                 LastUpdated = DateTimeOffset.Now.ToPacificTime().ToString(),
 
+                ExtraLinks = repos.RepoExtraLinks,
+
                 RepoSetName = repoSet,
                 RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
 

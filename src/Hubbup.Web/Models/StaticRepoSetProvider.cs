@@ -12,6 +12,11 @@ namespace Hubbup.Web.Models
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Murat",
                     WorkingLabel = "2 - Working",
+                    RepoExtraLinks = new List<RepoExtraLink>
+                    {
+                        new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
+                        new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
+                    },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "aspnet-docker"),
                         new RepoDefinition("aspnet", "aspnet-win-docker"),
@@ -59,6 +64,11 @@ namespace Hubbup.Web.Models
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Eilon",
                     WorkingLabel = "2 - Working",
+                    RepoExtraLinks = new List<RepoExtraLink>
+                    {
+                        new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
+                        new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
+                    },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Antiforgery"),
                         new RepoDefinition("aspnet", "aspnet.xunit"),

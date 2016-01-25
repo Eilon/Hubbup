@@ -98,6 +98,7 @@ namespace Hubbup.Web.Controllers
             }
 
             var repos = RepoSetProvider.GetRepoSet(repoSet);
+            var distinctRepos = repos.Repos.Distinct().ToArray();
             var personSetName = repos.AssociatedPersonSetName;
             var personSet = PersonSetProvider.GetPersonSet(personSetName);
             var peopleInPersonSet = personSet?.People ?? new string[0];
@@ -107,19 +108,19 @@ namespace Hubbup.Web.Controllers
 
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            Parallel.ForEach(repos.Repos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Owner, repo.Name, gitHubClient));
-            Parallel.ForEach(repos.Repos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Owner, repo.Name, gitHubClient));
+            Parallel.ForEach(distinctRepos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Owner, repo.Name, gitHubClient));
+            Parallel.ForEach(distinctRepos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Owner, repo.Name, gitHubClient));
 
             // while waiting for queries to run, do some other work...
 
             var labelQuery = GetLabelQuery(repos.LabelFilter);
 
-            var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repos.Repos);
-            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabel, repos.Repos);
-            var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repos.Repos);
-            var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, repos.Repos);
-            var openPRsQuery = GetOpenPRsQuery(repos.Repos);
-            var stalePRsQuery = GetStalePRsQuery(repos.Repos);
+            var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
+            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabel, distinctRepos);
+            var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
+            var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, distinctRepos);
+            var openPRsQuery = GetOpenPRsQuery(distinctRepos);
+            var stalePRsQuery = GetStalePRsQuery(distinctRepos);
 
             // now wait for queries to finish executing
 
@@ -205,7 +206,8 @@ namespace Hubbup.Web.Controllers
                 .ToList();
 
 
-            var milestoneData = repos.Repos
+            var milestoneData = distinctRepos
+                .OrderBy(repo => repo.Owner + "/" + repo.Name, StringComparer.OrdinalIgnoreCase)
                 .Select(repo =>
                     new MilestoneSummary()
                     {
@@ -245,7 +247,7 @@ namespace Hubbup.Web.Controllers
                 UntriagedIssues = untriagedIssues.Count,
                 UnassignedIssues = unassignedIssues.Count,
 
-                ReposIncluded = repos.Repos
+                ReposIncluded = distinctRepos
                     .OrderBy(repo => repo.Owner.ToLowerInvariant())
                     .ThenBy(repo => repo.Name.ToLowerInvariant())
                     .Select(repo => new RepoSummary

@@ -71,6 +71,55 @@ namespace Hubbup.Web.Models
                 }
             },
             {
+                "aspnetef",
+                new PersonSet {
+                    People = new string[]
+                    {
+                        "ajaybhargavb",
+                        "dougbu",
+                        "Eilon",
+                        "javiercn",
+                        "kichalla",
+                        "kirthik",
+                        "loudej",
+                        "lodejard",
+                        "NTaylorMullen",
+                        "pranavkm",
+                        "ryanbrandenburg",
+                        "rynowak",
+                        "sebastienros",
+                        // ---
+                        "anurse",
+                        "BrennanConroy",
+                        "cesarbs",
+                        "davidfowl",
+                        "halter73",
+                        "JunTaoLuo",
+                        "loudej",
+                        "lodejard",
+                        "moozzyk",
+                        "muratg",
+                        "pakrym",
+                        "Tratcher",
+                        "troydai",
+                        "victorhurdugaci",
+                        // ---
+                        "ajcvickers",
+                        "AndriySvyryd",
+                        "anpete",
+                        "bricelam",
+                        "divega",
+                        "HaoK",
+                        "lajones",
+                        "maumar",
+                        "mikary",
+                        "natemcmaster",
+                        "rowanmiller",
+                        "smitpatel",
+                    }
+                }
+            },
+            {
                 "perfers",
                 new PersonSet {
                     People = new string[]

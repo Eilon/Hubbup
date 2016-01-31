@@ -16,6 +16,7 @@ namespace Hubbup.Web.Models
                     {
                         new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
                         new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
+                        new RepoExtraLink { Title = "ASP.NET Perf", Url = "http://aspnetperf.azurewebsites.net/" },
                     },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "aspnet-docker"),
@@ -68,6 +69,7 @@ namespace Hubbup.Web.Models
                     {
                         new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
                         new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
+                        new RepoExtraLink { Title = "ASP.NET Perf", Url = "http://aspnetperf.azurewebsites.net/" },
                     },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Antiforgery"),

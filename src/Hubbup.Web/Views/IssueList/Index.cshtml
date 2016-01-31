@@ -148,12 +148,14 @@
         @if (Model.ExtraLinks != null && Model.ExtraLinks.Count > 0)
         {
             <h3>Links</h3>
-            @foreach (var extraLink in Model.ExtraLinks)
-            {
-                <div class="alert alert-info">
-                    <a href="@extraLink.Url">@extraLink.Title</a>
-                </div>
-            }
+            <ul>
+                @foreach (var extraLink in Model.ExtraLinks)
+                {
+                    <li>
+                        <a href="@extraLink.Url">@extraLink.Title</a>
+                    </li>
+                }
+            </ul>
         }
     </div>
 

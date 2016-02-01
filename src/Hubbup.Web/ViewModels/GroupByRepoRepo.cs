@@ -7,5 +7,6 @@ namespace Hubbup.Web.ViewModels
     {
         public RepoDefinition Repo { get; set; }
         public IReadOnlyList<IssueWithRepo> Issues { get; set; }
+        public IReadOnlyList<PullRequestWithRepo> PullRequests { get; set; }
     }
 }

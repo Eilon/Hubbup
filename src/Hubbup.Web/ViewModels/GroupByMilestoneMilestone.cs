@@ -7,5 +7,6 @@ namespace Hubbup.Web.ViewModels
     {
         public string Milestone { get; set; }
         public IReadOnlyList<IssueWithRepo> Issues { get; set; }
+        public IReadOnlyList<PullRequestWithRepo> PullRequests { get; set; }
     }
 }

@@ -17,6 +17,8 @@ namespace Hubbup.Web.ViewModels
         public int UntriagedIssues { get; set; }
         public int UnassignedIssues { get; set; }
         public int WorkingIssues { get; set; }
+        public int OpenPullRequests { get; set; }
+        public int StalePullRequests { get; set; }
         public List<RepoSummary> ReposIncluded { get; set; }
         public List<MilestoneSummary> MilestoneSummary { get; set; }
         public List<string> MilestonesAvailable { get; set; }
@@ -31,6 +33,5 @@ namespace Hubbup.Web.ViewModels
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
         public GroupByMilestoneViewModel GroupByMilestone { get; set; }
         public GroupByRepoViewModel GroupByRepo { get; set; }
-        public List<PullRequestWithRepo> PullRequests { get; set; }
     }
 }

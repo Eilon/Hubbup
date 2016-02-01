@@ -9,5 +9,6 @@ namespace Hubbup.Web.ViewModels
         public bool IsInAssociatedPersonSet { get; set; }
         public IReadOnlyList<IssueWithRepo> Issues { get; set; }
         public IReadOnlyList<IssueWithRepo> OtherIssues { get; set; }
+        public IReadOnlyList<PullRequestWithRepo> CreatedPullRequests { get; set; }
     }
 }

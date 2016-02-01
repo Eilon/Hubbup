@@ -140,10 +140,10 @@
         </div>
         <h3>PRs</h3>
         <div class="alert alert-success" data-toggle="tooltip" data-placement="left" title="Open PRs">
-            <a href="@Model.OpenPRsQuery">Open</a> <span class="badge">@Model.PullRequests.Count</span>
+            <a href="@Model.OpenPRsQuery">Open</a> <span class="badge">@Model.OpenPullRequests</span>
         </div>
         <div class="alert alert-danger" data-toggle="tooltip" data-placement="left" title="Open PRs over 14 days old">
-            <a href="@Model.StalePRsQuery">Stale</a> <span class="badge">@Model.PullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count()</span>
+            <a href="@Model.StalePRsQuery">Stale</a> <span class="badge">@Model.StalePullRequests</span>
         </div>
         @if (Model.ExtraLinks != null && Model.ExtraLinks.Count > 0)
         {
@@ -166,9 +166,10 @@
                 {
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><strong>@(assignee.Assignee ?? "<not assigned>")</strong> <span class="badge">@assignee.Issues.Count</span></h3>
+                            <h3 class="panel-title"><strong>@(assignee.Assignee ?? "<not assigned>")</strong></h3>
                         </div>
                         <div class="panel-body">
+                            <h4>Working on issues <span class="badge">@assignee.Issues.Count</span></h4>
                             @if (assignee.Issues.Any())
                             {
                                 <ul class="list-group">
@@ -182,15 +183,33 @@
                             }
                             else
                             {
-                                <h4>Not working on any assigned issues</h4>
+                                <div style="margin-left: 2em;">Not working on any assigned issues</div>
                             }
 
+                            <h4>Pull requests created <span class="badge">@assignee.CreatedPullRequests.Count</span></h4>
+                            @if (assignee.CreatedPullRequests.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var pullRequest in assignee.CreatedPullRequests)
+                                    {
+                                        <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
+                                            @await Html.PartialAsync("_PullRequest", pullRequest)
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <div style="margin-left: 2em;">No pull requests created</div>
+                            }
+
+                            <h4>Other assigned issues <span class="badge">@assignee.OtherIssues.Count</span></h4>
                             @if (assignee.OtherIssues.Any())
                             {
                                 <div>
                                     <button class="btn btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-otherissues-@assignee.Assignee">
                                         <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
-                                        Other assigned issues <span class="badge">@assignee.OtherIssues.Count</span>
+                                        Show/hide
                                     </button>
                                 </div>
 
@@ -207,11 +226,35 @@
                             }
                             else
                             {
-                                <h4>No other assigned issues</h4>
+                                <div style="margin-left: 2em;">No other assigned issues</div>
                             }
                         </div>
                     </div>
                 }
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><strong>Other pull requests</strong> <span class="badge">@Model.GroupByAssignee.OtherPullRequests.Count</span></h3>
+                    </div>
+                    <div class="panel-body">
+                        @if (Model.GroupByAssignee.OtherPullRequests.Any())
+                        {
+                            <ul class="list-group">
+                                @foreach (var pullRequest in Model.GroupByAssignee.OtherPullRequests)
+                                {
+                                    <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
+                                        @await Html.PartialAsync("_PullRequest", pullRequest)
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <h3>No open pull requests, go write some code!</h3>
+                        }
+                    </div>
+                </div>
+
             </div>
 
             <div class="tab-pane" id="group-by-milestone">
@@ -219,9 +262,11 @@
                 {
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><strong>@(milestone.Milestone ?? "<no milestone>")</strong> <span class="badge">@milestone.Issues.Count</span></h3>
+                            <h3 class="panel-title"><strong>@(milestone.Milestone ?? "<no milestone>")</strong></h3>
                         </div>
                         <div class="panel-body">
+
+                            <h4>Issues being worked on in this milestone <span class="badge">@milestone.Issues.Count</span></h4>
                             @if (milestone.Issues.Any())
                             {
                                 <ul class="list-group">
@@ -235,9 +280,26 @@
                             }
                             else
                             {
-                                @* TODO: Is this needed? There wouldn't be an milestone if it has no issues... *@
-                                <h3>Not working on issues in this milestone</h3>
+                                <div style="margin-left: 2em;">Not working on issues in this milestone</div>
                             }
+
+                            <h4>Pull requests in this milestone <span class="badge">@milestone.PullRequests.Count</span></h4>
+                            @if (milestone.PullRequests.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var pullRequest in milestone.PullRequests)
+                                    {
+                                        <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
+                                            @await Html.PartialAsync("_PullRequest", pullRequest)
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <div style="margin-left: 2em;">No pull requests in this milestone</div>
+                            }
+
                         </div>
                     </div>
                 }
@@ -248,9 +310,11 @@
                 {
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><strong>@repo.Repo.Owner/@repo.Repo.Name</strong> <span class="badge">@repo.Issues.Count</span></h3>
+                            <h3 class="panel-title"><strong>@repo.Repo.Owner/@repo.Repo.Name</strong></h3>
                         </div>
                         <div class="panel-body">
+
+                            <h4>Issues being worked on in this repo <span class="badge">@repo.Issues.Count</span></h4>
                             @if (repo.Issues.Any())
                             {
                                 <ul class="list-group">
@@ -264,33 +328,27 @@
                             }
                             else
                             {
-                                <h3>Not working on issues in this repo</h3>
+                                <div style="margin-left: 2em;">Not working on issues in this repo</div>
+                            }
+
+                            <h4>Pull requests in this repo <span class="badge">@repo.PullRequests.Count</span></h4>
+                            @if (repo.PullRequests.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var pullRequest in repo.PullRequests)
+                                    {
+                                        <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
+                                            @await Html.PartialAsync("_PullRequest", pullRequest)
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <div style="margin-left: 2em;">No pull requests in this repo</div>
                             }
                         </div>
                     </div>
-                }
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><strong>Pull Requests</strong> <span class="badge">@Model.PullRequests.Count</span></h3>
-            </div>
-            <div class="panel-body">
-                @if (Model.PullRequests.Any())
-                {
-                    <ul class="list-group">
-                        @foreach (var pullRequest in Model.PullRequests)
-                        {
-                            <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
-                                @await Html.PartialAsync("_PullRequest", pullRequest)
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <h3>No open pull requests, go write some code!</h3>
                 }
             </div>
         </div>

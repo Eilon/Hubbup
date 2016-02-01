@@ -195,6 +195,9 @@ namespace Hubbup.Web.Controllers
                 .Where(repoTask => !repoTask.Value.Task.IsFaulted)
                 .SelectMany(pullRequestList =>
                     pullRequestList.Value.Task.Result
+                        // TODO: Uncomment this when PullRequest.Milestone becomes available
+                        //.Where(
+                        //    pullRequest => !IsExcludedMilestone(pullRequest.Milestone?.Title))
                         .Select(pullRequest =>
                             new PullRequestWithRepo
                             {
@@ -230,6 +233,18 @@ namespace Hubbup.Web.Controllers
                 .Distinct()
                 .OrderBy(milestone => new PossibleSemanticVersion(milestone));
 
+
+            var orderedAssigneesToShowInAssigneeList =
+                peopleInPersonSet
+                    .OrderBy(person => person, StringComparer.OrdinalIgnoreCase)
+                    .Concat(
+                        allIssues
+                            .Select(issueWithRepo => issueWithRepo.Issue.Assignee?.Login)
+                            .Except(peopleInPersonSet, StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(person => person, StringComparer.OrdinalIgnoreCase))
+                    .Distinct()
+                    .ToList();
+
             return View(new IssueListViewModel
             {
                 RepoFailures = repoFailures,
@@ -246,6 +261,8 @@ namespace Hubbup.Web.Controllers
                 WorkingIssues = workingIssues.Count,
                 UntriagedIssues = untriagedIssues.Count,
                 UnassignedIssues = unassignedIssues.Count,
+                OpenPullRequests = allPullRequests.Count,
+                StalePullRequests = allPullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
 
                 ReposIncluded = distinctRepos
                     .OrderBy(repo => repo.Owner.ToLowerInvariant())
@@ -281,14 +298,7 @@ namespace Hubbup.Web.Controllers
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {
                     Assignees =
-                        peopleInPersonSet
-                            .OrderBy(person => person, StringComparer.OrdinalIgnoreCase)
-                            .Concat(
-                                allIssues
-                                    .Select(issueWithRepo => issueWithRepo.Issue.Assignee?.Login)
-                                    .Except(peopleInPersonSet, StringComparer.OrdinalIgnoreCase)
-                                    .OrderBy(person => person, StringComparer.OrdinalIgnoreCase))
-                            .Distinct()
+                        orderedAssigneesToShowInAssigneeList
                             .Select(person =>
                                 new GroupByAssigneeAssignee
                                 {
@@ -306,44 +316,72 @@ namespace Hubbup.Web.Controllers
                                         .ThenBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
                                         .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
                                         .ToList(),
+                                    CreatedPullRequests = allPullRequests
+                                        .Where(pr => pr.PullRequest.User.Login == person)
+                                        .OrderBy(pr => pr.PullRequest.CreatedAt)
+                                        .ToList(),
                                 })
                             .ToList()
-                            .AsReadOnly()
+                            .AsReadOnly(),
+                    OtherPullRequests = allPullRequests
+                        .Where(pullRequest =>
+                            !orderedAssigneesToShowInAssigneeList.Contains(pullRequest.PullRequest.User?.Login, StringComparer.OrdinalIgnoreCase))
+                        .ToList(),
                 },
 
                 GroupByMilestone = new GroupByMilestoneViewModel
                 {
                     Milestones =
                         workingIssues
-                            .GroupBy(issue => issue.Issue.Milestone?.Title)
-                            .Select(group =>
+                            .Select(issue => issue.Issue.Milestone?.Title)
+                            .Concat(new string[] { null })
+                            .Distinct()
+                            .OrderBy(milestone => new PossibleSemanticVersion(milestone))
+                            .Select(milestone =>
                                 new GroupByMilestoneMilestone
                                 {
-                                    Milestone = group.Key,
-                                    Issues = group.ToList().AsReadOnly(),
+                                    Milestone = milestone,
+                                    Issues = workingIssues
+                                        .Where(issue => issue.Issue.Milestone?.Title == milestone)
+                                        .OrderBy(issue => issue.WorkingStartTime)
+                                        .ToList(),
+                                    // TODO: Uncomment this when PullRequest.Milestone becomes available
+                                    //PullRequests = allPullRequests
+                                    //    .Where(pullRequest => pullRequest.PullRequest.Milestone?.Title == milestone),
+                                    PullRequests = milestone != null
+                                        ? new List<PullRequestWithRepo>()
+                                        : allPullRequests
+                                            .OrderBy(pullRequest => pullRequest.PullRequest.CreatedAt)
+                                            .ToList(),
                                 })
-                            .OrderBy(group => group.Milestone, StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(group => new PossibleSemanticVersion(group.Milestone))
                             .ToList()
-                            .AsReadOnly()
                 },
 
                 GroupByRepo = new GroupByRepoViewModel
                 {
                     Repos =
                         workingIssues
-                            .GroupBy(issue => issue.Repo)
-                            .Select(group =>
+                            .Select(issue => issue.Repo)
+                            .Concat(allPullRequests.Select(pullRequest => pullRequest.Repo))
+                            .Distinct()
+                            .OrderBy(repo => repo)
+                            .Select(repo =>
                                 new GroupByRepoRepo
                                 {
-                                    Repo = group.Key,
-                                    Issues = group.ToList().AsReadOnly(),
+                                    Repo = repo,
+                                    Issues = workingIssues
+                                        .Where(issue => issue.Repo == repo)
+                                        .OrderBy(issue => issue.WorkingStartTime)
+                                        .ToList(),
+                                    PullRequests = allPullRequests
+                                        .Where(pullRequest => pullRequest.Repo == repo)
+                                        .OrderBy(pullRequest => pullRequest.PullRequest.Assignee?.Login)
+                                        .ThenBy(pullRequest => pullRequest.PullRequest.Number)
+                                        .ToList(),
                                 })
-                            .OrderByDescending(group => group.Issues.Count)
                             .ToList()
-                            .AsReadOnly()
                 },
-
-                PullRequests = allPullRequests,
             });
         }
 

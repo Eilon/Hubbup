@@ -231,17 +231,6 @@ namespace Hubbup.Web.Controllers
                 .OrderBy(milestone => new PossibleSemanticVersion(milestone));
 
 
-            var orderedAssigneesToShowInAssigneeList =
-                peopleInPersonSet
-                    .OrderBy(person => person, StringComparer.OrdinalIgnoreCase)
-                    .Concat(
-                        allIssues
-                            .Select(issueWithRepo => issueWithRepo.Issue.Assignee?.Login)
-                            .Except(peopleInPersonSet, StringComparer.OrdinalIgnoreCase)
-                            .OrderBy(person => person, StringComparer.OrdinalIgnoreCase))
-                    .Distinct()
-                    .ToList();
-
             return View(new IssueListViewModel
             {
                 RepoFailures = repoFailures,
@@ -295,7 +284,8 @@ namespace Hubbup.Web.Controllers
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {
                     Assignees =
-                        orderedAssigneesToShowInAssigneeList
+                        peopleInPersonSet
+                            .OrderBy(person => person, StringComparer.OrdinalIgnoreCase)
                             .Select(person =>
                                 new GroupByAssigneeAssignee
                                 {
@@ -305,6 +295,13 @@ namespace Hubbup.Web.Controllers
                                         .Where(workingIssue =>
                                             workingIssue.Issue.Assignee?.Login == person)
                                         .ToList(),
+                                    PullRequests = allPullRequests
+                                        .Where(
+                                            pr =>
+                                                pr.PullRequest.User.Login == person ||
+                                                pr.PullRequest.Assignee?.Login == person)
+                                        .OrderBy(pr => pr.PullRequest.CreatedAt)
+                                        .ToList(),
                                     OtherIssues = allIssues
                                         .Where(issue =>
                                             issue.Issue.Assignee?.Login == person)
@@ -313,17 +310,63 @@ namespace Hubbup.Web.Controllers
                                         .ThenBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
                                         .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
                                         .ToList(),
-                                    CreatedPullRequests = allPullRequests
-                                        .Where(pr => pr.PullRequest.User.Login == person)
+                                })
+                            .Concat(new[]
+                            {
+                                new GroupByAssigneeAssignee
+                                {
+                                    Assignee = "<other assignees>",
+                                    IsInAssociatedPersonSet = false,
+                                    Issues = workingIssues
+                                        .Where(workingIssue =>
+                                            workingIssue.Issue.Assignee != null &&
+                                            !peopleInPersonSet.Contains(workingIssue.Issue.Assignee.Login, StringComparer.OrdinalIgnoreCase))
+                                        .ToList(),
+                                    PullRequests = allPullRequests
+                                        .Where(
+                                            pr =>
+                                                pr.PullRequest.Assignee != null &&
+                                                !peopleInPersonSet.Contains(pr.PullRequest.User.Login, StringComparer.OrdinalIgnoreCase) &&
+                                                !peopleInPersonSet.Contains(pr.PullRequest.Assignee.Login, StringComparer.OrdinalIgnoreCase))
                                         .OrderBy(pr => pr.PullRequest.CreatedAt)
                                         .ToList(),
-                                })
+                                    OtherIssues = allIssues
+                                        .Where(issue =>
+                                            issue.Issue.Assignee != null &&
+                                            !peopleInPersonSet.Contains(issue.Issue.Assignee?.Login, StringComparer.OrdinalIgnoreCase))
+                                        .Except(workingIssues)
+                                        .OrderBy(issueWithRepo => issueWithRepo.Issue.Assignee.Login, StringComparer.OrdinalIgnoreCase)
+                                        .ThenBy(issueWithRepo => new PossibleSemanticVersion(issueWithRepo.Issue.Milestone?.Title))
+                                        .ThenBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
+                                        .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
+                                        .ToList(),
+                                },
+                                new GroupByAssigneeAssignee
+                                {
+                                    Assignee = "<unassigned>",
+                                    IsInAssociatedPersonSet = false,
+                                    Issues = workingIssues
+                                        .Where(workingIssue =>
+                                            workingIssue.Issue.Assignee == null)
+                                        .ToList(),
+                                    PullRequests = allPullRequests
+                                        .Where(
+                                            pr =>
+                                                pr.PullRequest.Assignee == null &&
+                                                !peopleInPersonSet.Contains(pr.PullRequest.User.Login, StringComparer.OrdinalIgnoreCase))
+                                        .OrderBy(pr => pr.PullRequest.CreatedAt)
+                                        .ToList(),
+                                    OtherIssues = allIssues
+                                        .Where(issue => issue.Issue.Assignee == null)
+                                        .Except(workingIssues)
+                                        .OrderBy(issueWithRepo => new PossibleSemanticVersion(issueWithRepo.Issue.Milestone?.Title))
+                                        .ThenBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
+                                        .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
+                                        .ToList(),
+                                },
+                            })
                             .ToList()
                             .AsReadOnly(),
-                    OtherPullRequests = allPullRequests
-                        .Where(pullRequest =>
-                            !orderedAssigneesToShowInAssigneeList.Contains(pullRequest.PullRequest.User?.Login, StringComparer.OrdinalIgnoreCase))
-                        .ToList(),
                 },
 
                 GroupByMilestone = new GroupByMilestoneViewModel

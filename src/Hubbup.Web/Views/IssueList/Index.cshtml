@@ -186,11 +186,11 @@
                                 <div style="margin-left: 2em;">Not working on any assigned issues</div>
                             }
 
-                            <h4>Pull requests created <span class="badge">@assignee.CreatedPullRequests.Count</span></h4>
-                            @if (assignee.CreatedPullRequests.Any())
+                            <h4>Pull requests <span class="badge">@assignee.PullRequests.Count</span></h4>
+                            @if (assignee.PullRequests.Any())
                             {
                                 <ul class="list-group">
-                                    @foreach (var pullRequest in assignee.CreatedPullRequests)
+                                    @foreach (var pullRequest in assignee.PullRequests)
                                     {
                                         <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
                                             @await Html.PartialAsync("_PullRequest", pullRequest)
@@ -200,20 +200,20 @@
                             }
                             else
                             {
-                                <div style="margin-left: 2em;">No pull requests created</div>
+                                <div style="margin-left: 2em;">No pull requests created or assigned</div>
                             }
 
                             <h4>Other assigned issues <span class="badge">@assignee.OtherIssues.Count</span></h4>
                             @if (assignee.OtherIssues.Any())
                             {
                                 <div>
-                                    <button class="btn btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-otherissues-@assignee.Assignee">
+                                    <button class="btn btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-otherissues-@TagBuilder.CreateSanitizedId(assignee.Assignee, "_")">
                                         <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
                                         Show/hide
                                     </button>
                                 </div>
 
-                                <div class="collapse" id="collapse-otherissues-@assignee.Assignee" style="margin-top:10px">
+                                <div class="collapse" id="collapse-otherissues-@TagBuilder.CreateSanitizedId(assignee.Assignee, "_")" style="margin-top:10px">
                                     <ul class="list-group">
                                         @foreach (var issue in assignee.OtherIssues)
                                         {
@@ -231,29 +231,6 @@
                         </div>
                     </div>
                 }
-
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><strong>Other pull requests</strong> <span class="badge">@Model.GroupByAssignee.OtherPullRequests.Count</span></h3>
-                    </div>
-                    <div class="panel-body">
-                        @if (Model.GroupByAssignee.OtherPullRequests.Any())
-                        {
-                            <ul class="list-group">
-                                @foreach (var pullRequest in Model.GroupByAssignee.OtherPullRequests)
-                                {
-                                    <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
-                                        @await Html.PartialAsync("_PullRequest", pullRequest)
-                                    </li>
-                                }
-                            </ul>
-                        }
-                        else
-                        {
-                            <h3>No open pull requests, go write some code!</h3>
-                        }
-                    </div>
-                </div>
 
             </div>
 

@@ -334,10 +334,7 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("nuget", "Engineering"),
                         new RepoDefinition("nuget", "Home"),
                         new RepoDefinition("nuget", "NuGet2"),
-                        new RepoDefinition("nuget", "NuGet3"),
                         new RepoDefinition("nuget", "NuGet.Client"),
-                        new RepoDefinition("nuget", "NuGet.PackageManagement"),
-                        new RepoDefinition("nuget", "NuGet.VisualStudioExtension"),
                     },
                 }
             },

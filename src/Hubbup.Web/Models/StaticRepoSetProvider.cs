@@ -482,7 +482,6 @@ namespace Hubbup.Web.Models
                     AssociatedPersonSetName = "",
                     //WorkingLabel = "2 - In Progress",
                     Repos = new RepoDefinition[] {
-                        new RepoDefinition("aspnet", "docfx-signed"),
                         new RepoDefinition("aspnet", "NodeServices"),
                         new RepoDefinition("aspnet", "NuGet"),
                         new RepoDefinition("aspnet", "NuGet.Prototypes"),

@@ -195,9 +195,8 @@ namespace Hubbup.Web.Controllers
                 .Where(repoTask => !repoTask.Value.Task.IsFaulted)
                 .SelectMany(pullRequestList =>
                     pullRequestList.Value.Task.Result
-                        // TODO: Uncomment this when PullRequest.Milestone becomes available
-                        //.Where(
-                        //    pullRequest => !IsExcludedMilestone(pullRequest.Milestone?.Title))
+                        .Where(
+                            pullRequest => !IsExcludedMilestone(pullRequest.Milestone?.Title))
                         .Select(pullRequest =>
                             new PullRequestWithRepo
                             {
@@ -222,8 +221,6 @@ namespace Hubbup.Web.Controllers
                             {
                                 Milestone = issueMilestoneGroup.Key,
                                 OpenIssues = issueMilestoneGroup.Count(),
-                                // TODO: Need to add PullRequest.Milestone to Octokit
-                                //OpenPRs = allPullRequests.Where(pr => pr.Repo == repo && pr.PullRequest.Milestone?.Title == issueMilestoneGroup.Key),
                             })
                             .ToList(),
                     });
@@ -345,14 +342,10 @@ namespace Hubbup.Web.Controllers
                                         .Where(issue => issue.Issue.Milestone?.Title == milestone)
                                         .OrderBy(issue => issue.WorkingStartTime)
                                         .ToList(),
-                                    // TODO: Uncomment this when PullRequest.Milestone becomes available
-                                    //PullRequests = allPullRequests
-                                    //    .Where(pullRequest => pullRequest.PullRequest.Milestone?.Title == milestone),
-                                    PullRequests = milestone != null
-                                        ? new List<PullRequestWithRepo>()
-                                        : allPullRequests
+                                    PullRequests = allPullRequests
+                                        .Where(pullRequest => pullRequest.PullRequest.Milestone?.Title == milestone)
                                             .OrderBy(pullRequest => pullRequest.PullRequest.CreatedAt)
-                                            .ToList(),
+                                        .ToList(),
                                 })
                             .OrderBy(group => new PossibleSemanticVersion(group.Milestone))
                             .ToList()

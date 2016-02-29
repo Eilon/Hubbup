@@ -145,7 +145,7 @@ namespace Hubbup.Web.Controllers
             var repoFailures = new List<RepoFailure>();
             repoFailures.AddRange(
                 allIssuesByRepo
-                    .Where(repoTask => repoTask.Value.Task.IsFaulted)
+                    .Where(repoTask => repoTask.Value.Task.IsFaulted || repoTask.Value.Task.IsCanceled)
                     .Select(repoTask =>
                         new RepoFailure
                         {
@@ -154,7 +154,7 @@ namespace Hubbup.Web.Controllers
                         }));
             repoFailures.AddRange(
                 allPullRequestsByRepo
-                    .Where(repoTask => repoTask.Value.Task.IsFaulted)
+                    .Where(repoTask => repoTask.Value.Task.IsFaulted || repoTask.Value.Task.IsCanceled)
                     .Select(repoTask =>
                         new RepoFailure
                         {
@@ -163,7 +163,7 @@ namespace Hubbup.Web.Controllers
                         }));
 
             var allIssues = allIssuesByRepo
-                .Where(repoTask => !repoTask.Value.Task.IsFaulted)
+                .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
                 .SelectMany(issueList =>
                     issueList.Value.Task.Result
                         .Where(
@@ -192,7 +192,7 @@ namespace Hubbup.Web.Controllers
                 .Where(issue => issue.Issue.Assignee == null).ToList();
 
             var allPullRequests = allPullRequestsByRepo
-                .Where(repoTask => !repoTask.Value.Task.IsFaulted)
+                .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
                 .SelectMany(pullRequestList =>
                     pullRequestList.Value.Task.Result
                         .Where(

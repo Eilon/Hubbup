@@ -501,6 +501,31 @@ namespace Hubbup.Web.Models
                     },
                 }
             },
+            {
+                "kcoreext",
+                new RepoSetDefinition {
+                    AssociatedPersonSetName = "Murat",
+                    WorkingLabel = "2 - Working",
+                    RepoExtraLinks = new List<RepoExtraLink>
+                    {
+                        new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
+                        new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
+                        new RepoExtraLink { Title = "ASP.NET Perf", Url = "http://aspnetperf.azurewebsites.net/" },
+                    },
+                    Repos = new RepoDefinition[] {
+                        new RepoDefinition("aspnet", "Common"),
+                        new RepoDefinition("aspnet", "Configuration"),
+                        new RepoDefinition("aspnet", "DependencyInjection"),
+                        new RepoDefinition("aspnet", "Diagnostics"),
+                        new RepoDefinition("aspnet", "MusicStore"),
+                        new RepoDefinition("aspnet", "Options"),
+                        new RepoDefinition("aspnet", "Testing"),
+                        new RepoDefinition("dotnet", "cli"),
+                        new RepoDefinition("dotnet", "corefx"),
+                        new RepoDefinition("omnisharp", "omnisharp-roslyn"),
+                    },
+                }
+            },
         };
 
         public IDictionary<string, RepoSetDefinition> GetRepoSetLists()

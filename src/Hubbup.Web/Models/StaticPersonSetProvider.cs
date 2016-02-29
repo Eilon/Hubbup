@@ -41,6 +41,7 @@ namespace Hubbup.Web.Models
                         "JunTaoLuo",
                         "loudej",
                         "lodejard",
+                        "mikeharder",
                         "moozzyk",
                         "muratg",
                         "pakrym",

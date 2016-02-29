@@ -42,6 +42,7 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "HttpClient"),
                         new RepoDefinition("aspnet", "IISIntegration"),
                         new RepoDefinition("aspnet", "KestrelHttpServer"),
+                        new RepoDefinition("aspnet", "KoreBuild"),
                         new RepoDefinition("aspnet", "libuv-build"),
                         new RepoDefinition("aspnet", "Logging"),
                         new RepoDefinition("aspnet", "PlatformAbstractions"),
@@ -260,6 +261,7 @@ namespace Hubbup.Web.Models
                     Repos = new RepoDefinition[] {
                         // bespoke
                         new RepoDefinition("aspnet", "benchmarks"),
+                        new RepoDefinition("aspnet", "Reliability"),
                         // and others
                         new RepoDefinition("aspnet", "BasicMiddleware"),
                         new RepoDefinition("aspnet", "Caching"),
@@ -494,7 +496,6 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "SignalR-Server"),
                         new RepoDefinition("aspnet", "SignalR-ServiceBus"),
                         new RepoDefinition("aspnet", "SignalR-SqlServer"),
-                        new RepoDefinition("aspnet", "Stress-Old"),
                         new RepoDefinition("aspnet", "teamcity-azure-active-directory"),
                         new RepoDefinition("aspnet", "WawsTest"),
                     },

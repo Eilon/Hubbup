@@ -67,23 +67,37 @@ namespace Hubbup.Web.Controllers
             return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, string workingLabel, GitHubClient gitHubClient)
+        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, string[] workingLabels, GitHubClient gitHubClient)
         {
-            if (!issue.Labels.Any(label => string.Equals(label.Name, workingLabel, StringComparison.OrdinalIgnoreCase)))
+            var workingLabelsOnThisIssue =
+                issue.Labels
+                    .Where(label => workingLabels.Contains(label.Name, StringComparer.OrdinalIgnoreCase))
+                    .Select(label => label.Name);
+
+            if (!workingLabelsOnThisIssue.Any())
             {
-                // Item isn't in Working state, so ignore it
+                // Item isn't in any Working state, so ignore it
                 return null;
             }
 
             // Find all "labeled" events for this issue
             var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue(repo.Owner, repo.Name, issue.Number);
-            var labelEvent = issueEvents.LastOrDefault(issueEvent => issueEvent.Event == EventInfoState.Labeled && string.Equals(issueEvent.Label.Name, workingLabel, StringComparison.OrdinalIgnoreCase));
-            if (labelEvent == null)
+
+            foreach (var workingLabelOnThisIssue in workingLabelsOnThisIssue)
             {
-                // Couldn't find a "labeled" event where the Working label was added - probably a missing GitHub event?
-                return null;
+                var labelEvent = issueEvents.LastOrDefault(
+                    issueEvent =>
+                        issueEvent.Event == EventInfoState.Labeled &&
+                        string.Equals(issueEvent.Label.Name, workingLabelOnThisIssue, StringComparison.OrdinalIgnoreCase));
+
+                if (labelEvent != null)
+                {
+                    // If an event where this label was applied was found, return the date on which it was applied
+                    return labelEvent.CreatedAt;
+                }
             }
-            return labelEvent.CreatedAt;
+
+            return null;
         }
 
         [Route("{repoSet}")]
@@ -116,7 +130,7 @@ namespace Hubbup.Web.Controllers
             var labelQuery = GetLabelQuery(repos.LabelFilter);
 
             var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
-            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabel, distinctRepos);
+            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabels, distinctRepos);
             var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
             var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, distinctRepos);
             var openPRsQuery = GetOpenPRsQuery(distinctRepos);
@@ -176,14 +190,17 @@ namespace Hubbup.Web.Controllers
                             {
                                 Issue = issue,
                                 Repo = issueList.Key,
-                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, repos.WorkingLabel, gitHubClient).Result,
+                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, repos.WorkingLabels, gitHubClient).Result,
                                 IsInAssociatedPersonSet = IsInAssociatedPersonSet(issue.Assignee?.Login, personSet),
                             }))
                 .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
                 .ToList();
 
             var workingIssues = allIssues
-                .Where(issue => issue.Issue.Labels.Any(label => string.Equals(label.Name, repos.WorkingLabel, StringComparison.OrdinalIgnoreCase))).ToList();
+                .Where(issue =>
+                    issue.Issue.Labels
+                        .Any(label => repos.WorkingLabels.Contains(label.Name, StringComparer.OrdinalIgnoreCase)))
+                .ToList();
 
             var untriagedIssues = allIssues
                 .Where(issue => issue.Issue.Milestone == null).ToList();
@@ -263,7 +280,7 @@ namespace Hubbup.Web.Controllers
                         UntriagedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Milestone == null).Count(),
                         UntriagedIssuesQueryUrl = GetUntriagedIssuesQuery(labelQuery, repo),
                         WorkingIssues = allIssues.Where(issue => issue.Repo == repo && workingIssues.Contains(issue)).Count(),
-                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabel, repo),
+                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabels, repo),
                         OpenPRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo).Count(),
                         OpenPRsQueryUrl = GetOpenPRsQuery(repo),
                         StalePRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo && pullRequest.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
@@ -486,9 +503,11 @@ namespace Hubbup.Web.Controllers
             return GetGitHubQuery("is:issue", "is:open", GetRepoQuery(repos), excludedMilestonesQuery, labelQuery);
         }
 
-        private string GetWorkingIssuesQuery(string labelQuery, string workingLabel, params RepoDefinition[] repos)
+        private string GetWorkingIssuesQuery(string labelQuery, string[] workingLabels, params RepoDefinition[] repos)
         {
-            return GetGitHubQuery("is:issue", "is:open", $"label:\"{workingLabel}\"", GetRepoQuery(repos), labelQuery);
+            // TODO: No way to do a query for "label:L1 OR label:L2" so we just pick the first label, if any
+            var workingLabelsQuery = string.Join(" ", workingLabels.Select(workingLabel => $"label:\"{workingLabel.FirstOrDefault()}\""));
+            return GetGitHubQuery("is:issue", "is:open", workingLabelsQuery, GetRepoQuery(repos), labelQuery);
         }
 
         private string GetUntriagedIssuesQuery(string labelQuery, params RepoDefinition[] repos)

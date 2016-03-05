@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Hubbup.Web.Models;
 
 namespace Hubbup.Web.ViewModels
@@ -33,5 +34,7 @@ namespace Hubbup.Web.ViewModels
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
         public GroupByMilestoneViewModel GroupByMilestone { get; set; }
         public GroupByRepoViewModel GroupByRepo { get; set; }
+
+        public TimeSpan PageRequestTime { get; set; }
     }
 }

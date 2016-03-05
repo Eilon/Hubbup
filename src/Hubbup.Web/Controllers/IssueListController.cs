@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -110,6 +111,9 @@ namespace Hubbup.Web.Controllers
             {
                 return HttpNotFound();
             }
+
+            var requestStopwatch = new Stopwatch();
+            requestStopwatch.Start();
 
             var repos = RepoSetProvider.GetRepoSet(repoSet);
             var distinctRepos = repos.Repos.Distinct().ToArray();
@@ -248,7 +252,7 @@ namespace Hubbup.Web.Controllers
                 .OrderBy(milestone => new PossibleSemanticVersion(milestone));
 
 
-            return View(new IssueListViewModel
+            var issueListViewModel = new IssueListViewModel
             {
                 RepoFailures = repoFailures,
 
@@ -435,7 +439,12 @@ namespace Hubbup.Web.Controllers
                                 })
                             .ToList()
                 },
-            });
+            };
+
+            requestStopwatch.Stop();
+            issueListViewModel.PageRequestTime = requestStopwatch.Elapsed;
+
+            return View(issueListViewModel);
         }
 
         private string GetLabelQuery(string labelFilter)

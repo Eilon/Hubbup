@@ -32,10 +32,6 @@ namespace Hubbup.Web
             // Increase default outgoing connection limit to a larger number to allow
             // more parallel requests to go out to GitHub.
             ServicePointManager.DefaultConnectionLimit = 10;
-
-            int workerThreads, completionPortThreads;
-            System.Threading.ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
-            System.Diagnostics.Debugger.Launch();
         }
 
         public IConfiguration Configuration { get; set; }

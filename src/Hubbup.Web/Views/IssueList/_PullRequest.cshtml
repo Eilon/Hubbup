@@ -22,6 +22,7 @@
 
     <div class="col-md-9">
         <div>
+            <span style="font-weight:bolder; color: #999; margin-right: 4px; font-size: smaller">@Model.Repo.Owner/@Model.Repo.Name</span>
             <strong>@Model.PullRequest.Title</strong>
             @if (isOld)
             {
@@ -34,6 +35,5 @@
         {
             <span class="badge pull-right" style="margin-left: 4px">@Model.PullRequest.Milestone.Title</span>
         }
-        <span class="badge pull-right" style="margin-left: 4px">@Model.Repo.Owner/@Model.Repo.Name</span>
     </div>
 </div>

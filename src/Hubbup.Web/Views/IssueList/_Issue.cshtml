@@ -15,7 +15,7 @@
     </div>
 
     <div class="col-md-10">
-        <div><strong>@Model.Issue.Title</strong></div>
+        <div><span style="font-weight:bolder; color: #999; margin-right: 4px; font-size: smaller">@Model.Repo.Owner/@Model.Repo.Name</span> <strong>@Model.Issue.Title</strong></div>
 
         @foreach (var label in Model.Issue.Labels)
         {
@@ -27,6 +27,5 @@
             <span class="badge pull-right" style="margin-left: 4px" data-toggle="tooltip" data-placement="bottom" title="Started working on @Model.WorkingStartTime.Value.ToPacificTime().ToString()">Started working @Model.WorkingStartTime.Value.ToTimeAgo()</span>
         }
         <span class="badge pull-right" style="margin-left: 4px">@(Model.Issue.Milestone?.Title ?? "<no milestone>")</span>
-        <span class="badge pull-right" style="margin-left: 4px">@Model.Repo.Owner/@Model.Repo.Name</span>
     </div>
 </div>

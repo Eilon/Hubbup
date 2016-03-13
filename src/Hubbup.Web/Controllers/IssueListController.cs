@@ -33,7 +33,7 @@ namespace Hubbup.Web.Controllers
 
         public IUrlEncoder UrlEncoder { get; }
 
-        private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(string owner, string repo, GitHubClient gitHubClient)
+        private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, GitHubClient gitHubClient)
         {
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
@@ -42,17 +42,17 @@ namespace Hubbup.Web.Controllers
 
             return new RepoTask<IReadOnlyList<Issue>>
             {
-                Repo = new RepoDefinition(owner, repo),
-                Task = gitHubClient.Issue.GetAllForRepository(owner, repo, repositoryIssueRequest),
+                Repo = repo,
+                Task = gitHubClient.Issue.GetAllForRepository(repo.Owner, repo.Name, repositoryIssueRequest),
             };
         }
 
-        private RepoTask<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(string owner, string repo, GitHubClient gitHubClient)
+        private RepoTask<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(RepoDefinition repo, GitHubClient gitHubClient)
         {
             return new RepoTask<IReadOnlyList<PullRequest>>
             {
-                Repo = new RepoDefinition(owner, repo),
-                Task = gitHubClient.PullRequest.GetAllForRepository(owner, repo),
+                Repo = repo,
+                Task = gitHubClient.PullRequest.GetAllForRepository(repo.Owner, repo.Name),
             };
         }
 
@@ -116,7 +116,11 @@ namespace Hubbup.Web.Controllers
             requestStopwatch.Start();
 
             var repos = RepoSetProvider.GetRepoSet(repoSet);
-            var distinctRepos = repos.Repos.Distinct().ToArray();
+            var distinctRepos =
+                repos.Repos
+                    .Distinct()
+                    .Where(repo => repo.RepoInclusionLevel != RepoInclusionLevel.None)
+                    .ToArray();
             var personSetName = repos.AssociatedPersonSetName;
             var personSet = PersonSetProvider.GetPersonSet(personSetName);
             var peopleInPersonSet = personSet?.People ?? new string[0];
@@ -126,8 +130,8 @@ namespace Hubbup.Web.Controllers
 
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            Parallel.ForEach(distinctRepos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo.Owner, repo.Name, gitHubClient));
-            Parallel.ForEach(distinctRepos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo.Owner, repo.Name, gitHubClient));
+            Parallel.ForEach(distinctRepos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubClient));
+            Parallel.ForEach(distinctRepos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, gitHubClient));
 
             // while waiting for queries to run, do some other work...
 
@@ -188,7 +192,8 @@ namespace Hubbup.Web.Controllers
                             issue =>
                                 !IsExcludedMilestone(issue.Milestone?.Title) &&
                                 issue.PullRequest == null &&
-                                IsFilteredIssue(issue, repos))
+                                IsFilteredIssue(issue, repos) &&
+                                ItemIncludedByInclusionLevel(issue.Assignee?.Login, issueList.Key, peopleInPersonSet))
                         .Select(
                             issue => new IssueWithRepo
                             {
@@ -217,7 +222,9 @@ namespace Hubbup.Web.Controllers
                 .SelectMany(pullRequestList =>
                     pullRequestList.Value.Task.Result
                         .Where(
-                            pullRequest => !IsExcludedMilestone(pullRequest.Milestone?.Title))
+                            pullRequest => !IsExcludedMilestone(pullRequest.Milestone?.Title) &&
+                            (ItemIncludedByInclusionLevel(pullRequest.Assignee?.Login, pullRequestList.Key, peopleInPersonSet) ||
+                            ItemIncludedByInclusionLevel(pullRequest.User.Login, pullRequestList.Key, peopleInPersonSet)))
                         .Select(pullRequest =>
                             new PullRequestWithRepo
                             {
@@ -445,6 +452,19 @@ namespace Hubbup.Web.Controllers
             issueListViewModel.PageRequestTime = requestStopwatch.Elapsed;
 
             return View(issueListViewModel);
+        }
+
+        private bool ItemIncludedByInclusionLevel(string itemAssignee, RepoDefinition repo, string[] peopleInPersonSet)
+        {
+            if (repo.RepoInclusionLevel == RepoInclusionLevel.AllItems)
+            {
+                return true;
+            }
+            if (repo.RepoInclusionLevel == RepoInclusionLevel.ItemsAssignedToPersonSet)
+            {
+                return peopleInPersonSet.Contains(itemAssignee, StringComparer.OrdinalIgnoreCase);
+            }
+            return false;
         }
 
         private string GetLabelQuery(string labelFilter)

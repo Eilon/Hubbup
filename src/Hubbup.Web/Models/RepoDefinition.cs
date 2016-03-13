@@ -4,14 +4,16 @@ namespace Hubbup.Web.Models
 {
     public class RepoDefinition : IComparable<RepoDefinition>, IComparable, IEquatable<RepoDefinition>
     {
-        public RepoDefinition(string owner, string name)
+        public RepoDefinition(string owner, string name, RepoInclusionLevel repoInclusionLevel)
         {
             Owner = owner;
             Name = name;
+            RepoInclusionLevel = repoInclusionLevel;
         }
 
         public string Owner { get; set; }
         public string Name { get; set; }
+        public RepoInclusionLevel RepoInclusionLevel { get; set; }
 
         public int CompareTo(RepoDefinition other)
         {

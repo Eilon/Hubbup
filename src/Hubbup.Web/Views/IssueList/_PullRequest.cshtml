@@ -24,6 +24,7 @@
         <div>
             <span style="font-weight:bolder; color: #999; margin-right: 4px; font-size: smaller">@Model.Repo.Owner/@Model.Repo.Name</span>
             <strong>@Model.PullRequest.Title</strong>
+            @*<span style="margin-left: 4px; font-weight: bold; white-space: nowrap; color: #999"><span style="" class="glyphicon glyphicon-comment"></span> @Model.PullRequest.Comments</span>*@
             @if (isOld)
             {
                 <span class="label label-danger">Stale!</span>

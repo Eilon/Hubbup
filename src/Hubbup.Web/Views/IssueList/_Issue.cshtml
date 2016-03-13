@@ -15,7 +15,11 @@
     </div>
 
     <div class="col-md-10">
-        <div><span style="font-weight:bolder; color: #999; margin-right: 4px; font-size: smaller">@Model.Repo.Owner/@Model.Repo.Name</span> <strong>@Model.Issue.Title</strong></div>
+        <div>
+            <span style="font-weight:bolder; color: #999; margin-right: 4px; font-size: smaller">@Model.Repo.Owner/@Model.Repo.Name</span>
+            <strong>@Model.Issue.Title</strong>
+            <span style="margin-left: 4px; font-weight: bold; white-space: nowrap; color: #999"><span style="" class="glyphicon glyphicon-comment"></span> @Model.Issue.Comments</span>
+        </div>
 
         @foreach (var label in Model.Issue.Labels)
         {

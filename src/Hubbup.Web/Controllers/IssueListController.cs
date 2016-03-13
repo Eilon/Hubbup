@@ -124,6 +124,7 @@ namespace Hubbup.Web.Controllers
             var personSetName = repos.AssociatedPersonSetName;
             var personSet = PersonSetProvider.GetPersonSet(personSetName);
             var peopleInPersonSet = personSet?.People ?? new string[0];
+            var workingLabels = repos.WorkingLabels ?? new string[0];
 
             var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<Issue>>>();
             var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<PullRequest>>>();
@@ -138,7 +139,7 @@ namespace Hubbup.Web.Controllers
             var labelQuery = GetLabelQuery(repos.LabelFilter);
 
             var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
-            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabels, distinctRepos);
+            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, workingLabels, distinctRepos);
             var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
             var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, distinctRepos);
             var openPRsQuery = GetOpenPRsQuery(distinctRepos);
@@ -199,7 +200,7 @@ namespace Hubbup.Web.Controllers
                             {
                                 Issue = issue,
                                 Repo = issueList.Key,
-                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, repos.WorkingLabels, gitHubClient).Result,
+                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, workingLabels, gitHubClient).Result,
                                 IsInAssociatedPersonSet = IsInAssociatedPersonSet(issue.Assignee?.Login, personSet),
                             }))
                 .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
@@ -208,7 +209,7 @@ namespace Hubbup.Web.Controllers
             var workingIssues = allIssues
                 .Where(issue =>
                     issue.Issue.Labels
-                        .Any(label => repos.WorkingLabels.Contains(label.Name, StringComparer.OrdinalIgnoreCase)))
+                        .Any(label => workingLabels.Contains(label.Name, StringComparer.OrdinalIgnoreCase)))
                 .ToList();
 
             var untriagedIssues = allIssues
@@ -291,7 +292,7 @@ namespace Hubbup.Web.Controllers
                         UntriagedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Milestone == null).Count(),
                         UntriagedIssuesQueryUrl = GetUntriagedIssuesQuery(labelQuery, repo),
                         WorkingIssues = allIssues.Where(issue => issue.Repo == repo && workingIssues.Contains(issue)).Count(),
-                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, repos.WorkingLabels, repo),
+                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, workingLabels, repo),
                         OpenPRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo).Count(),
                         OpenPRsQueryUrl = GetOpenPRsQuery(repo),
                         StalePRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo && pullRequest.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),

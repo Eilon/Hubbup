@@ -345,6 +345,7 @@ namespace Hubbup.Web.Controllers
                                 new GroupByAssigneeAssignee
                                 {
                                     Assignee = "<other assignees>",
+                                    IsMetaAssignee = true,
                                     IsInAssociatedPersonSet = false,
                                     Issues = workingIssues
                                         .Where(workingIssue =>
@@ -373,6 +374,7 @@ namespace Hubbup.Web.Controllers
                                 new GroupByAssigneeAssignee
                                 {
                                     Assignee = "<unassigned>",
+                                    IsMetaAssignee = true,
                                     IsInAssociatedPersonSet = false,
                                     Issues = workingIssues
                                         .Where(workingIssue =>

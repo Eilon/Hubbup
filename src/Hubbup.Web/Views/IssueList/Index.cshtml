@@ -166,7 +166,18 @@
                 {
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><strong>@(assignee.Assignee ?? "<not assigned>")</strong></h3>
+                            <h3 class="panel-title">
+                                <strong>
+                                    @if (assignee.IsMetaAssignee)
+                                    {
+                                        @(assignee.Assignee ?? "<not assigned>")
+                                    }
+                                    else
+                                    {
+                                        <a href="https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+assignee%3A@(assignee.Assignee)">@(assignee.Assignee)</a>
+                                    }
+                                </strong>
+                            </h3>
                         </div>
                         <div class="panel-body">
                             <h4>Working on issues <span class="badge">@assignee.Issues.Count</span></h4>

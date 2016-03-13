@@ -333,7 +333,7 @@
 </div>
 
 <div>
-    <p class="text-center">Last updated on @Model.LastUpdated | Request took @Model.PageRequestTime</p>
+    <p class="text-center">Last updated on @Model.LastUpdated | Request took @(Model.PageRequestTime.TotalSeconds)s</p>
 </div>
 
 @section scripts

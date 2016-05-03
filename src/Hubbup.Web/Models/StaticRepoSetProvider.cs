@@ -47,6 +47,7 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "KestrelHttpServer", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "KoreBuild", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "libuv-build", RepoInclusionLevel.AllItems),
+                        new RepoDefinition("aspnet", "libuv-package", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Logging", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "PlatformAbstractions", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Proxy", RepoInclusionLevel.AllItems),
@@ -90,6 +91,7 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "Performance", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Razor", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "RazorTooling", RepoInclusionLevel.ItemsAssignedToPersonSet),
+                        new RepoDefinition("aspnet", "Release", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Routing", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Scaffolding", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "SignalR-Client-Cpp", RepoInclusionLevel.ItemsAssignedToPersonSet),
@@ -175,6 +177,7 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "KestrelHttpServer", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "KoreBuild", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "libuv-build", RepoInclusionLevel.ItemsAssignedToPersonSet),
+                        new RepoDefinition("aspnet", "libuv-package", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Logging", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Microsoft.Data.Sqlite", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "NerdDinner", RepoInclusionLevel.ItemsAssignedToPersonSet),
@@ -182,6 +185,7 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "Performance", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "PlatformAbstractions", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Proxy", RepoInclusionLevel.ItemsAssignedToPersonSet),
+                        new RepoDefinition("aspnet", "Release", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "ResponseCaching", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Roslyn", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "Scaffolding", RepoInclusionLevel.ItemsAssignedToPersonSet),
@@ -202,6 +206,8 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "UserSecrets", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "WebListener", RepoInclusionLevel.ItemsAssignedToPersonSet),
                         new RepoDefinition("aspnet", "WebSockets", RepoInclusionLevel.ItemsAssignedToPersonSet),
+
+                        new RepoDefinition("dotnet", "cli", RepoInclusionLevel.ItemsAssignedToPersonSet),
                     },
                 }
             },
@@ -220,6 +226,8 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "Microsoft.Data.Sqlite", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Options", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "SqlClient", RepoInclusionLevel.AllItems),
+
+                        new RepoDefinition("aspnet", "Release", RepoInclusionLevel.ItemsAssignedToPersonSet),
                     },
                 }
             },
@@ -258,7 +266,9 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "HttpClient", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "IISIntegration", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "KestrelHttpServer", RepoInclusionLevel.AllItems),
+                        new RepoDefinition("aspnet", "KoreBuild", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "libuv-build", RepoInclusionLevel.AllItems),
+                        new RepoDefinition("aspnet", "libuv-package", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Logging", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "PlatformAbstractions", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Proxy", RepoInclusionLevel.AllItems),
@@ -307,6 +317,8 @@ namespace Hubbup.Web.Models
                         new RepoDefinition("aspnet", "Microsoft.Data.Sqlite", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Options", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "SqlClient", RepoInclusionLevel.AllItems),
+                        // ---
+                        new RepoDefinition("aspnet", "Release", RepoInclusionLevel.AllItems),
                     },
                 }
             },

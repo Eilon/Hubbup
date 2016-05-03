@@ -12,9 +12,10 @@ namespace Hubbup.Web.Models
                 new RepoSetDefinition
                 {
                     AssociatedPersonSetName = "Murat",
-                    WorkingLabels = new[] { "2 - In Progress", "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     RepoExtraLinks = new List<RepoExtraLink>
                     {
+                        new RepoExtraLink { Title = "KoreBuild dashboard", Url = "https://korebuild.azurewebsites.net/" },
                         new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
                         new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
                         new RepoExtraLink { Title = "ASP.NET Perf", Url = "http://aspnetperf.azurewebsites.net/" },
@@ -113,9 +114,10 @@ namespace Hubbup.Web.Models
                 new RepoSetDefinition
                 {
                     AssociatedPersonSetName = "Eilon",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     RepoExtraLinks = new List<RepoExtraLink>
                     {
+                        new RepoExtraLink { Title = "KoreBuild dashboard", Url = "https://korebuild.azurewebsites.net/" },
                         new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
                         new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
                         new RepoExtraLink { Title = "ASP.NET Perf", Url = "http://aspnetperf.azurewebsites.net/" },
@@ -207,7 +209,7 @@ namespace Hubbup.Web.Models
                 "data",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Diego",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Configuration", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "EntityFramework", RepoInclusionLevel.AllItems),
@@ -225,9 +227,10 @@ namespace Hubbup.Web.Models
                 "k-ship",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "aspnetef",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     RepoExtraLinks = new List<RepoExtraLink>
                     {
+                        new RepoExtraLink { Title = "KoreBuild dashboard", Url = "https://korebuild.azurewebsites.net/" },
                         new RepoExtraLink { Title = "ASP.NET CI", Url = "http://aspnetci/" },
                         new RepoExtraLink { Title = "Travis CI", Url = "https://travis-ci.org/aspnet" },
                     },
@@ -311,7 +314,7 @@ namespace Hubbup.Web.Models
                 "pm",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Home", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "NerdDinner", RepoInclusionLevel.AllItems),
@@ -325,7 +328,7 @@ namespace Hubbup.Web.Models
                 "docs",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "Docs",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "ApiDocs", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Docs", RepoInclusionLevel.AllItems),
@@ -337,7 +340,7 @@ namespace Hubbup.Web.Models
                 "k-engr",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Announcements", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "BugTracker", RepoInclusionLevel.AllItems),
@@ -360,7 +363,7 @@ namespace Hubbup.Web.Models
                 "k-fun",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     LabelFilter = "Fundamentals",
                     Repos = new RepoDefinition[] {
                         // bespoke
@@ -438,7 +441,7 @@ namespace Hubbup.Web.Models
                 "nuget",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "NuGet",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("nuget", "Engineering", RepoInclusionLevel.AllItems),
                         new RepoDefinition("nuget", "Home", RepoInclusionLevel.AllItems),
@@ -464,7 +467,7 @@ namespace Hubbup.Web.Models
                 "k-perf",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "perfers",
-                    WorkingLabels = new[] { "2 - Working" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     LabelFilter = "Perf",
                     Repos = new RepoDefinition[] {
                         // bespoke
@@ -560,7 +563,7 @@ namespace Hubbup.Web.Models
                 "tooling",
                 new RepoSetDefinition {
                     AssociatedPersonSetName = "",
-                    WorkingLabels = new[] { "2 - In Progress" },
+                    WorkingLabels = new[] { "1 - Working", "2 - Working", "2 - In Progress" },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "BrowserLink", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Scaffolding", RepoInclusionLevel.AllItems),

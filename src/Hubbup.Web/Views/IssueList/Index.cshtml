@@ -18,7 +18,7 @@
     <div class="col-md-4 text-right">
         <button class="btn btn-info chevronButton" type="button" data-toggle="collapse" data-target="#reposIncludedGroup">
             <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
-            Included repos <span class="badge">@Model.ReposIncluded.Count</span>
+            Included repos <span class="badge">@Model.MainReposIncluded.Count</span>
         </button>
     </div>
 </div>
@@ -27,94 +27,17 @@
 
 <div class="collapse" id="reposIncludedGroup">
     <div class="well">
-        <table class="table table-bordered table-condensed">
-            <thead>
-                <tr>
-                    <th>Repo</th>
-                    <th># open</th>
-                    <th># untriaged</th>
-                    <th># unassigned</th>
-                    <th># working</th>
-                    <th>Open PRs</th>
-                    <th>Stale PRs</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var repo in Model.ReposIncluded)
-                {
-                    <tr>
-                        <td><a href="https://github.com/@repo.Repo.Owner/@repo.Repo.Name/issues">@repo.Repo.Owner/@repo.Repo.Name</a></td>
-                        <td class="@(repo.OpenIssues > 0 ? "info" : "")"><a href="@repo.OpenIssuesQueryUrl">@repo.OpenIssues</a></td>
-                        <td class="@(repo.UntriagedIssues > 0 ? "warning" : "")"><a href="@repo.UntriagedIssuesQueryUrl">@repo.UntriagedIssues</a></td>
-                        <td class="@(repo.UnassignedIssues > 0 ? "warning" : "")"><a href="@repo.UnassignedIssuesQueryUrl">@repo.UnassignedIssues</a></td>
-                        <td class="@(repo.WorkingIssues > 0 ? "success" : "")"><a href="@repo.WorkingIssuesQueryUrl">@repo.WorkingIssues</a></td>
-                        <td class="@(repo.OpenPRs > 0 ? "success" : "")"><a href="@repo.OpenPRsQueryUrl">@repo.OpenPRs</a></td>
-                        <td class="@(repo.StalePRs > 0 ? "danger" : "")"><a href="@repo.StalePRsQueryUrl">@repo.StalePRs</a></td>
-                    </tr>
-                }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td style="font-weight:bold; border-top-width: 2px;">Total</td>
-                    @{
-                        var totalOpenIssues = Model.ReposIncluded.Sum(repo => repo.OpenIssues);
-                        var totalUntriagedIssues = Model.ReposIncluded.Sum(repo => repo.UntriagedIssues);
-                        var totalUnassignedIssues = Model.ReposIncluded.Sum(repo => repo.UnassignedIssues);
-                        var totalWorkingIssues = Model.ReposIncluded.Sum(repo => repo.WorkingIssues);
-                        var totalOpenPRs = Model.ReposIncluded.Sum(repo => repo.OpenPRs);
-                        var totalStalePRs = Model.ReposIncluded.Sum(repo => repo.StalePRs);
-                    }
-                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalOpenIssues > 0 ? "info" : "")">@totalOpenIssues</td>
-                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalUntriagedIssues > 0 ? "warning" : "")">@totalUntriagedIssues</td>
-                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalUnassignedIssues > 0 ? "warning" : "")">@totalUnassignedIssues</td>
-                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalWorkingIssues > 0 ? "success" : "")">@totalWorkingIssues</td>
-                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalOpenPRs > 0 ? "success" : "")">@totalOpenPRs</td>
-                    <td style="font-weight:bold; border-top-width: 2px;" class="@(totalStalePRs > 0 ? "danger" : "")">@totalStalePRs</td>
-                </tr>
-            </tfoot>
-        </table>
+        @await Html.PartialAsync("_RepoList", Model.MainReposIncluded)
 
-        <table class="table table-bordered table-condensed">
-            <thead>
-                <tr>
-                    <th>Repo</th>
-                    @foreach (var milestone in Model.MilestonesAvailable)
-                    {
-                        <th>@(milestone ?? "<no milestone>")</th>
-                    }
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var repoMilestone in Model.MilestoneSummary)
-                {
-                    <tr>
-                        <td><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues">@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name</a></td>
-                        @foreach (var milestone in Model.MilestonesAvailable)
-                        {
-                            var issuesInRepoMilestone = repoMilestone.MilestoneData.SingleOrDefault(repoMilestoneData => repoMilestoneData.Milestone == milestone)?.OpenIssues ?? 0;
-                            var milestoneQuery = milestone == null ? "no:milestone" : "milestone:\"" + milestone + "\"";
-                            <td class="@(issuesInRepoMilestone > 0 ? "success" : "")"><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues?q=is:open%20is:issue%20@(milestoneQuery)">@issuesInRepoMilestone</a></td>
-                        }
-                        @{
-                            var total = repoMilestone.MilestoneData.Select(milestoneData => milestoneData.OpenIssues).Sum();
-                        }
-                        <td class="@(total > 0 ? "success" : "")">@total</td>
-                    </tr>
-                }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td style="font-weight:bold; border-top-width: 2px;">Total</td>
-                    @foreach (var milestone in Model.MilestonesAvailable)
-                    {
-                        var issuesInMilestone = Model.MilestoneSummary.Sum(milestoneSummary => milestoneSummary.MilestoneData.SingleOrDefault(repoMilestoneData => repoMilestoneData.Milestone == milestone)?.OpenIssues ?? 0);
-                        <td style="font-weight:bold; border-top-width: 2px;" class="@(issuesInMilestone > 0 ? "success" : "")">@issuesInMilestone</td>
-                    }
-                    <td></td>
-                </tr>
-            </tfoot>
-        </table>
+        @await Html.PartialAsync("_MilestoneSummary", Model.MainMilestoneSummary)
+
+        <hr />
+
+        <h2>Other repos</h2>
+
+        @await Html.PartialAsync("_RepoList", Model.ExtraReposIncluded)
+
+        @await Html.PartialAsync("_MilestoneSummary", Model.ExtraMilestoneSummary)
     </div>
 </div>
 

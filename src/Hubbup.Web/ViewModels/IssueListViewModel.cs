@@ -20,10 +20,12 @@ namespace Hubbup.Web.ViewModels
         public int WorkingIssues { get; set; }
         public int OpenPullRequests { get; set; }
         public int StalePullRequests { get; set; }
-        public List<RepoSummary> ReposIncluded { get; set; }
-        public List<MilestoneSummary> MilestoneSummary { get; set; }
-        public List<string> MilestonesAvailable { get; set; }
 
+        public List<RepoSummary> MainReposIncluded { get; set; }
+        public List<RepoSummary> ExtraReposIncluded { get; set; }
+        public MilestoneSummaryData MainMilestoneSummary { get; set; }
+        public MilestoneSummaryData ExtraMilestoneSummary { get; set; }
+        
         public string OpenIssuesQuery { get; set; }
         public string UntriagedIssuesQuery { get; set; }
         public string UnassignedIssuesQuery { get; set; }

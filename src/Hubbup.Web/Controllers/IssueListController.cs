@@ -18,7 +18,7 @@ namespace Hubbup.Web.Controllers
 {
     [RequireHttpsCustomPort(44347, environmentName: "Development", Order = 1)]
     [RequireHttps(Order = 2)]
-    public class IssueListController : Controller
+    public class IssueListController : Controller, IGitHubQueryProvider
     {
         public IssueListController(IRepoSetProvider repoSetProvider, IPersonSetProvider personSetProvider, IUrlEncoder urlEncoder)
         {
@@ -136,14 +136,17 @@ namespace Hubbup.Web.Controllers
 
             // while waiting for queries to run, do some other work...
 
+            var distinctMainRepos = distinctRepos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).ToArray();
+            var distinctExtraRepos = distinctRepos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.ItemsAssignedToPersonSet).ToArray();
+
             var labelQuery = GetLabelQuery(repos.LabelFilter);
 
-            var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
-            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, workingLabels, distinctRepos);
-            var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctRepos);
-            var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, distinctRepos);
-            var openPRsQuery = GetOpenPRsQuery(distinctRepos);
-            var stalePRsQuery = GetStalePRsQuery(distinctRepos);
+            var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctMainRepos);
+            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, workingLabels, distinctMainRepos);
+            var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctMainRepos);
+            var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, distinctMainRepos);
+            var openPRsQuery = GetOpenPRsQuery(distinctMainRepos);
+            var stalePRsQuery = GetStalePRsQuery(distinctMainRepos);
 
             // now wait for queries to finish executing
 
@@ -237,13 +240,17 @@ namespace Hubbup.Web.Controllers
                 .ToList();
 
 
-            var milestoneData = distinctRepos
+            var allIssuesInMainRepos = allIssues.Where(issue => distinctMainRepos.Contains(issue.Repo)).ToList();
+            var allIssuesInExtraRepos = allIssues.Where(issue => distinctExtraRepos.Contains(issue.Repo)).ToList();
+
+
+            var mainMilestoneData = distinctMainRepos
                 .OrderBy(repo => repo.Owner + "/" + repo.Name, StringComparer.OrdinalIgnoreCase)
                 .Select(repo =>
                     new MilestoneSummary()
                     {
                         Repo = repo,
-                        MilestoneData = allIssues
+                        MilestoneData = allIssuesInMainRepos
                             .Where(issue => issue.Repo == repo)
                             .GroupBy(issue => issue.Issue.Milestone?.Title)
                             .Select(issueMilestoneGroup => new MilestoneData
@@ -253,12 +260,33 @@ namespace Hubbup.Web.Controllers
                             })
                             .ToList(),
                     });
-            var fullSortedMilestoneList = milestoneData
+            var fullSortedMainMilestoneList = mainMilestoneData
                 .SelectMany(milestone => milestone.MilestoneData)
                 .Select(milestone => milestone.Milestone)
                 .Distinct()
                 .OrderBy(milestone => new PossibleSemanticVersion(milestone));
 
+            var extraMilestoneData = distinctExtraRepos
+                .OrderBy(repo => repo.Owner + "/" + repo.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(repo =>
+                    new MilestoneSummary()
+                    {
+                        Repo = repo,
+                        MilestoneData = allIssuesInExtraRepos
+                            .Where(issue => issue.Repo == repo)
+                            .GroupBy(issue => issue.Issue.Milestone?.Title)
+                            .Select(issueMilestoneGroup => new MilestoneData
+                            {
+                                Milestone = issueMilestoneGroup.Key,
+                                OpenIssues = issueMilestoneGroup.Count(),
+                            })
+                            .ToList(),
+                    });
+            var fullSortedExtraMilestoneList = extraMilestoneData
+                .SelectMany(milestone => milestone.MilestoneData)
+                .Select(milestone => milestone.Milestone)
+                .Distinct()
+                .OrderBy(milestone => new PossibleSemanticVersion(milestone));
 
             var issueListViewModel = new IssueListViewModel
             {
@@ -272,36 +300,26 @@ namespace Hubbup.Web.Controllers
                 RepoSetName = repoSet,
                 RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
 
-                TotalIssues = allIssues.Count,
+                TotalIssues = allIssues.Where(issue => issue.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
                 WorkingIssues = workingIssues.Count,
-                UntriagedIssues = untriagedIssues.Count,
+                UntriagedIssues = untriagedIssues.Where(issue => issue.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
                 UnassignedIssues = unassignedIssues.Count,
-                OpenPullRequests = allPullRequests.Count,
-                StalePullRequests = allPullRequests.Where(pr => pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
+                OpenPullRequests = allPullRequests.Where(pr => pr.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
+                StalePullRequests = allPullRequests.Where(pr => pr.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems && pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
 
-                ReposIncluded = distinctRepos
-                    .OrderBy(repo => repo.Owner.ToLowerInvariant())
-                    .ThenBy(repo => repo.Name.ToLowerInvariant())
-                    .Select(repo => new RepoSummary
-                    {
-                        Repo = repo,
-                        OpenIssues = allIssues.Where(issue => issue.Repo == repo).Count(),
-                        OpenIssuesQueryUrl = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repo),
-                        UnassignedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Assignee == null).Count(),
-                        UnassignedIssuesQueryUrl = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, repo),
-                        UntriagedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Milestone == null).Count(),
-                        UntriagedIssuesQueryUrl = GetUntriagedIssuesQuery(labelQuery, repo),
-                        WorkingIssues = allIssues.Where(issue => issue.Repo == repo && workingIssues.Contains(issue)).Count(),
-                        WorkingIssuesQueryUrl = GetWorkingIssuesQuery(labelQuery, workingLabels, repo),
-                        OpenPRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo).Count(),
-                        OpenPRsQueryUrl = GetOpenPRsQuery(repo),
-                        StalePRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo && pullRequest.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
-                        StalePRsQueryUrl = GetStalePRsQuery(repo),
-                    })
-                    .ToList(),
+                MainReposIncluded = distinctMainRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
+                ExtraReposIncluded = distinctExtraRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
 
-                MilestoneSummary = milestoneData.ToList(),
-                MilestonesAvailable = fullSortedMilestoneList.ToList(),
+                MainMilestoneSummary = new MilestoneSummaryData
+                {
+                    MilestoneData = mainMilestoneData.ToList(),
+                    MilestonesAvailable = fullSortedMainMilestoneList.ToList(),
+                },
+                ExtraMilestoneSummary = new MilestoneSummaryData
+                {
+                    MilestoneData = extraMilestoneData.ToList(),
+                    MilestonesAvailable = fullSortedExtraMilestoneList.ToList(),
+                },
 
                 OpenIssuesQuery = openIssuesQuery,
                 WorkingIssuesQuery = workingIssuesQuery,
@@ -470,7 +488,7 @@ namespace Hubbup.Web.Controllers
             return false;
         }
 
-        private string GetLabelQuery(string labelFilter)
+        private static string GetLabelQuery(string labelFilter)
         {
             if (string.IsNullOrEmpty(labelFilter))
             {
@@ -505,12 +523,12 @@ namespace Hubbup.Web.Controllers
             return personSet.People.Contains(userLogin, StringComparer.OrdinalIgnoreCase);
         }
 
-        private string GetExcludedMilestonesQuery()
+        public string GetExcludedMilestonesQuery()
         {
             return string.Join(" ", ExcludedMilestones.Select(milestone => "-milestone:\"" + milestone + "\""));
         }
 
-        private string GetStalePRDate()
+        private static string GetStalePRDate()
         {
             var staleDays = 14;
             var stalePRDate = DateTimeOffset.UtcNow.ToPacificTime().AddDays(-staleDays);
@@ -530,34 +548,34 @@ namespace Hubbup.Web.Controllers
             return GitHubQueryPrefix + UrlEncoder.UrlEncode(string.Join(" ", rawQueryParts)) + "&s=updated";
         }
 
-        private string GetOpenIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)
+        public string GetOpenIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)
         {
             return GetGitHubQuery("is:issue", "is:open", GetRepoQuery(repos), excludedMilestonesQuery, labelQuery);
         }
 
-        private string GetWorkingIssuesQuery(string labelQuery, string[] workingLabels, params RepoDefinition[] repos)
+        public string GetWorkingIssuesQuery(string labelQuery, string[] workingLabels, params RepoDefinition[] repos)
         {
             // TODO: No way to do a query for "label:L1 OR label:L2" so we just pick the first label, if any
             var workingLabelsQuery = string.Join(" ", workingLabels.Select(workingLabel => $"label:\"{workingLabel.FirstOrDefault()}\""));
             return GetGitHubQuery("is:issue", "is:open", workingLabelsQuery, GetRepoQuery(repos), labelQuery);
         }
 
-        private string GetUntriagedIssuesQuery(string labelQuery, params RepoDefinition[] repos)
+        public string GetUntriagedIssuesQuery(string labelQuery, params RepoDefinition[] repos)
         {
             return GetGitHubQuery("is:issue", "is:open", "no:milestone", GetRepoQuery(repos), labelQuery);
         }
 
-        private string GetUnassignedIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)
+        public string GetUnassignedIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)
         {
             return GetGitHubQuery("is:issue", "is:open", "no:assignee", GetRepoQuery(repos), excludedMilestonesQuery, labelQuery);
         }
 
-        private string GetOpenPRsQuery(params RepoDefinition[] repos)
+        public string GetOpenPRsQuery(params RepoDefinition[] repos)
         {
             return GetGitHubQuery("is:pr", "is:open", GetRepoQuery(repos));
         }
 
-        private string GetStalePRsQuery(params RepoDefinition[] repos)
+        public string GetStalePRsQuery(params RepoDefinition[] repos)
         {
             return GetGitHubQuery("is:pr", "is:open", "created:<=" + GetStalePRDate(), GetRepoQuery(repos));
         }
@@ -622,5 +640,50 @@ namespace Hubbup.Web.Controllers
                 }
             }
         }
+    }
+
+    public static class MyExt
+    {
+        public static List<RepoSummary> GetRepoSummary(
+            this IEnumerable<RepoDefinition> repos,
+            List<IssueWithRepo> allIssues,
+            List<IssueWithRepo> workingIssues,
+            List<PullRequestWithRepo> allPullRequests,
+            string labelQuery,
+            string[] workingLabels,
+            IGitHubQueryProvider gitHubQueryProvider)
+        {
+            return repos
+                .OrderBy(repo => repo.Owner.ToLowerInvariant())
+                .ThenBy(repo => repo.Name.ToLowerInvariant())
+                .Select(repo => new RepoSummary
+                {
+                    Repo = repo,
+                    OpenIssues = allIssues.Where(issue => issue.Repo == repo).Count(),
+                    OpenIssuesQueryUrl = gitHubQueryProvider.GetOpenIssuesQuery(gitHubQueryProvider.GetExcludedMilestonesQuery(), labelQuery, repo),
+                    UnassignedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Assignee == null).Count(),
+                    UnassignedIssuesQueryUrl = gitHubQueryProvider.GetUnassignedIssuesQuery(gitHubQueryProvider.GetExcludedMilestonesQuery(), labelQuery, repo),
+                    UntriagedIssues = allIssues.Where(issue => issue.Repo == repo && issue.Issue.Milestone == null).Count(),
+                    UntriagedIssuesQueryUrl = gitHubQueryProvider.GetUntriagedIssuesQuery(labelQuery, repo),
+                    WorkingIssues = allIssues.Where(issue => issue.Repo == repo && workingIssues.Contains(issue)).Count(),
+                    WorkingIssuesQueryUrl = gitHubQueryProvider.GetWorkingIssuesQuery(labelQuery, workingLabels, repo),
+                    OpenPRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo).Count(),
+                    OpenPRsQueryUrl = gitHubQueryProvider.GetOpenPRsQuery(repo),
+                    StalePRs = allPullRequests.Where(pullRequest => pullRequest.Repo == repo && pullRequest.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
+                    StalePRsQueryUrl = gitHubQueryProvider.GetStalePRsQuery(repo),
+                })
+                .ToList();
+        }
+    }
+
+    public interface IGitHubQueryProvider
+    {
+        string GetOpenIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos);
+        string GetExcludedMilestonesQuery();
+        string GetUnassignedIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos);
+        string GetUntriagedIssuesQuery(string labelQuery, params RepoDefinition[] repos);
+        string GetWorkingIssuesQuery(string labelQuery, string[] workingLabels, params RepoDefinition[] repos);
+        string GetOpenPRsQuery(params RepoDefinition[] repos);
+        string GetStalePRsQuery(params RepoDefinition[] repos);
     }
 }

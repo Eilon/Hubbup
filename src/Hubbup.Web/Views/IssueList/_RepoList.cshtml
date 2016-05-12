@@ -1,0 +1,48 @@
+﻿@model List<RepoSummary>
+
+<table class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th>Repo</th>
+            <th># open</th>
+            <th># untriaged</th>
+            <th># unassigned</th>
+            <th># working</th>
+            <th>Open PRs</th>
+            <th>Stale PRs</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var repo in Model)
+        {
+            <tr>
+                <td><a href="https://github.com/@repo.Repo.Owner/@repo.Repo.Name/issues">@repo.Repo.Owner/@repo.Repo.Name</a></td>
+                <td class="@(repo.OpenIssues > 0 ? "info" : "")"><a href="@repo.OpenIssuesQueryUrl">@repo.OpenIssues</a></td>
+                <td class="@(repo.UntriagedIssues > 0 ? "warning" : "")"><a href="@repo.UntriagedIssuesQueryUrl">@repo.UntriagedIssues</a></td>
+                <td class="@(repo.UnassignedIssues > 0 ? "warning" : "")"><a href="@repo.UnassignedIssuesQueryUrl">@repo.UnassignedIssues</a></td>
+                <td class="@(repo.WorkingIssues > 0 ? "success" : "")"><a href="@repo.WorkingIssuesQueryUrl">@repo.WorkingIssues</a></td>
+                <td class="@(repo.OpenPRs > 0 ? "success" : "")"><a href="@repo.OpenPRsQueryUrl">@repo.OpenPRs</a></td>
+                <td class="@(repo.StalePRs > 0 ? "danger" : "")"><a href="@repo.StalePRsQueryUrl">@repo.StalePRs</a></td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td style="font-weight:bold; border-top-width: 2px;">Total</td>
+            @{
+                var totalOpenIssues = Model.Sum(repo => repo.OpenIssues);
+                var totalUntriagedIssues = Model.Sum(repo => repo.UntriagedIssues);
+                var totalUnassignedIssues = Model.Sum(repo => repo.UnassignedIssues);
+                var totalWorkingIssues = Model.Sum(repo => repo.WorkingIssues);
+                var totalOpenPRs = Model.Sum(repo => repo.OpenPRs);
+                var totalStalePRs = Model.Sum(repo => repo.StalePRs);
+            }
+            <td style="font-weight:bold; border-top-width: 2px;" class="@(totalOpenIssues > 0 ? "info" : "")">@totalOpenIssues</td>
+            <td style="font-weight:bold; border-top-width: 2px;" class="@(totalUntriagedIssues > 0 ? "warning" : "")">@totalUntriagedIssues</td>
+            <td style="font-weight:bold; border-top-width: 2px;" class="@(totalUnassignedIssues > 0 ? "warning" : "")">@totalUnassignedIssues</td>
+            <td style="font-weight:bold; border-top-width: 2px;" class="@(totalWorkingIssues > 0 ? "success" : "")">@totalWorkingIssues</td>
+            <td style="font-weight:bold; border-top-width: 2px;" class="@(totalOpenPRs > 0 ? "success" : "")">@totalOpenPRs</td>
+            <td style="font-weight:bold; border-top-width: 2px;" class="@(totalStalePRs > 0 ? "danger" : "")">@totalStalePRs</td>
+        </tr>
+    </tfoot>
+</table>

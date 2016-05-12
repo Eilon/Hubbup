@@ -1,0 +1,43 @@
+﻿@model MilestoneSummaryData
+
+<table class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th>Repo</th>
+            @foreach (var milestone in Model.MilestonesAvailable)
+            {
+                <th>@(milestone ?? "<no milestone>")</th>
+            }
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var repoMilestone in Model.MilestoneData)
+        {
+            <tr>
+                <td><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues">@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name</a></td>
+                @foreach (var milestone in Model.MilestonesAvailable)
+                {
+                    var issuesInRepoMilestone = repoMilestone.MilestoneData.SingleOrDefault(repoMilestoneData => repoMilestoneData.Milestone == milestone)?.OpenIssues ?? 0;
+                    var milestoneQuery = milestone == null ? "no:milestone" : "milestone:\"" + milestone + "\"";
+                    <td class="@(issuesInRepoMilestone > 0 ? "success" : "")"><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues?q=is:open%20is:issue%20@(milestoneQuery)">@issuesInRepoMilestone</a></td>
+                }
+                @{
+                    var total = repoMilestone.MilestoneData.Select(milestoneData => milestoneData.OpenIssues).Sum();
+                }
+                <td class="@(total > 0 ? "success" : "")">@total</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td style="font-weight:bold; border-top-width: 2px;">Total</td>
+            @foreach (var milestone in Model.MilestonesAvailable)
+            {
+                var issuesInMilestone = Model.MilestoneData.Sum(milestoneSummary => milestoneSummary.MilestoneData.SingleOrDefault(repoMilestoneData => repoMilestoneData.Milestone == milestone)?.OpenIssues ?? 0);
+                <td style="font-weight:bold; border-top-width: 2px;" class="@(issuesInMilestone > 0 ? "success" : "")">@issuesInMilestone</td>
+            }
+            <td></td>
+        </tr>
+    </tfoot>
+</table>

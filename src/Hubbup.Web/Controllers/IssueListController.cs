@@ -4,23 +4,23 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Hubbup.Web.Filters;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.AspNet.Mvc;
-using Microsoft.Extensions.WebEncoders;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using NuGet;
 using Octokit;
 
 namespace Hubbup.Web.Controllers
 {
-    [RequireHttpsCustomPort(44347, environmentName: "Development", Order = 1)]
-    [RequireHttps(Order = 2)]
+    [RequireHttps]
     public class IssueListController : Controller
     {
-        public IssueListController(IRepoSetProvider repoSetProvider, IPersonSetProvider personSetProvider, IUrlEncoder urlEncoder)
+        public IssueListController(IRepoSetProvider repoSetProvider, IPersonSetProvider personSetProvider, UrlEncoder urlEncoder)
         {
             RepoSetProvider = repoSetProvider;
             PersonSetProvider = personSetProvider;
@@ -31,7 +31,7 @@ namespace Hubbup.Web.Controllers
 
         public IPersonSetProvider PersonSetProvider { get; private set; }
 
-        public IUrlEncoder UrlEncoder { get; }
+        public UrlEncoder UrlEncoder { get; }
 
         private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, GitHubClient gitHubClient)
         {
@@ -102,14 +102,16 @@ namespace Hubbup.Web.Controllers
         }
 
         [Route("{repoSet}")]
-        [GitHubAuthData]
-        public IActionResult Index(string repoSet, string gitHubAccessToken, string gitHubName)
+        [Authorize]
+        public async Task<IActionResult> Index(string repoSet)
         {
+            var gitHubName = HttpContext.User.Identity.Name;
+            var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
             // Authenticated and all claims have been read
 
             if (!RepoSetProvider.RepoSetExists(repoSet))
             {
-                return HttpNotFound();
+                return NotFound();
             }
 
             var requestStopwatch = new Stopwatch();
@@ -527,7 +529,7 @@ namespace Hubbup.Web.Controllers
         {
             const string GitHubQueryPrefix = "https://github.com/search?q=";
 
-            return GitHubQueryPrefix + UrlEncoder.UrlEncode(string.Join(" ", rawQueryParts)) + "&s=updated";
+            return GitHubQueryPrefix + UrlEncoder.Encode(string.Join(" ", rawQueryParts)) + "&s=updated";
         }
 
         private string GetOpenIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)

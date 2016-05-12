@@ -2,16 +2,16 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using Hubbup.Web.Filters;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Hubbup.Web.Controllers
 {
-    [RequireHttpsCustomPort(44347, environmentName: "Development", Order = 1)]
-    [RequireHttps(Order = 2)]
+    [RequireHttps]
     public class HomeController : Controller
     {
         public HomeController(IRepoSetProvider repoSetProvider)
@@ -22,21 +22,23 @@ namespace Hubbup.Web.Controllers
         public IRepoSetProvider RepoSetProvider { get; }
 
         [Route("")]
-        [GitHubAuthData]
-        public IActionResult Index(string gitHubName)
+        [Authorize]
+        public IActionResult Index()
         {
             return View(new HomeViewModel
             {
-                GitHubUserName = gitHubName,
+                GitHubUserName = HttpContext.User.Identity.Name,
                 RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
                 RepoSetLists = RepoSetProvider.GetRepoSetLists(),
             });
         }
 
         [Route("missingrepos")]
-        [GitHubAuthData]
-        public async Task<IActionResult> MissingRepos(string gitHubAccessToken, string gitHubName)
+        [Authorize]
+        public async Task<IActionResult> MissingRepos()
         {
+            var gitHubName = HttpContext.User.Identity.Name;
+            var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
             var repoSetLists = RepoSetProvider.GetRepoSetLists();

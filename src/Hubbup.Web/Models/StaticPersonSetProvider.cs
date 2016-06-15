@@ -42,7 +42,7 @@ namespace Hubbup.Web.Models
                         "pakrym",
                         "Tratcher",
                         "troydai",
-                        "t-jukota",
+                        "ZestyBread",
                         "victorhurdugaci",
                     }
                 }

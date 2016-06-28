@@ -9,11 +9,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Reflection;
 
 namespace Hubbup.Web
 {
     public class Startup
     {
+        public static readonly string Version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         public IHostingEnvironment HostingEnvironment { get; }
 
         public Startup(IHostingEnvironment env)
@@ -31,10 +34,6 @@ namespace Hubbup.Web
             }
 
             Configuration = builder.Build();
-
-            // Increase default outgoing connection limit to a larger number to allow
-            // more parallel requests to go out to GitHub.
-            ServicePointManager.DefaultConnectionLimit = 10;
         }
 
         public IConfiguration Configuration { get; set; }
@@ -104,9 +103,11 @@ namespace Hubbup.Web
         // Entry point for the application.public static void Main(string[] args)
         public static void Main(string[] args)
         {
+            Console.WriteLine($"args: {string.Join(" ", args)}");
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseConfiguration(new ConfigurationBuilder().AddCommandLine(args).Build())
                 .UseIISIntegration()
                 .UseStartup<Startup>()
                 .Build();

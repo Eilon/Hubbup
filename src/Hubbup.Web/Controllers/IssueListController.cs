@@ -14,10 +14,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using NuGet;
 using Octokit;
+using NuGet.Versioning;
 
 namespace Hubbup.Web.Controllers
 {
-    [RequireHttps]
     public class IssueListController : Controller
     {
         public IssueListController(IRepoSetProvider repoSetProvider, IPersonSetProvider personSetProvider, UrlEncoder urlEncoder)
@@ -37,7 +37,7 @@ namespace Hubbup.Web.Controllers
         {
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
-                State = ItemState.Open,
+                State = ItemStateFilter.Open,
             };
 
             return new RepoTask<IReadOnlyList<Issue>>
@@ -578,10 +578,10 @@ namespace Hubbup.Web.Controllers
         {
             public PossibleSemanticVersion(string possibleSemanticVersion)
             {
-                SemanticVersion semanticVersion;
-                if (SemanticVersion.TryParse(possibleSemanticVersion, out semanticVersion))
+                NuGetVersion nuGetVersion;
+                if (NuGetVersion.TryParse(possibleSemanticVersion, out nuGetVersion))
                 {
-                    SemanticVersion = semanticVersion;
+                    NuGetVersion = nuGetVersion;
                 }
                 else
                 {
@@ -591,7 +591,7 @@ namespace Hubbup.Web.Controllers
 
             public string NonSemanticVersion { get; }
 
-            public SemanticVersion SemanticVersion { get; }
+            public NuGetVersion NuGetVersion { get; }
 
             public int CompareTo(PossibleSemanticVersion other)
             {
@@ -600,11 +600,11 @@ namespace Hubbup.Web.Controllers
                     return 1;
                 }
 
-                if (SemanticVersion != null)
+                if (NuGetVersion != null)
                 {
-                    if (other.SemanticVersion != null)
+                    if (other.NuGetVersion != null)
                     {
-                        return SemanticVersion.CompareTo(other.SemanticVersion);
+                        return NuGetVersion.CompareTo(other.NuGetVersion);
                     }
                     else
                     {
@@ -613,7 +613,7 @@ namespace Hubbup.Web.Controllers
                 }
                 else
                 {
-                    if (other.SemanticVersion != null)
+                    if (other.NuGetVersion != null)
                     {
                         return -1;
                     }

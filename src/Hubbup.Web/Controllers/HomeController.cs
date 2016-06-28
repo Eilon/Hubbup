@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Hubbup.Web.Controllers
 {
-    [RequireHttps]
     public class HomeController : Controller
     {
         public HomeController(IRepoSetProvider repoSetProvider)

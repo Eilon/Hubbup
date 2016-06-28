@@ -1,0 +1,3 @@
+[submodule "ext\\octokit"]
+	path = ext\\octokit
+	url = git@github.com:anurse/octokit.net

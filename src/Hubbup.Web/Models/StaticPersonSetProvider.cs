@@ -74,6 +74,7 @@ namespace Hubbup.Web.Models
                     People = new string[]
                     {
                         "ajaybhargavb",
+                        "cjqian",
                         "dougbu",
                         "Eilon",
                         "javiercn",

@@ -9,16 +9,15 @@ using System.Threading.Tasks;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NuGet;
-using Octokit;
 using NuGet.Versioning;
+using Octokit;
 
 namespace Hubbup.Web.Controllers
 {
-    public class IssueListController : Controller
+    public class IssueListController : Controller, IGitHubQueryProvider
     {
         public IssueListController(IRepoSetProvider repoSetProvider, IPersonSetProvider personSetProvider, UrlEncoder urlEncoder)
         {

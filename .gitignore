@@ -4,3 +4,4 @@
 PublishProfiles/
 *.user
 project.lock.json
+node_modules

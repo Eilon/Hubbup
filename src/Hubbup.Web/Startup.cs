@@ -1,37 +1,39 @@
-﻿using System.Net;
+﻿using System.IO;
+using System.Net;
 using Hubbup.Web.Models;
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Authentication.Cookies;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
+using System;
+using System.Reflection;
 
 namespace Hubbup.Web
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env, IApplicationEnvironment appEnv)
+        public static readonly string Version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        public IHostingEnvironment HostingEnvironment { get; }
+
+        public Startup(IHostingEnvironment env)
         {
+            HostingEnvironment = env;
+
             // Set up configuration sources
             var builder = new ConfigurationBuilder()
-                .SetBasePath(appEnv.ApplicationBasePath)
-                .AddJsonFile("config.json")
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddEnvironmentVariables();
 
-            if (env.IsDevelopment())
+            if (HostingEnvironment.IsDevelopment())
             {
                 builder.AddUserSecrets();
             }
 
             Configuration = builder.Build();
-
-            // Increase default outgoing connection limit to a larger number to allow
-            // more parallel requests to go out to GitHub.
-            ServicePointManager.DefaultConnectionLimit = 10;
         }
 
         public IConfiguration Configuration { get; set; }
@@ -39,10 +41,10 @@ namespace Hubbup.Web
         // This method gets called by the runtime.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddInstance<IRepoSetProvider>(new StaticRepoSetProvider());
-            services.AddInstance<IPersonSetProvider>(new StaticPersonSetProvider());
+            services.AddSingleton<IRepoSetProvider>(new StaticRepoSetProvider());
+            services.AddSingleton<IPersonSetProvider>(new StaticPersonSetProvider());
 
-            services.AddCaching();
+            services.AddMemoryCache();
 
             services.AddSession();
 
@@ -53,16 +55,22 @@ namespace Hubbup.Web
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             });
 
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                if (HostingEnvironment.IsDevelopment())
+                {
+                    options.SslPort = 44347;
+                }
+            });
         }
 
         // Configure is called after ConfigureServices is called.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
-            loggerFactory.MinimumLevel = LogLevel.Information;
-            loggerFactory.AddConsole();
+            loggerFactory.AddConsole(minLevel: LogLevel.Information);
+            loggerFactory.AddDebug(minLevel: LogLevel.Trace);
 
-            if (env.IsDevelopment())
+            if (HostingEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -71,15 +79,11 @@ namespace Hubbup.Web
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseIISPlatformHandler(options => options.AuthenticationDescriptions.Clear());
-
             app.UseStaticFiles();
 
-            app.UseCookieAuthentication(options =>
+            app.UseCookieAuthentication(new CookieAuthenticationOptions()
             {
-                options.AutomaticAuthenticate = true;
-                options.AuthenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.LoginPath = new PathString("/signin");
+                LoginPath = new PathString("/signin")
             });
 
             app.UseGitHubAuthentication(options =>
@@ -87,7 +91,8 @@ namespace Hubbup.Web
                 options.ClientId = Configuration["GitHubClientId"];
                 options.ClientSecret = Configuration["GitHubClientSecret"];
                 options.Scope.Add("repo");
-                options.SaveTokensAsClaims = true;
+                options.SaveTokens = true;
+                options.AutomaticChallenge = true;
             });
 
             app.UseSession();
@@ -95,7 +100,19 @@ namespace Hubbup.Web
             app.UseMvc();
         }
 
-        // Entry point for the application.
-        public static void Main(string[] args) => WebApplication.Run<Startup>(args);
+        // Entry point for the application.public static void Main(string[] args)
+        public static void Main(string[] args)
+        {
+            Console.WriteLine($"args: {string.Join(" ", args)}");
+            var host = new WebHostBuilder()
+                .UseKestrel()
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseConfiguration(new ConfigurationBuilder().AddCommandLine(args).Build())
+                .UseIISIntegration()
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
+        }
     }
 }

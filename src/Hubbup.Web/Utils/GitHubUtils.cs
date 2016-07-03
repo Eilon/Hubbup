@@ -1,5 +1,6 @@
 ﻿using Octokit;
 using Octokit.Internal;
+using System.Net.Http;
 
 namespace Hubbup.Web.Utils
 {
@@ -7,9 +8,15 @@ namespace Hubbup.Web.Utils
     {
         public static GitHubClient GetGitHubClient(string gitHubAccessToken)
         {
-            var ghc = new GitHubClient(
-                new ProductHeaderValue("Project-K-Issue-List"),
-                new InMemoryCredentialStore(new Credentials(gitHubAccessToken)));
+            var connection = new Connection(
+                new ProductHeaderValue("hubbup.io", Startup.Version),
+                new HttpClientAdapter(() => new HttpClientHandler()
+                {
+                    // MOAR PARALLEL REQUESTS!
+                    MaxConnectionsPerServer = 10
+                }));
+            connection.Credentials = new Credentials(gitHubAccessToken);
+            var ghc = new GitHubClient(connection);
 
             return ghc;
         }

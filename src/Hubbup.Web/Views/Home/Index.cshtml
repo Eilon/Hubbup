@@ -18,11 +18,27 @@
                 <div class="panel-body">
                     @if (repoSet.Value.Repos.Length > 0)
                     {
-                        @foreach (var repo in repoSet.Value.Repos)
+                        var mainRepos = repoSet.Value.Repos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.AllItems);
+                        @foreach (var repo in mainRepos)
                         {
                             <span class="bg-info" style="padding:5px; margin: 5px; line-height: 2.5em; border: 1px solid #ccc;">
                                 <a style="white-space:nowrap;" href="https://github.com/@repo.Owner/@repo.Name/issues">@repo.Owner/@repo.Name</a>
                             </span>
+                        }
+
+                        var extraRepos = repoSet.Value.Repos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.ItemsAssignedToPersonSet);
+                        @if (extraRepos.Any())
+                        {
+                            <hr />
+
+                            <h4>Other repos</h4>
+
+                            @foreach (var repo in extraRepos)
+                            {
+                                <span class="bg-info" style="padding:5px; margin: 5px; line-height: 2.5em; border: 1px solid #ccc;">
+                                    <a style="white-space:nowrap;" href="https://github.com/@repo.Owner/@repo.Name/issues">@repo.Owner/@repo.Name</a>
+                                </span>
+                            }
                         }
                     }
                     else

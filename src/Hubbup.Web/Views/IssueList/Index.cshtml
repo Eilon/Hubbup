@@ -31,13 +31,16 @@
 
         @await Html.PartialAsync("_MilestoneSummary", Model.MainMilestoneSummary)
 
-        <hr />
+        @if (Model.ExtraReposIncluded.Any())
+        {
+            <hr />
 
-        <h2>Other repos</h2>
+            <h2>Other repos</h2>
 
-        @await Html.PartialAsync("_RepoList", Model.ExtraReposIncluded)
+            @await Html.PartialAsync("_RepoList", Model.ExtraReposIncluded)
 
-        @await Html.PartialAsync("_MilestoneSummary", Model.ExtraMilestoneSummary)
+            @await Html.PartialAsync("_MilestoneSummary", Model.ExtraMilestoneSummary)
+        }
     </div>
 </div>
 

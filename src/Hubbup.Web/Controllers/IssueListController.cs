@@ -132,6 +132,42 @@ namespace Hubbup.Web.Controllers
 
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
+
+            // Get missing repos
+            var distinctOrgs =
+                distinctRepos
+                    .Select(
+                        repoDefinition => repoDefinition.Owner)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(org => org)
+                    .ToList();
+
+            var allOrgRepos = new ConcurrentDictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+
+            var getAllOrgReposTask = AsyncParallelUtils.ForEachAsync(distinctOrgs, 5, async org =>
+            {
+                var reposInOrg = await gitHubClient.Repository.GetAllForOrg(org);
+                allOrgRepos[org] = reposInOrg.Where(repo => !repo.Fork).Select(repo => repo.Name).ToArray();
+            });
+            await getAllOrgReposTask;
+
+            var missingOrgRepos = allOrgRepos.Select(org =>
+                new MissingRepoSet
+                {
+                    Org = org.Key,
+                    MissingRepos =
+                        org.Value
+                            .Except(
+                                distinctRepos
+                                    .Select(repoDefinition => repoDefinition.Name), StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(repo => repo, StringComparer.OrdinalIgnoreCase)
+                            .ToList(),
+                })
+                .OrderBy(missingRepoSet => missingRepoSet.Org, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+
+            // Get bugs/PR data
             Parallel.ForEach(distinctRepos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubClient));
             Parallel.ForEach(distinctRepos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, gitHubClient));
 
@@ -310,6 +346,7 @@ namespace Hubbup.Web.Controllers
 
                 MainReposIncluded = distinctMainRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
                 ExtraReposIncluded = distinctExtraRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
+                MissingRepos = missingOrgRepos,
 
                 MainMilestoneSummary = new MilestoneSummaryData
                 {

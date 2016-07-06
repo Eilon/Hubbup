@@ -41,6 +41,37 @@
 
             @await Html.PartialAsync("_MilestoneSummary", Model.ExtraMilestoneSummary)
         }
+
+        @if (Model.MissingRepos.Any())
+        {
+            <hr />
+
+            <h2>Repos not included</h2>
+
+            @foreach (var missingRepoSet in Model.MissingRepos)
+            {
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><strong>@missingRepoSet.Org</strong> <span class="badge">@missingRepoSet.MissingRepos.Count</span></h3>
+                    </div>
+                    <div class="panel-body">
+                        @if (missingRepoSet.MissingRepos.Count > 0)
+                        {
+                            @foreach (var repo in missingRepoSet.MissingRepos)
+                            {
+                                <span class="bg-info" style="padding:5px; margin: 5px; line-height: 2.5em; border: 1px solid #ccc;">
+                                    <a style="white-space:nowrap;" href="https://github.com/@missingRepoSet.Org/@repo/issues">@missingRepoSet.Org/@repo</a>
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <h3>No missing repos in this org</h3>
+                        }
+                    </div>
+                </div>
+            }
+        }
     </div>
 </div>
 

@@ -61,7 +61,6 @@ namespace Hubbup.Web.Models
                         "HaoK",
                         "lajones",
                         "maumar",
-                        "mikary",
                         "natemcmaster",
                         "rowanmiller",
                         "smitpatel",

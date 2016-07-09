@@ -37,7 +37,6 @@ namespace Hubbup.Web
 
         public IConfiguration Configuration { get; set; }
 
-        // This method gets called by the runtime.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IRepoSetProvider>(new StaticRepoSetProvider());
@@ -63,7 +62,6 @@ namespace Hubbup.Web
             });
         }
 
-        // Configure is called after ConfigureServices is called.
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(minLevel: LogLevel.Information);
@@ -99,7 +97,6 @@ namespace Hubbup.Web
             app.UseMvc();
         }
 
-        // Entry point for the application.public static void Main(string[] args)
         public static void Main(string[] args)
         {
             Console.WriteLine($"args: {string.Join(" ", args)}");

@@ -610,12 +610,12 @@ namespace Hubbup.Web.Controllers
 
         public string GetOpenPRsQuery(params RepoDefinition[] repos)
         {
-            return GetGitHubQuery("is:pr", "is:open", GetRepoQuery(repos));
+            return GetGitHubQuery("is:pr", "is:open", GetRepoQuery(repos), GetExcludedMilestonesQuery());
         }
 
         public string GetStalePRsQuery(params RepoDefinition[] repos)
         {
-            return GetGitHubQuery("is:pr", "is:open", "created:<=" + GetStalePRDate(), GetRepoQuery(repos));
+            return GetGitHubQuery("is:pr", "is:open", "created:<=" + GetStalePRDate(), GetRepoQuery(repos), GetExcludedMilestonesQuery());
         }
 
         private class RepoTask<TTaskResult>

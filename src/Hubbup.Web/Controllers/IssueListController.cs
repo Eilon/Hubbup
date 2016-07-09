@@ -594,7 +594,12 @@ namespace Hubbup.Web.Controllers
         public string GetWorkingIssuesQuery(string labelQuery, string[] workingLabels, params RepoDefinition[] repos)
         {
             // TODO: No way to do a query for "label:L1 OR label:L2" so we just pick the first label, if any
-            var workingLabelsQuery = string.Join(" ", workingLabels.Select(workingLabel => $"label:\"{workingLabel.FirstOrDefault()}\""));
+            var workingLabelsQuery = string.Empty;
+            var firstWorkingLabel = workingLabels.FirstOrDefault();
+            if (firstWorkingLabel != null)
+            {
+                workingLabelsQuery = $"label:\"{firstWorkingLabel}\"";
+            }
             return GetGitHubQuery("is:issue", "is:open", workingLabelsQuery, GetRepoQuery(repos), labelQuery);
         }
 

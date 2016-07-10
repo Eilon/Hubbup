@@ -32,7 +32,7 @@ namespace Hubbup.Web.Controllers
 
         public UrlEncoder UrlEncoder { get; }
 
-        private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, GitHubClient gitHubClient)
+        private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, IGitHubClient gitHubClient)
         {
             var repositoryIssueRequest = new RepositoryIssueRequest
             {
@@ -46,7 +46,7 @@ namespace Hubbup.Web.Controllers
             };
         }
 
-        private RepoTask<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(RepoDefinition repo, GitHubClient gitHubClient)
+        private RepoTask<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(RepoDefinition repo, IGitHubClient gitHubClient)
         {
             return new RepoTask<IReadOnlyList<PullRequest>>
             {
@@ -67,7 +67,7 @@ namespace Hubbup.Web.Controllers
             return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, string[] workingLabels, GitHubClient gitHubClient)
+        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, string[] workingLabels, IGitHubClient gitHubClient)
         {
             var workingLabelsOnThisIssue =
                 issue.Labels

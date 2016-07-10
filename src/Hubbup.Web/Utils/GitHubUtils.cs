@@ -6,7 +6,7 @@ namespace Hubbup.Web.Utils
 {
     public static class GitHubUtils
     {
-        public static GitHubClient GetGitHubClient(string gitHubAccessToken)
+        public static IGitHubClient GetGitHubClient(string gitHubAccessToken)
         {
             var connection = new Connection(
                 new ProductHeaderValue("hubbup.io", Startup.Version),

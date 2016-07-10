@@ -227,9 +227,6 @@ namespace Hubbup.Web.Models
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "Configuration", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "EntityFramework", RepoInclusionLevel.AllItems),
-                        new RepoDefinition("aspnet", "EntityFramework6", RepoInclusionLevel.AllItems),
-                        new RepoDefinition("aspnet", "EntityFramework.Benchmarks", RepoInclusionLevel.AllItems),
-                        new RepoDefinition("aspnet", "EntityFramework.Docs", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Identity", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Microsoft.Data.Sqlite", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Options", RepoInclusionLevel.AllItems),
@@ -252,7 +249,6 @@ namespace Hubbup.Web.Models
                     },
                     Repos = new RepoDefinition[] {
                         new RepoDefinition("aspnet", "aspnet-docker", RepoInclusionLevel.AllItems),
-                        new RepoDefinition("aspnet", "aspnet-win-docker", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "BasicMiddleware", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Caching", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Coherence", RepoInclusionLevel.AllItems),
@@ -318,15 +314,12 @@ namespace Hubbup.Web.Models
                         // ---
                         new RepoDefinition("aspnet", "Configuration", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "EntityFramework", RepoInclusionLevel.AllItems),
-                        new RepoDefinition("aspnet", "EntityFramework6", RepoInclusionLevel.AllItems),
-                        new RepoDefinition("aspnet", "EntityFramework.Benchmarks", RepoInclusionLevel.AllItems),
-                        new RepoDefinition("aspnet", "EntityFramework.Docs", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Identity", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Microsoft.Data.Sqlite", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "Options", RepoInclusionLevel.AllItems),
                         new RepoDefinition("aspnet", "SqlClient", RepoInclusionLevel.AllItems),
                         // ---
-                        new RepoDefinition("aspnet", "Release", RepoInclusionLevel.AllItems),
+                        new RepoDefinition("aspnet", "Infrastructure", RepoInclusionLevel.AllItems),
                     },
                 }
             },

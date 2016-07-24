@@ -1,6 +1,6 @@
 # Hubbup
 
-ASP.NET Core 1 to view GitHub issues for team stand-up
+ASP.NET Core app to view GitHub issues for team stand-up
 
 # Setup
 

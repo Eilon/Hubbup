@@ -10,6 +10,7 @@
         "Views",
         "bower.json",
         "gulpfile.js",
+        "hubbup-data.json",
         "package.json",
         "web.config"
       ]
@@ -63,6 +64,7 @@
       "Views",
       "bower.json",
       "gulpfile.js",
+      "hubbup-data.json",
       "package.json",
       "web.config"
     ]

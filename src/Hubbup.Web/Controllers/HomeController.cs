@@ -24,11 +24,13 @@ namespace Hubbup.Web.Controllers
         [Authorize]
         public IActionResult Index()
         {
+            var repoDataSet = RepoSetProvider.GetRepoDataSet();
+
             return View(new HomeViewModel
             {
                 GitHubUserName = HttpContext.User.Identity.Name,
-                RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
-                RepoSetLists = RepoSetProvider.GetRepoSetLists(),
+                RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
+                RepoSetLists = repoDataSet.GetRepoSetLists(),
             });
         }
 
@@ -40,7 +42,9 @@ namespace Hubbup.Web.Controllers
             var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            var repoSetLists = RepoSetProvider.GetRepoSetLists();
+            var repoDataSet = RepoSetProvider.GetRepoDataSet();
+
+            var repoSetLists = repoDataSet.GetRepoSetLists();
             var distinctOrgs =
                 repoSetLists
                     .SelectMany(
@@ -76,7 +80,7 @@ namespace Hubbup.Web.Controllers
             return View(new MissingReposViewModel
             {
                 GitHubUserName = gitHubName,
-                RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
+                RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
                 MissingRepos = missingOrgRepos,
             });
         }

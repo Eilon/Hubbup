@@ -39,7 +39,13 @@ namespace Hubbup.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IRepoSetProvider>(new StaticRepoSetProvider());
+            services.Configure<LocalJsonRepoSetProviderOptions>(options =>
+            {
+                options.JsonFilePath = "hubbup-data.json";
+            });
+            services.AddSingleton<IRepoSetProvider, LocalJsonRepoSetProvider>();
+            //services.AddSingleton<IRepoSetProvider>(new StaticRepoSetProvider());
+
             services.AddSingleton<IPersonSetProvider>(new StaticPersonSetProvider());
 
             services.AddMemoryCache();

@@ -108,7 +108,9 @@ namespace Hubbup.Web.Controllers
             var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
             // Authenticated and all claims have been read
 
-            if (!RepoSetProvider.RepoSetExists(repoSet))
+            var repoDataSet = RepoSetProvider.GetRepoDataSet();
+            
+            if (!repoDataSet.RepoSetExists(repoSet))
             {
                 return NotFound();
             }
@@ -116,7 +118,7 @@ namespace Hubbup.Web.Controllers
             var requestStopwatch = new Stopwatch();
             requestStopwatch.Start();
 
-            var repos = RepoSetProvider.GetRepoSet(repoSet);
+            var repos = repoDataSet.GetRepoSet(repoSet);
             var distinctRepos =
                 repos.Repos
                     .Distinct()
@@ -335,7 +337,7 @@ namespace Hubbup.Web.Controllers
                 ExtraLinks = repos.RepoExtraLinks,
 
                 RepoSetName = repoSet,
-                RepoSetNames = RepoSetProvider.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
+                RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
 
                 TotalIssues = allIssues.Where(issue => issue.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
                 WorkingIssues = workingIssues.Count,

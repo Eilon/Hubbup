@@ -5,7 +5,7 @@ namespace Hubbup.Web.Models
 {
     public class StaticRepoSetProvider : IRepoSetProvider
     {
-        private static readonly Dictionary<string, RepoSetDefinition> RepoSetList = new Dictionary<string, RepoSetDefinition>(StringComparer.OrdinalIgnoreCase)
+        private static readonly Dictionary<string, RepoSetDefinition> _repoSetList = new Dictionary<string, RepoSetDefinition>(StringComparer.OrdinalIgnoreCase)
         {
             {
                 "kcore",
@@ -625,19 +625,9 @@ namespace Hubbup.Web.Models
             },
         };
 
-        public IDictionary<string, RepoSetDefinition> GetRepoSetLists()
+        public RepoDataSet GetRepoDataSet()
         {
-            return RepoSetList;
-        }
-
-        public RepoSetDefinition GetRepoSet(string repoSet)
-        {
-            return RepoSetList[repoSet];
-        }
-
-        public bool RepoSetExists(string repoSet)
-        {
-            return RepoSetList.ContainsKey(repoSet);
+            return new Models.RepoDataSet(_repoSetList);
         }
     }
 }

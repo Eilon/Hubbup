@@ -40,6 +40,7 @@ namespace Hubbup.Web.Models
                         "mikeharder",
                         "moozzyk",
                         "muratg",
+                        "natemcmaster",
                         "pakrym",
                         "Tratcher",
                         "troydai",
@@ -61,7 +62,6 @@ namespace Hubbup.Web.Models
                         "HaoK",
                         "lajones",
                         "maumar",
-                        "natemcmaster",
                         "rowanmiller",
                         "smitpatel",
                     }

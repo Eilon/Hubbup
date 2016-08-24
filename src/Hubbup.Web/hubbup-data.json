@@ -38,6 +38,11 @@
       },
       {
         "org": "aspnet",
+        "repo": "BuildTrain",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
         "repo": "Caching",
         "inclusionLevel": "AllItems"
       },
@@ -339,6 +344,11 @@
       },
       {
         "org": "aspnet",
+        "repo": "MvcPrecompilation",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
         "repo": "NerdDinner",
         "inclusionLevel": "ItemsAssignedToPersonSet"
       },
@@ -484,7 +494,17 @@
       },
       {
         "org": "aspnet",
+        "repo": "AspNetWebStack",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
         "repo": "aspnet.xunit",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "BuildTrain",
         "inclusionLevel": "AllItems"
       },
       {
@@ -575,6 +595,11 @@
       {
         "org": "aspnet",
         "repo": "Mvc",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "MvcPrecompilation",
         "inclusionLevel": "AllItems"
       },
       {
@@ -912,6 +937,11 @@
       },
       {
         "org": "aspnet",
+        "repo": "EntityFramework6",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
         "repo": "Identity",
         "inclusionLevel": "AllItems"
       },
@@ -1224,6 +1254,11 @@
       },
       {
         "org": "aspnet",
+        "repo": "MvcPrecompilation",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
         "repo": "PackageSearch",
         "inclusionLevel": "AllItems"
       },
@@ -1293,6 +1328,11 @@
       {
         "org": "aspnet",
         "repo": "NerdDinner",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "GetStarted",
         "inclusionLevel": "AllItems"
       },
       {
@@ -1703,11 +1743,6 @@
       },
       {
         "org": "aspnet",
-        "repo": "EntityFramework6",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
         "repo": "EntityFramework.Benchmarks",
         "inclusionLevel": "AllItems"
       },
@@ -2090,11 +2125,6 @@
       {
         "org": "aspnet",
         "repo": "EntityFramework",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "EntityFramework6",
         "inclusionLevel": "AllItems"
       },
       {

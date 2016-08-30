@@ -1373,6 +1373,69 @@
       }
     ]
   },
+  "nuget": {
+    "AssociatedPersonSetName": "NuGet",
+    "WorkingLabels": [ "2 - Working", "1 - Working", "2 - In Progress" ],
+    "Repos": [
+      {
+        "org": "nuget",
+        "repo": "Engineering",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "nuget",
+        "repo": "Home",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "nuget",
+        "repo": "NuGet2",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "nuget",
+        "repo": "NuGet.Client",
+        "inclusionLevel": "AllItems"
+      }
+    ]
+  },
+  "corefx": {
+    "AssociatedPersonSetName": "corefx",
+    "WorkingLabels": [ "2 - In Progress" ],
+    "Repos": [
+      {
+        "org": "dotnet",
+        "repo": "cli",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "dotnet",
+        "repo": "CoreCLR",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "dotnet",
+        "repo": "corefx",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "dotnet",
+        "repo": "wcf",
+        "inclusionLevel": "AllItems"
+      }
+    ]
+  },
+  "jabbr": {
+    "AssociatedPersonSetName": "Mach",
+    "WorkingLabels": [ "2 - Working" ],
+    "Repos": [
+      {
+        "org": "MachUpskillingFY17",
+        "repo": "JabbR-Core",
+        "inclusionLevel": "AllItems"
+      }
+    ]
+  },
   "k-engr": {
     "AssociatedPersonSetName": "",
     "WorkingLabels": [ "2 - Working", "1 - Working", "2 - In Progress" ],
@@ -1759,58 +1822,6 @@
       {
         "org": "aspnet",
         "repo": "Options",
-        "inclusionLevel": "AllItems"
-      }
-    ]
-  },
-  "nuget": {
-    "AssociatedPersonSetName": "NuGet",
-    "WorkingLabels": [ "2 - Working", "1 - Working", "2 - In Progress" ],
-    "Repos": [
-      {
-        "org": "nuget",
-        "repo": "Engineering",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "nuget",
-        "repo": "Home",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "nuget",
-        "repo": "NuGet2",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "nuget",
-        "repo": "NuGet.Client",
-        "inclusionLevel": "AllItems"
-      }
-    ]
-  },
-  "corefx": {
-    "AssociatedPersonSetName": "corefx",
-    "WorkingLabels": [ "2 - In Progress" ],
-    "Repos": [
-      {
-        "org": "dotnet",
-        "repo": "cli",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "dotnet",
-        "repo": "CoreCLR",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "dotnet",
-        "repo": "corefx",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "dotnet",
-        "repo": "wcf",
         "inclusionLevel": "AllItems"
       }
     ]

@@ -241,6 +241,23 @@ namespace Hubbup.Web.Models
                     }
                 }
             },
+            {
+                "Mach",
+                new PersonSet {
+                    People = new string[]
+                    {
+                        "adamtuliper",
+                        "ashanhol",
+                        "gcrev93",
+                        "heatherbshapiro",
+                        "JamesEarle",
+                        "jcocchi",
+                        "joe1888",
+                        "KSLHacks",
+                        "Shanselman",
+                    }
+                }
+            },
         };
 
         public PersonSet GetPersonSet(string personSetName)

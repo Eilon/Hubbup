@@ -13,7 +13,6 @@ namespace Hubbup.Web.Models
                     People = new string[]
                     {
                         "ajaybhargavb",
-                        "cjqian",
                         "dougbu",
                         "Eilon",
                         "javiercn",
@@ -37,15 +36,14 @@ namespace Hubbup.Web.Models
                         "davidfowl",
                         "halter73",
                         "JunTaoLuo",
+                        "mikaelm12",
                         "mikeharder",
                         "moozzyk",
                         "muratg",
                         "natemcmaster",
                         "pakrym",
                         "Tratcher",
-                        "troydai",
-                        "victorhurdugaci",
-                        "ZestyBread"
+                        "troydai"
                     }
                 }
             },
@@ -91,10 +89,10 @@ namespace Hubbup.Web.Models
                         "JunTaoLuo",
                         "moozzyk",
                         "muratg",
+                        "natemcmaster",
                         "pakrym",
                         "Tratcher",
                         "troydai",
-                        "victorhurdugaci",
                         // ---
                         "ajcvickers",
                         "AndriySvyryd",
@@ -105,7 +103,6 @@ namespace Hubbup.Web.Models
                         "lajones",
                         "maumar",
                         "mikary",
-                        "natemcmaster",
                         "rowanmiller",
                         "smitpatel",
                     }

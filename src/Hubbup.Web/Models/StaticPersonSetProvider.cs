@@ -16,6 +16,7 @@ namespace Hubbup.Web.Models
                         "dougbu",
                         "Eilon",
                         "javiercn",
+                        "jbagga",
                         "kichalla",
                         "NTaylorMullen",
                         "pranavkm",
@@ -74,6 +75,7 @@ namespace Hubbup.Web.Models
                         "dougbu",
                         "Eilon",
                         "javiercn",
+                        "jbagga",
                         "kichalla",
                         "NTaylorMullen",
                         "pranavkm",
@@ -102,7 +104,6 @@ namespace Hubbup.Web.Models
                         "HaoK",
                         "lajones",
                         "maumar",
-                        "mikary",
                         "rowanmiller",
                         "smitpatel",
                     }

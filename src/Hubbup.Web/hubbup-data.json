@@ -33,6 +33,11 @@
       },
       {
         "org": "aspnet",
+        "repo": "AzureIntegration",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
         "repo": "BasicMiddleware",
         "inclusionLevel": "AllItems"
       },
@@ -947,6 +952,11 @@
       },
       {
         "org": "aspnet",
+        "repo": "EntityFramework.Tools",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
         "repo": "EntityFramework6",
         "inclusionLevel": "AllItems"
       },
@@ -994,6 +1004,11 @@
       {
         "org": "aspnet",
         "repo": "aspnet-docker",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "AzureIntegration",
         "inclusionLevel": "AllItems"
       },
       {
@@ -1279,6 +1294,11 @@
       },
       {
         "org": "aspnet",
+        "repo": "RazorPages",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
         "repo": "RazorTooling",
         "inclusionLevel": "AllItems"
       },
@@ -1301,6 +1321,11 @@
       {
         "org": "aspnet",
         "repo": "EntityFramework",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "EntityFramework.Tools",
         "inclusionLevel": "AllItems"
       },
       {

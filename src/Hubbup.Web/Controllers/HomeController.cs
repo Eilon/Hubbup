@@ -22,9 +22,9 @@ namespace Hubbup.Web.Controllers
 
         [Route("")]
         [Authorize]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var repoDataSet = RepoSetProvider.GetRepoDataSet();
+            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
 
             return View(new HomeViewModel
             {
@@ -42,7 +42,7 @@ namespace Hubbup.Web.Controllers
             var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            var repoDataSet = RepoSetProvider.GetRepoDataSet();
+            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
 
             var repoSetLists = repoDataSet.GetRepoSetLists();
             var distinctOrgs =

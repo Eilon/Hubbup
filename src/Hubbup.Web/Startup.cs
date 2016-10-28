@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using Hubbup.Web.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -39,11 +38,20 @@ namespace Hubbup.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<LocalJsonRepoSetProviderOptions>(options =>
+            //services.Configure<LocalJsonRepoSetProviderOptions>(options =>
+            //{
+            //    options.JsonFilePath = @"C:\GitHub\Hubbup-data\hubbup-data.json";
+            //});
+            //services.AddSingleton<IRepoSetProvider, LocalJsonRepoSetProvider>();
+
+            //services.Configure<RemoteJsonRepoSetProviderOptions>(Configuration);
+
+            services.Configure<RemoteJsonRepoSetProviderOptions>(options =>
             {
-                options.JsonFilePath = "hubbup-data.json";
+                options.JsonFileUrl = "https://raw.githubusercontent.com/Eilon/Hubbup-data/master/hubbup-data.json";
             });
-            services.AddSingleton<IRepoSetProvider, LocalJsonRepoSetProvider>();
+            services.AddSingleton<IRepoSetProvider, RemoteJsonRepoSetProvider>();
+
             //services.AddSingleton<IRepoSetProvider>(new StaticRepoSetProvider());
 
             services.AddSingleton<IPersonSetProvider>(new StaticPersonSetProvider());
@@ -105,7 +113,6 @@ namespace Hubbup.Web
 
         public static void Main(string[] args)
         {
-            Console.WriteLine($"args: {string.Join(" ", args)}");
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())

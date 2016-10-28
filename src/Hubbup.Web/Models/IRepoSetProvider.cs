@@ -1,7 +1,9 @@
-﻿namespace Hubbup.Web.Models
+﻿using System.Threading.Tasks;
+
+namespace Hubbup.Web.Models
 {
     public interface IRepoSetProvider
     {
-        RepoDataSet GetRepoDataSet();
+        Task<RepoDataSet> GetRepoDataSet();
     }
 }

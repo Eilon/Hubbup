@@ -108,7 +108,7 @@ namespace Hubbup.Web.Controllers
             var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
             // Authenticated and all claims have been read
 
-            var repoDataSet = RepoSetProvider.GetRepoDataSet();
+            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
             
             if (!repoDataSet.RepoSetExists(repoSet))
             {

@@ -10,7 +10,6 @@
         "Views",
         "bower.json",
         "gulpfile.js",
-        "hubbup-data.json",
         "package.json",
         "web.config"
       ]
@@ -40,6 +39,7 @@
     "Microsoft.Extensions.Logging": "1.0.0",
     "Microsoft.Extensions.Logging.Console": "1.0.0",
     "Microsoft.Extensions.Logging.Debug": "1.0.0",
+    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
     "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
     "Microsoft.Net.Http": "2.2.28",
     "Microsoft.NETCore.App": {
@@ -64,7 +64,6 @@
       "Views",
       "bower.json",
       "gulpfile.js",
-      "hubbup-data.json",
       "package.json",
       "web.config"
     ]

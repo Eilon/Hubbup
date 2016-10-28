@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web.Models
 {
@@ -625,9 +626,9 @@ namespace Hubbup.Web.Models
             },
         };
 
-        public RepoDataSet GetRepoDataSet()
+        public Task<RepoDataSet> GetRepoDataSet()
         {
-            return new Models.RepoDataSet(_repoSetList);
+            return Task.FromResult(new Models.RepoDataSet(_repoSetList));
         }
     }
 }

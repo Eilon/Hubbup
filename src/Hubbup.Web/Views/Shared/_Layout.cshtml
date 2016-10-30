@@ -75,6 +75,8 @@
             </footer>
         </div>
 
+        <img id="bat-image" src="~/images/bat.png" height="30" width="60" />
+
         <environment names="Development,Production,Staging">
             <script src="~/lib/jquery/dist/jquery.js"></script>
             <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
@@ -92,5 +94,11 @@
         </environment>*@
 
         @RenderSection("scripts", required: false)
+
+        <script>
+            $(document).mousemove(function (e) {
+                $("#bat-image").stop().animate({ left: e.pageX + 60, top: e.pageY }, 100);
+            });
+        </script>
     </body>
 </html>

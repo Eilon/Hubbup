@@ -28,7 +28,7 @@ namespace Hubbup.Web
 
             if (HostingEnvironment.IsDevelopment())
             {
-                builder.AddUserSecrets();
+                builder.AddUserSecrets<Startup>();
             }
 
             Configuration = builder.Build();
@@ -57,8 +57,6 @@ namespace Hubbup.Web
             services.AddSingleton<IPersonSetProvider>(new StaticPersonSetProvider());
 
             services.AddMemoryCache();
-
-            services.AddSession();
 
             services.AddAuthentication();
 
@@ -105,8 +103,6 @@ namespace Hubbup.Web
                 options.SaveTokens = true;
                 options.AutomaticChallenge = true;
             });
-
-            app.UseSession();
 
             app.UseMvc();
         }

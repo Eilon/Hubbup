@@ -1,6 +1,6 @@
 ﻿@model MilestoneSummaryData
 
-<table class="table table-bordered table-condensed">
+<table class="table table-condensed">
     <thead>
         <tr>
             <th>Repo</th>
@@ -12,8 +12,20 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var repoMilestone in Model.MilestoneData)
+        @for (var i = 0; i < Model.MilestoneData.Count; i++)
         {
+            if (i > 0 && i % ViewConstants.ExtraHeaderRowCount == 0)
+            {
+                <tr style="opacity: 0.5">
+                    <th></th>
+                    @foreach (var milestone in Model.MilestonesAvailable)
+                    {
+                        <th>@(milestone ?? "<no milestone>")</th>
+                    }
+                    <th>Total</th>
+                </tr>
+            }
+            var repoMilestone = Model.MilestoneData[i];
             <tr>
                 <td><a href="https://github.com/@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name/issues">@repoMilestone.Repo.Owner/@repoMilestone.Repo.Name</a></td>
                 @foreach (var milestone in Model.MilestonesAvailable)

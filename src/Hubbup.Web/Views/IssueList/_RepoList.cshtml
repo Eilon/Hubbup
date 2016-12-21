@@ -1,6 +1,6 @@
 ﻿@model List<RepoSummary>
 
-<table class="table table-bordered table-condensed">
+<table class="table table-condensed">
     <thead>
         <tr>
             <th>Repo</th>
@@ -13,8 +13,21 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var repo in Model)
+        @for (var i = 0; i < Model.Count; i++)
         {
+            if (i > 0 && i % ViewConstants.ExtraHeaderRowCount == 0)
+            {
+                <tr style="opacity: 0.5">
+                    <th></th>
+                    <th># open</th>
+                    <th># untriaged</th>
+                    <th># unassigned</th>
+                    <th># working</th>
+                    <th>Open PRs</th>
+                    <th>Stale PRs</th>
+                </tr>
+            }
+            var repo = Model[i];
             <tr>
                 <td><a href="https://github.com/@repo.Repo.Owner/@repo.Repo.Name/issues">@repo.Repo.Owner/@repo.Repo.Name</a></td>
                 <td class="@(repo.OpenIssues > 0 ? "info" : "")"><a href="@repo.OpenIssuesQueryUrl">@repo.OpenIssues</a></td>

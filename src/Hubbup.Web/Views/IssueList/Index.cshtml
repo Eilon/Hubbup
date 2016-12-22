@@ -302,6 +302,7 @@
 
 <div>
     <p class="text-center">Last updated on @Model.LastUpdated | Request took @(Model.PageRequestTime.TotalSeconds)s</p>
+    <p class="text-center">Rate limit remaining @Model.LastApiInfo.RateLimit.Remaining / @Model.LastApiInfo.RateLimit.Limit (reset @@ @Model.LastApiInfo.RateLimit.Reset.ToPacificTime().ToString())</p>
 </div>
 
 @section scripts

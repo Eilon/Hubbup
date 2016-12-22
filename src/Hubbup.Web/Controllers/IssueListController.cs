@@ -327,8 +327,12 @@ namespace Hubbup.Web.Controllers
                 .Distinct()
                 .OrderBy(milestone => new PossibleSemanticVersion(milestone));
 
+            var lastApiInfo = gitHubClient.GetLastApiInfo();
+
             var issueListViewModel = new IssueListViewModel
             {
+                LastApiInfo = lastApiInfo,
+
                 RepoFailures = repoFailures,
 
                 GitHubUserName = gitHubName,

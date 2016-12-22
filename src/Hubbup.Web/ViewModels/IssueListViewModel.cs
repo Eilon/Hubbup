@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Hubbup.Web.Models;
+using Octokit;
 
 namespace Hubbup.Web.ViewModels
 {
@@ -39,5 +40,6 @@ namespace Hubbup.Web.ViewModels
         public GroupByRepoViewModel GroupByRepo { get; set; }
 
         public TimeSpan PageRequestTime { get; set; }
+        public ApiInfo LastApiInfo { get; set; }
     }
 }

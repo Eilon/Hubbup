@@ -58,8 +58,6 @@ namespace Hubbup.Web
 
             services.AddMemoryCache();
 
-            services.AddSession();
-
             services.AddAuthentication();
 
             services.Configure<SharedAuthenticationOptions>(options =>
@@ -105,8 +103,6 @@ namespace Hubbup.Web
                 options.SaveTokens = true;
                 options.AutomaticChallenge = true;
             });
-
-            app.UseSession();
 
             app.UseMvc();
         }

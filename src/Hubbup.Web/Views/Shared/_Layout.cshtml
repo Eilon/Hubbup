@@ -1,5 +1,9 @@
-﻿@inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
-@{ 
+﻿@using Microsoft.ApplicationInsights.Extensibility
+
+@inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
+@inject TelemetryConfiguration TelemetryConfiguration
+
+@{
     var pageTitle = (string)ViewData["PageTitlePrefix"];
     var repoSetNames = (string[])ViewData["RepoSetNames"];
     var currentRepoSetName = (string)ViewData["CurrentRepoSetName"];
@@ -22,6 +26,7 @@
                   asp-fallback-test-class="hidden" asp-fallback-test-property="visibility" asp-fallback-test-value="hidden" />
             <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
         </environment>*@
+        @Html.ApplicationInsightsJavaScript(TelemetryConfiguration)
     </head>
     <body>
 

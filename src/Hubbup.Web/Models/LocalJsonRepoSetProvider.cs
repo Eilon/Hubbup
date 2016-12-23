@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,8 +13,9 @@ namespace Hubbup.Web.Models
             IOptions<LocalJsonRepoSetProviderOptions> localJsonRepoSetProviderOptions,
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<LocalJsonRepoSetProvider> logger)
-            : base(hostingEnvironment, applicationLifetime, logger)
+            ILogger<LocalJsonRepoSetProvider> logger,
+            TelemetryClient telemetryClient)
+            : base(hostingEnvironment, applicationLifetime, logger, telemetryClient)
         {
             PhysicalJsonFilePath = Path.Combine(hostingEnvironment.ContentRootPath, localJsonRepoSetProviderOptions.Value.JsonFilePath);
         }

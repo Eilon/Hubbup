@@ -23,12 +23,16 @@ namespace Hubbup.Web
 
             // Set up configuration sources
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(HostingEnvironment.ContentRootPath)
+                .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables();
 
             if (HostingEnvironment.IsDevelopment())
             {
                 builder.AddUserSecrets();
+
+                // This will push telemetry data through Application Insights pipeline faster, allowing you to view results immediately.
+                builder.AddApplicationInsightsSettings(developerMode: true);
             }
 
             Configuration = builder.Build();
@@ -38,6 +42,8 @@ namespace Hubbup.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddApplicationInsightsTelemetry(Configuration);
+
             //services.Configure<LocalJsonRepoSetProviderOptions>(options =>
             //{
             //    options.JsonFilePath = @"C:\GitHub\Hubbup-data\hubbup-data.json";
@@ -79,6 +85,8 @@ namespace Hubbup.Web
             loggerFactory.AddConsole(minLevel: LogLevel.Information);
             loggerFactory.AddDebug(minLevel: LogLevel.Trace);
 
+            app.UseApplicationInsightsRequestTelemetry();
+
             if (HostingEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -87,6 +95,8 @@ namespace Hubbup.Web
             {
                 app.UseExceptionHandler("/Error");
             }
+
+            app.UseApplicationInsightsExceptionTelemetry();
 
             app.UseStaticFiles();
 

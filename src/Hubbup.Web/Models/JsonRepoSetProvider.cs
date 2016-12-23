@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -13,19 +17,22 @@ namespace Hubbup.Web.Models
     {
         private Dictionary<string, RepoSetDefinition> _repoSetList;
 
-        private IApplicationLifetime ApplicationLifetime { get; }
-        public IHostingEnvironment HostingEnvironment { get; }
-        public ILogger<JsonRepoSetProvider> Logger { get; }
-
         public JsonRepoSetProvider(
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<JsonRepoSetProvider> logger)
+            ILogger<JsonRepoSetProvider> logger,
+            TelemetryClient telemetryClient)
         {
             HostingEnvironment = hostingEnvironment;
             ApplicationLifetime = applicationLifetime;
             Logger = logger;
+            TelemetryClient = telemetryClient;
         }
+
+        public IApplicationLifetime ApplicationLifetime { get; }
+        public IHostingEnvironment HostingEnvironment { get; }
+        public ILogger<JsonRepoSetProvider> Logger { get; }
+        public TelemetryClient TelemetryClient { get; }
 
         public async Task<RepoDataSet> GetRepoDataSet()
         {
@@ -63,6 +70,12 @@ namespace Hubbup.Web.Models
                         }
                         catch (Exception ex)
                         {
+                            TelemetryClient.TrackException(new ExceptionTelemetry
+                            {
+                                Exception = ex,
+                                Message = "The repo settings file could not be read",
+                                SeverityLevel = SeverityLevel.Warning,
+                            });
                             Logger.LogError(
                                 eventId: 1,
                                 exception: ex,
@@ -77,6 +90,9 @@ namespace Hubbup.Web.Models
 
         private async Task UpdateDataSet()
         {
+            var getDataStopWatch = new Stopwatch();
+            getDataStopWatch.Start();
+
             using (var fileStream = await GetJsonStream())
             using (var jsonTextReader = new JsonTextReader(fileStream))
             {
@@ -111,6 +127,15 @@ namespace Hubbup.Web.Models
                 // Atomically assign the entire data set
                 _repoSetList = repoSetList;
             }
+
+            getDataStopWatch.Stop();
+
+            var getDataEventTelemetry = new EventTelemetry
+            {
+                Name = "UpdateRepoSets",
+            };
+            getDataEventTelemetry.Properties.Add("durationInMilliseconds", getDataStopWatch.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture));
+            TelemetryClient.TrackEvent(getDataEventTelemetry);
         }
 
         private class RepoSetDto

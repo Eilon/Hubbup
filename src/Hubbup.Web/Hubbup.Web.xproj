@@ -14,6 +14,7 @@
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
     <DevelopmentServerPort>11583</DevelopmentServerPort>
+    <ApplicationInsightsResourceId>/subscriptions/b0ec8d78-5966-4ded-8400-4c83c6284cc3/resourcegroups/Default-Storage-WestUS/providers/microsoft.insights/components/hubbup</ApplicationInsightsResourceId>
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\DNX\Microsoft.DNX.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>

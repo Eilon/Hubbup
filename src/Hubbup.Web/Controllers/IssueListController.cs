@@ -1,11 +1,3 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
@@ -17,6 +9,14 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Versioning;
 using Octokit;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web.Controllers
 {
@@ -115,11 +115,11 @@ namespace Hubbup.Web.Controllers
         public async Task<IActionResult> Index(string repoSet)
         {
             var gitHubName = HttpContext.User.Identity.Name;
-            var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
+            var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
             // Authenticated and all claims have been read
 
             var repoDataSet = await RepoSetProvider.GetRepoDataSet();
-            
+
             if (!repoDataSet.RepoSetExists(repoSet))
             {
                 var invalidRepoSetPageViewTelemetry = new PageViewTelemetry("RepoSet")

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Reflection;
 using Hubbup.Web.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -15,60 +15,53 @@ namespace Hubbup.Web
     public class Startup
     {
         public static readonly string Version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+        public IConfiguration Configuration { get; }
         public IHostingEnvironment HostingEnvironment { get; }
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
         {
-            HostingEnvironment = env;
-
-            // Set up configuration sources
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(HostingEnvironment.ContentRootPath)
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables();
-
-            if (HostingEnvironment.IsDevelopment())
-            {
-                builder.AddUserSecrets();
-
-                // This will push telemetry data through Application Insights pipeline faster, allowing you to view results immediately.
-                builder.AddApplicationInsightsSettings(developerMode: true);
-            }
-
-            Configuration = builder.Build();
+            Configuration = configuration;
+            HostingEnvironment = hostingEnvironment;
         }
-
-        public IConfiguration Configuration { get; set; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddApplicationInsightsTelemetry(Configuration);
-
-            //services.Configure<LocalJsonRepoSetProviderOptions>(options =>
-            //{
-            //    options.JsonFilePath = @"C:\GitHub\Hubbup-data\hubbup-data.json";
-            //});
-            //services.AddSingleton<IRepoSetProvider, LocalJsonRepoSetProvider>();
-
-            //services.Configure<RemoteJsonRepoSetProviderOptions>(Configuration);
-
             services.Configure<RemoteJsonRepoSetProviderOptions>(options =>
             {
                 options.JsonFileUrl = "https://raw.githubusercontent.com/Eilon/Hubbup-data/master/hubbup-data.json";
             });
             services.AddSingleton<IRepoSetProvider, RemoteJsonRepoSetProvider>();
 
-            //services.AddSingleton<IRepoSetProvider>(new StaticRepoSetProvider());
-
             services.AddSingleton<IPersonSetProvider>(new StaticPersonSetProvider());
 
             services.AddMemoryCache();
 
-            services.AddAuthentication();
-
-            services.Configure<SharedAuthenticationOptions>(options =>
+            services.AddAuthentication(options =>
             {
-                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = "GitHub";
+            });
+
+            services.AddCookieAuthentication(options =>
+            {
+                options.LoginPath = new PathString("/signin");
+            });
+
+            services.AddOAuthAuthentication("GitHub", options =>
+            {
+                options.CallbackPath = new PathString("/signin-github");
+                options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
+                options.TokenEndpoint = "https://github.com/login/oauth/access_token";
+                options.UserInformationEndpoint = "https://api.github.com/user";
+                options.ClaimsIssuer = "GitHub";
+                options.DisplayName = "GitHub";
+
+                options.ClientId = Configuration["Authentication:GitHub:ClientId"];
+                options.ClientSecret = Configuration["Authentication:GitHub:ClientSecret"];
+                options.Scope.Add("repo");
+                options.SaveTokens = true;
             });
 
             services.AddMvc(options =>
@@ -82,11 +75,6 @@ namespace Hubbup.Web
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(minLevel: LogLevel.Information);
-            loggerFactory.AddDebug(minLevel: LogLevel.Trace);
-
-            app.UseApplicationInsightsRequestTelemetry();
-
             if (HostingEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -96,38 +84,11 @@ namespace Hubbup.Web
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseApplicationInsightsExceptionTelemetry();
-
             app.UseStaticFiles();
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions()
-            {
-                LoginPath = new PathString("/signin")
-            });
-
-            app.UseGitHubAuthentication(options =>
-            {
-                options.ClientId = Configuration["GitHubClientId"];
-                options.ClientSecret = Configuration["GitHubClientSecret"];
-                options.Scope.Add("repo");
-                options.SaveTokens = true;
-                options.AutomaticChallenge = true;
-            });
+            app.UseAuthentication();
 
             app.UseMvc();
-        }
-
-        public static void Main(string[] args)
-        {
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseConfiguration(new ConfigurationBuilder().AddCommandLine(args).Build())
-                .UseIISIntegration()
-                .UseStartup<Startup>()
-                .Build();
-
-            host.Run();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +39,7 @@ namespace Hubbup.Web.Controllers
         public async Task<IActionResult> MissingRepos()
         {
             var gitHubName = HttpContext.User.Identity.Name;
-            var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
+            var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
             var repoDataSet = await RepoSetProvider.GetRepoDataSet();

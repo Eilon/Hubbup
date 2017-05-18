@@ -1,36 +1,24 @@
-﻿@using Microsoft.ApplicationInsights.Extensibility
-
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
-@inject TelemetryConfiguration TelemetryConfiguration
 
-@{
-    var pageTitle = (string)ViewData["PageTitlePrefix"];
-    var repoSetNames = (string[])ViewData["RepoSetNames"];
-    var currentRepoSetName = (string)ViewData["CurrentRepoSetName"];
-    var gitHubUserName = (string)ViewData["GitHubUserName"];
-}
-<!DOCTYPE html>
-<html>
+    @{
+        var pageTitle = (string)ViewData["PageTitlePrefix"];
+        var repoSetNames = (string[])ViewData["RepoSetNames"];
+        var currentRepoSetName = (string)ViewData["CurrentRepoSetName"];
+        var gitHubUserName = (string)ViewData["GitHubUserName"];
+    }
+    <!DOCTYPE html>
+    <html>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>@pageTitle - Hubbup</title>
 
-        <environment names="Development,Production,Staging">
-            <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-            <link rel="stylesheet" href="~/css/site.css" />
-        </environment>
-        @*<environment names="Staging">
-            <link rel="stylesheet" href="//ajax.aspnetcdn.com/ajax/bootstrap/3.3.5/css/bootstrap.min.css"
-                  asp-fallback-href="~/lib/bootstrap/css/bootstrap.min.css"
-                  asp-fallback-test-class="hidden" asp-fallback-test-property="visibility" asp-fallback-test-value="hidden" />
-            <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-        </environment>*@
-        @Html.ApplicationInsightsJavaScript(TelemetryConfiguration)
+        <link rel="stylesheet" href="~/css/site.css" />
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     </head>
     <body>
 
-        <environment names="Development,Staging">
+        <environment exclude="Production">
             <div class="alert alert-info" style="text-align:center;"><h2>Current environment is: @HostingEnvironment.EnvironmentName</h2></div>
         </environment>
 
@@ -80,21 +68,8 @@
             </footer>
         </div>
 
-        <environment names="Development,Production,Staging">
-            <script src="~/lib/jquery/dist/jquery.js"></script>
-            <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        </environment>
-        @*<environment names="Staging">
-            <script src="//ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.4.min.js"
-                    asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                    asp-fallback-test="window.jQuery">
-            </script>
-            <script src="//ajax.aspnetcdn.com/ajax/bootstrap/3.3.5/bootstrap.min.js"
-                    asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-                    asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
-            </script>
-            <script src="~/js/site.js" asp-append-version="true"></script>
-        </environment>*@
+        <script src="~/lib/jquery/dist/jquery.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 
         @RenderSection("scripts", required: false)
     </body>

@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using Hubbup.Web.Utils;
+using System.Collections.Generic;
 
 namespace Hubbup.Web.Models
 {
     public class StaticPersonSetProvider : IPersonSetProvider
     {
-        private static readonly Dictionary<string, PersonSet> PersonSetList = new Dictionary<string, PersonSet>
+        private static readonly IDictionary<string, PersonSet> PersonSetList = new Dictionary<string, PersonSet>
         {
             {
                 "Eilon",
@@ -258,9 +257,6 @@ namespace Hubbup.Web.Models
             },
         };
 
-        public PersonSet GetPersonSet(string personSetName)
-        {
-            return PersonSetList.GetValueOrDefault(personSetName);
-        }
+        public PersonSet GetPersonSet(string personSetName) => PersonSetList.GetValueOrDefault(personSetName);
     }
 }

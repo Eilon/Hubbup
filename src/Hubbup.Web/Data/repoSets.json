@@ -1,0 +1,493 @@
+{
+  "not-mvc": {
+    "AssociatedPersonSetName": "Murat",
+    "WorkingLabels": [ "2 - Working", "1 - Working", "2 - In Progress", "3 - Working" ],
+    "RepoExtraLinks": [
+      {
+        "Title": "ASP.NET CI",
+        "Url": "http://aspnetci/"
+      },
+      {
+        "Title": "Travis CI",
+        "Url": "https://travis-ci.org/aspnet"
+      },
+      {
+        "Title": "Team OneNote",
+        "Url": "https://microsoft.sharepoint.com/teams/dotnetserver/SiteAssets/DotNetServer%20Notebook/"
+      },
+      {
+        "Title": "ASP.NET Perf",
+        "Url": "https://msit.powerbi.com/groups/b5743765-ec44-4dfc-91df-e32401023530/reports/54ab8db5-5f70-409a-b522-1eb107ce52ee/ReportSection"
+      }
+    ],
+    "Repos": [
+      {
+        "org": "aspnet",
+        "repo": "aspnet-docker",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "AspNetKatana",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "aspnet-win-docker",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "AzureIntegration",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "BasicMiddleware",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "BuildTrain",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Caching",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Coherence",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Coherence-Final",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Coherence-Patch",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Coherence-Signed",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "CoreCLR",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "DataProtection",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "dnvm",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "dnx",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "dotnet-do",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "DotNetTools",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Entropy",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "FileSystem",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Helios",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "homebrew-dnx",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Hosting",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "HttpAbstractions",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "IISIntegration",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "KestrelHttpServer",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "KoreBuild",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "libuv-build",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "libuv-package",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Logging",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "MetaPackages",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "PlatformAbstractions",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Proxy",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "ResponseCaching",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Security",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "ServerTests",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Session",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Setup",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Signing",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "StaticFiles",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Universe",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "UserSecrets",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "HttpSysServer",
+        "inclusionLevel": "AllItems"
+      },
+      {
+        "org": "aspnet",
+        "repo": "WebSockets",
+        "inclusionLevel": "AllItems"
+      },
+
+      {
+        "org": "aspnet",
+        "repo": "Antiforgery",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "AspLabs",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "benchmarks",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "BugTracker",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Common",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Configuration",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "CORS",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "DependencyInjection",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Diagnostics",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "BuildTools",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Docs",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "EntityFramework",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "EventNotification",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Home",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "HtmlAbstractions",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Identity",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Infrastructure",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "jquery-ajax-unobtrusive",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "jquery-validation-unobtrusive",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "JsonPatch",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Localization",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Microsoft.Data.Sqlite",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "MusicStore",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Mvc",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "MvcPrecompilation",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "NerdDinner",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Options",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "PackageSearch",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Performance",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Razor",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "RazorTooling",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Release",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Routing",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Scaffolding",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-Client-Cpp",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-Client-Java",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-Client-JS",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-Client-Net",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-Redis",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-Server",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-ServiceBus",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "SignalR-SqlServer",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Stress",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Templates",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "aspnet",
+        "repo": "Testing",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+
+      {
+        "org": "dotnet",
+        "repo": "cli",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "dotnet",
+        "repo": "corefx",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "omnisharp",
+        "repo": "omnisharp-roslyn",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      },
+      {
+        "org": "SignalR",
+        "repo": "SignalR",
+        "inclusionLevel": "ItemsAssignedToPersonSet"
+      }
+    ]
+  }
+}

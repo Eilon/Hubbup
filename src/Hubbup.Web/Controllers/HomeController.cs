@@ -2,29 +2,29 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using Hubbup.Web.Models;
+using Hubbup.Web.DataSources;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hubbup.Web.Controllers
 {
     public class HomeController : Controller
     {
-        public HomeController(IRepoSetProvider repoSetProvider)
+        public HomeController(IDataSource dataSource)
         {
-            RepoSetProvider = repoSetProvider;
+            DataSource = dataSource;
         }
 
-        public IRepoSetProvider RepoSetProvider { get; }
+        public IDataSource DataSource { get; }
 
         [Route("")]
         [Authorize]
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
+            var repoDataSet = DataSource.GetRepoDataSet();
 
             return View(new HomeViewModel
             {
@@ -42,7 +42,7 @@ namespace Hubbup.Web.Controllers
             var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
+            var repoDataSet = DataSource.GetRepoDataSet();
 
             var repoSetLists = repoDataSet.GetRepoSetLists();
             var distinctOrgs =

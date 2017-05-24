@@ -17,26 +17,23 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Hubbup.Web.DataSources;
 
 namespace Hubbup.Web.Controllers
 {
     public class IssueListController : Controller, IGitHubQueryProvider
     {
         public IssueListController(
-            IRepoSetProvider repoSetProvider,
-            IPersonSetProvider personSetProvider,
+            IDataSource dataSource,
             UrlEncoder urlEncoder,
             TelemetryClient telemetryClient)
         {
-            RepoSetProvider = repoSetProvider;
-            PersonSetProvider = personSetProvider;
+            DataSource = dataSource;
             UrlEncoder = urlEncoder;
             TelemetryClient = telemetryClient;
         }
 
-        public IRepoSetProvider RepoSetProvider { get; }
-
-        public IPersonSetProvider PersonSetProvider { get; }
+        public IDataSource DataSource { get; }
 
         public UrlEncoder UrlEncoder { get; }
 
@@ -118,7 +115,7 @@ namespace Hubbup.Web.Controllers
             var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
             // Authenticated and all claims have been read
 
-            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
+            var repoDataSet = DataSource.GetRepoDataSet();
 
             if (!repoDataSet.RepoSetExists(repoSet))
             {
@@ -143,7 +140,7 @@ namespace Hubbup.Web.Controllers
                     .Where(repo => repo.RepoInclusionLevel != RepoInclusionLevel.None)
                     .ToArray();
             var personSetName = repos.AssociatedPersonSetName;
-            var personSet = PersonSetProvider.GetPersonSet(personSetName);
+            var personSet = DataSource.GetPersonSet(personSetName);
             var peopleInPersonSet = personSet?.People ?? new string[0];
             var workingLabels = repos.WorkingLabels ?? new string[0];
 
@@ -559,7 +556,7 @@ namespace Hubbup.Web.Controllers
             return View(issueListViewModel);
         }
 
-        private bool ItemIncludedByInclusionLevel(string itemAssignee, RepoDefinition repo, string[] peopleInPersonSet)
+        private bool ItemIncludedByInclusionLevel(string itemAssignee, RepoDefinition repo, IReadOnlyList<string> peopleInPersonSet)
         {
             if (repo.RepoInclusionLevel == RepoInclusionLevel.AllItems)
             {

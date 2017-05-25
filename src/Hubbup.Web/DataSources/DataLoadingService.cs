@@ -8,7 +8,7 @@ namespace Hubbup.Web
 {
     public class DataLoadingService : IHostedService
     {
-        private static readonly TimeSpan TimerPeriod = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan TimerPeriod = TimeSpan.FromMinutes(120);
 
         private readonly IDataSource _dataSource;
         private readonly ILogger _logger;

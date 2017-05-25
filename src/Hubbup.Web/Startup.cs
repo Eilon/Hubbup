@@ -1,5 +1,8 @@
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Security.Claims;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -11,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace Hubbup.Web
 {
@@ -41,6 +45,8 @@ namespace Hubbup.Web
                 services.Configure<RemoteJsonDataSourceOptions>(Configuration.GetSection("RemoteJson"));
                 services.AddSingleton<IDataSource, RemoteJsonDataSource>();
             }
+
+            services.AddSingleton<IGitHubDataSource, GitHubDataSource>();
             services.AddSingleton<IHostedService, DataLoadingService>();
 
             services.AddMemoryCache();
@@ -55,6 +61,9 @@ namespace Hubbup.Web
             services.AddCookieAuthentication(options =>
             {
                 options.LoginPath = new PathString("/signin");
+
+                // Work around https://github.com/aspnet/Security/issues/1231
+                options.CookieSameSite = SameSiteMode.Lax;
             });
 
             services.AddOAuthAuthentication("GitHub", options =>
@@ -69,6 +78,25 @@ namespace Hubbup.Web
                 options.ClientSecret = Configuration["Authentication:GitHub:ClientSecret"];
                 options.Scope.Add("repo");
                 options.SaveTokens = true;
+
+                options.Events.OnCreatingTicket = async context =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                    var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                    response.EnsureSuccessStatusCode();
+
+                    var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+                    // Add GitHub claims
+                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, payload.Value<string>("id"), context.Options.ClaimsIssuer));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.Name, payload.Value<string>("login"), context.Options.ClaimsIssuer));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.Email, payload.Value<string>("email"), context.Options.ClaimsIssuer));
+                    context.Identity.AddClaim(new Claim("urn:github:name", payload.Value<string>("name"), context.Options.ClaimsIssuer));
+                    context.Identity.AddClaim(new Claim("urn:github:url", payload.Value<string>("url"), context.Options.ClaimsIssuer));
+                };
             });
 
             services.AddMvc(options =>

@@ -41,14 +41,14 @@
                         <li class="@(currentRepoSetName == "" ? "active" : "")"><a asp-controller="Home" asp-action="Index">Home</a></li>
                         @foreach (var repoSetName in repoSetNames.Take(10))
                         {
-                            <li class="@(currentRepoSetName == repoSetName ? "active" : "")"><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@repoSetName">@repoSetName</a></li>
+                            <li class="@(currentRepoSetName == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-group="@repoSetName">@repoSetName</a></li>
                         }
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">more <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 @foreach (var repoSetName in repoSetNames.Skip(10))
                                 {
-                                    <li class="@(currentRepoSetName == repoSetName ? "active" : "")"><a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@repoSetName">@repoSetName</a></li>
+                                    <li class="@(currentRepoSetName == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-group="@repoSetName">@repoSetName</a></li>
                                 }
                             </ul>
                         </li>

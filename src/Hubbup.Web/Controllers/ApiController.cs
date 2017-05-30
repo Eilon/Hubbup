@@ -5,19 +5,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Hubbup.Web.Controllers
 {
-    [Route("groups/{groupName}")]
-    public class GroupsController : Controller
+    [Route("api")]
+    public class ApiController : Controller
     {
         private readonly IDataSource _dataSource;
         private readonly IGitHubDataSource _github;
 
-        public GroupsController(IDataSource dataSource, IGitHubDataSource github)
+        public ApiController(IDataSource dataSource, IGitHubDataSource github)
         {
             _dataSource = dataSource;
             _github = github;
         }
 
-        [Route("issues/{userName}")]
+        [Route("groups/{groupName}/issues/{userName}")]
         public async Task<IActionResult> GetIssuesAsync(string groupName, string userName)
         {
             var repoSet = _dataSource.GetRepoDataSet().GetRepoSet(groupName);

@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -26,22 +27,23 @@ namespace Hubbup.Web
             _timer = new Timer(state => ((DataLoadingService)state).OnTimerAsync(), this, Timeout.Infinite, Timeout.Infinite);
         }
 
-        public void Start()
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             // Load data before we start things up.
             // Until https://github.com/aspnet/Hosting/issues/1085 is fixed, there's a race here
             // if this doesn't complete before a request comes in.
             _logger.LogInformation("Loading data.");
-            _dataSource.ReloadAsync(_cancellationTokenSource.Token).Wait();
+            await _dataSource.ReloadAsync(_cancellationTokenSource.Token);
 
             // Now start the reload timer
             _timer.Change(TimerPeriod, TimerPeriod);
         }
 
-        public void Stop()
+        public Task StopAsync(CancellationToken cancellationToken)
         {
             _cancellationTokenSource.Cancel();
             _timer.Dispose();
+            return Task.CompletedTask;
         }
 
         // ASYNC VOID! It makes sense here. The timer will keep firing. That's also why we have the `_loading` value.

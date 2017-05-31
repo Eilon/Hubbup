@@ -1,4 +1,180 @@
 @page "{groupName}"
 @model IndexModel
 @{
+    ViewData["PageTitlePrefix"] = Model.GroupName;
+    ViewData["CurrentGroup"] = Model.GroupName;
 }
+
+<div class="row">
+    <div class="col-md-8">
+        <ul class="nav nav-pills" id="app-tabs">
+            <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
+            <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
+            <li class=""><a href="#group-by-repo">Group by repo</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="row issue-list-row">
+    <div class="col-md-2 col-md-push-10">
+        <h3>Issues</h3>
+    </div>
+
+    <div class="col-md-10 col-md-pull-2">
+        <div class="tab-content">
+            <div class="tab-pane active" id="group-by-assignee">
+                @foreach(var person in Model.People)
+                {
+                    <div class="panel panel-default i-assignee-panel" data-assignee="@person">
+                        <div class="panel-heading">
+                            <div class="pull-right assignee-panel-header-refresh">
+                                <button class="btn btn-xs btn-info glyphicon glyphicon-refresh i-assignee-panel-refresh"></button>
+                            </div>
+                            <h3 class="panel-title">
+                                <strong>
+                                    <a href="https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+assignee%3A@(person)">@(person)</a>
+                                </strong>
+                            </h3>
+                        </div>
+                        <div class="panel-body i-assignee-panel-content">
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="assignee-info">
+    <h4>Working on issues <span class="badge">0</span></h4>
+    <div class="i-bind" data-bind="working"></div>
+
+    <h4>Pull requests <span class="badge">0</span></h4>
+    <div class="i-bind" data-bind="prs"></div>
+
+    <h4>Other assigned issues <span class="badge">0</span></h4>
+    <div class="i-bind" data-bind="other"></div>
+</template>
+
+<template id="error">
+    <div class="error i-bind" data-bind="text"></div>
+</template>
+
+<template id="loader">
+    <div class="loader"></div>
+</template>
+
+<template id="empty-list">
+    <div class="issue-list-empty i-bind" data-bind="text"></div>
+</template>
+
+<template id="list">
+    <ul class="i-bind" data-bind="items"></ul>
+</template>
+
+<template id="issue-list-item">
+    <li class="i-bind" data-bind="title"></li>
+</template>
+
+<script>
+    document.addEventListener("DOMContentLoaded", loaded);
+
+    function loaded() {
+        var panels = document.querySelectorAll(".i-assignee-panel")
+        panels.forEach(bindPanel);
+    }
+
+    function bindPanel(panel) {
+        var assignee = panel.dataset.assignee;
+        var refreshButton = panel.querySelector(".i-assignee-panel-refresh");
+        var content = panel.querySelector(".i-assignee-panel-content");
+
+        refreshButton.addEventListener("click", () => {
+            refresh(assignee, panel, content, refreshButton);
+        });
+
+        // Start the initial load
+        setTimeout(() => {
+            refresh(assignee, panel, content, refreshButton);
+        }, 0);
+    }
+
+    function refresh(assignee, panel, content, refreshButton) {
+        // Disable refresh while already refreshing.
+        refreshButton.disabled = true;
+        applyTemplate(content, "#loader");
+
+        // Fetch data
+        fetch(`/api/groups/@(Model.GroupName)/issues/${assignee}`, {
+            credentials: "same-origin"
+        }).then(response => {
+            return response.json();
+        }).then(json => {
+            refreshButton.disabled = false;
+
+            // Build parameters
+            var parameters = {
+                working: buildList(json.working, 'Not working on any assigned issues'),
+                prs: buildList([], 'No pull requests created or assigned'),
+                other: buildList(json.other, 'No other assigned issues')
+            };
+
+
+            applyTemplate(content, "#assignee-info", parameters);
+        }).catch(err => {
+            refreshButton.disabled = false;
+
+            applyTemplate(content, "#error", { text: err.message });
+        });
+    }
+
+    function buildList(list, emptyText) {
+        if (list.length == 0) {
+            return renderTemplate("#empty-list", { text: emptyText });
+        }
+        else {
+            // Format each item in the list
+            var items = list.map(entry => {
+                return renderTemplate("#issue-list-item", {
+                    title: entry.title
+                });
+            });
+
+            // Render the list template
+            return renderTemplate("#list", { items: items });
+        }
+    }
+
+    function bind(item, value) {
+        if (Array.isArray(value)) {
+            value.forEach(entry => bind(item, entry));
+        }
+        else if (value instanceof DocumentFragment) {
+            item.appendChild(value);
+        }
+        else if (value instanceof Element) {
+            item.appendChild(value);
+        }
+        else {
+            item.innerHTML = value;
+        }
+    }
+
+    function renderTemplate(template, parameters) {
+        parameters = parameters || {};
+
+        template = document.querySelector(template);
+
+        template.content.querySelectorAll(".i-bind").forEach(item => {
+            item.innerText = '';
+            bind(item, parameters[item.dataset.bind]);
+        });
+
+        return document.importNode(template.content, true);
+    }
+
+    function applyTemplate(target, template, parameters) {
+        target.innerHTML = '';
+        target.appendChild(renderTemplate(template, parameters));
+    }
+</script>

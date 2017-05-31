@@ -1,0 +1,43 @@
+@model NavigationBarViewModel
+
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" style="padding-top: 5px; padding-bottom: 0px" href="~/"><img src="~/images/hubbup-menu-logo.png" style="padding-top:-10px" /></a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="@(Model.CurrentGroup == "" ? "active" : "")"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                @foreach (var repoSetName in Model.GroupNames.Take(10))
+                {
+                    <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-groupName="@repoSetName">@repoSetName</a></li>
+                }
+                @if (Model.GroupNames.Count > 10)
+                {
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">more <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            @foreach (var repoSetName in Model.GroupNames.Skip(10))
+                            {
+                                <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-groupName="@repoSetName">@repoSetName</a></li>
+                            }
+                        </ul>
+                    </li>
+                }
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><p class="navbar-text">Signed in as <a href="https://github.com/@Model.UserName">@Model.UserName</a></p></li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+

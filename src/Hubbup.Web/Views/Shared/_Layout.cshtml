@@ -1,17 +1,11 @@
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
 
-    @{
-        var pageTitle = (string)ViewData["PageTitlePrefix"];
-        var repoSetNames = (string[])ViewData["RepoSetNames"];
-        var currentRepoSetName = (string)ViewData["CurrentRepoSetName"];
-        var gitHubUserName = (string)ViewData["GitHubUserName"];
-    }
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>@pageTitle - Hubbup</title>
+        <title>@ViewData["PageTitlePrefix"] - Hubbup</title>
 
         <link rel="stylesheet" href="~/css/site.css" />
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -22,43 +16,7 @@
             <div class="alert alert-info" style="text-align:center;"><h2>Current environment is: @HostingEnvironment.EnvironmentName</h2></div>
         </environment>
 
-        <nav class="navbar navbar-default">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" style="padding-top: 5px; padding-bottom: 0px" href="~/"><img src="~/images/hubbup-menu-logo.png" style="padding-top:-10px" /></a>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li class="@(currentRepoSetName == "" ? "active" : "")"><a asp-controller="Home" asp-action="Index">Home</a></li>
-                        @foreach (var repoSetName in repoSetNames.Take(10))
-                        {
-                            <li class="@(currentRepoSetName == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-group="@repoSetName">@repoSetName</a></li>
-                        }
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">more <span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                @foreach (var repoSetName in repoSetNames.Skip(10))
-                                {
-                                    <li class="@(currentRepoSetName == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-group="@repoSetName">@repoSetName</a></li>
-                                }
-                            </ul>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li><p class="navbar-text">Signed in as <a href="https://github.com/@gitHubUserName">@gitHubUserName</a></p></li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-            </div><!-- /.container-fluid -->
-        </nav>
+        <vc:navigation-bar current-group="@ViewData["CurrentGroup"]" />
 
         <div class="container body-content">
             @RenderBody()

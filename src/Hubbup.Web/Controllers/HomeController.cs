@@ -13,23 +13,20 @@ namespace Hubbup.Web.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IDataSource _dataSource;
+
         public HomeController(IDataSource dataSource)
         {
-            DataSource = dataSource;
+            _dataSource = dataSource;
         }
-
-        public IDataSource DataSource { get; }
 
         [Route("")]
         [Authorize]
         public IActionResult Index()
         {
-            var repoDataSet = DataSource.GetRepoDataSet();
-
+            var repoDataSet = _dataSource.GetRepoDataSet();
             return View(new HomeViewModel
             {
-                GitHubUserName = HttpContext.User.Identity.Name,
-                RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
                 RepoSetLists = repoDataSet.GetRepoSetLists(),
             });
         }
@@ -42,7 +39,7 @@ namespace Hubbup.Web.Controllers
             var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            var repoDataSet = DataSource.GetRepoDataSet();
+            var repoDataSet = _dataSource.GetRepoDataSet();
 
             var repoSetLists = repoDataSet.GetRepoSetLists();
             var distinctOrgs =

@@ -63,7 +63,7 @@ namespace Hubbup.Web
                 options.LoginPath = new PathString("/signin");
 
                 // Work around https://github.com/aspnet/Security/issues/1231
-                options.CookieSameSite = SameSiteMode.Lax;
+                options.CookieSameSite = SameSiteMode.None;
             });
 
             services.AddOAuthAuthentication("GitHub", options =>

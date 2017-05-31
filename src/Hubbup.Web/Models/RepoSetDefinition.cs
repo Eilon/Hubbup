@@ -10,7 +10,7 @@ namespace Hubbup.Web.Models
 
         public string AssociatedPersonSetName { get; set; }
 
-        public string[] WorkingLabels { get; set; }
+        public HashSet<string> WorkingLabels { get; set; }
 
         public string LabelFilter { get; set; }
 

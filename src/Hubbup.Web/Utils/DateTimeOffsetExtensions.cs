@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Hubbup.Web.Utils
 {
     public static class DateTimeOffsetExtensions
     {
-        private static readonly TimeZoneInfo PacificTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        private static readonly TimeZoneInfo PacificTimeZone = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+            TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time") :
+            TimeZoneInfo.FindSystemTimeZoneById("America/Vancouver");
 
         public static DateTimeOffset ToPacificTime(this DateTimeOffset utcDateTime)
         {

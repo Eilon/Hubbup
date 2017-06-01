@@ -49,3 +49,7 @@ textarea {
 .issue-list-empty {
     margin-left: 2em;
 }
+
+#rate-limit-display {
+    margin-top: 1em;
+}

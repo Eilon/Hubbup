@@ -1,6 +1,6 @@
 {
   "kcore": {
-    "AssociatedPersonSetName": "Murat",
+    "AssociatedPersonSetName": "Murat-lite",
     "WorkingLabels": [ "2 - Working", "1 - Working", "2 - In Progress", "3 - Working" ],
     "RepoExtraLinks": [
       {
@@ -20,7 +20,7 @@
         "Url": "https://msit.powerbi.com/groups/b5743765-ec44-4dfc-91df-e32401023530/reports/54ab8db5-5f70-409a-b522-1eb107ce52ee/ReportSection"
       }
     ],
-    "BaseQuery": "is:open is:issue org:aspnet org:dotnet",
+    "BaseQuery": "is:open org:aspnet org:dotnet",
     "Repos": [
       {
         "org": "aspnet",

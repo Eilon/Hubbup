@@ -14,7 +14,9 @@ namespace Hubbup.Web.DataSources
     public class GitHubDataSource : IGitHubDataSource
     {
         private const string GraphQlEndPoint = "https://api.github.com/graphql";
-
+        private const int PageSize = 20;
+        private const int AssigneeBatchSize = 5;
+        private const int LabelBatchSize = 5;
         private static readonly JsonSerializerSettings _settings = new JsonSerializerSettings()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -29,17 +31,20 @@ namespace Hubbup.Web.DataSources
             _logger = logger;
         }
 
-        public async Task<IReadOnlyList<IssueData>> SearchIssuesAsync(string query, string accessToken)
+        public async Task<SearchResults<IReadOnlyList<IssueData>>> SearchIssuesAsync(string query, string accessToken)
         {
             var queryRequest = new GraphQlQueryRequest(Queries.SearchIssues);
             queryRequest.Variables["searchQuery"] = query;
-            queryRequest.Variables["pageSize"] = 100;
+            queryRequest.Variables["pageSize"] = PageSize;
+            queryRequest.Variables["assigneeBatchSize"] = AssigneeBatchSize;
+            queryRequest.Variables["labelBatchSize"] = LabelBatchSize;
             queryRequest.Variables["cursor"] = null;
 
             var issues = new List<IssueData>();
             var pageIndex = 0;
 
-            var data = default(Dtos.SearchResult<Dtos.ConnectionResult<Dtos.Issue>>);
+            var data = default(SearchResults<Dtos.ConnectionResult<Dtos.Issue>>);
+            var rateLimitInfo = new RateLimitInfo();
             do
             {
                 if (data != null)
@@ -61,17 +66,27 @@ namespace Hubbup.Web.DataSources
                 resp.EnsureSuccessStatusCode();
 
                 json = await resp.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<Dtos.GraphQlResult<Dtos.SearchResult<Dtos.ConnectionResult<Dtos.Issue>>>>(json, _settings);
+                var result = JsonConvert.DeserializeObject<Dtos.GraphQlResult<SearchResults<Dtos.ConnectionResult<Dtos.Issue>>>>(json, _settings);
                 if (result.Errors != null && result.Errors.Any())
                 {
                     throw new InvalidOperationException(result.Errors.First().Message);
                 }
                 data = result.Data;
 
+                // Add rate limit info
+                _logger.LogTrace("Request completed, consumed {cost} of rate limit {limit}. Remaining: {remaining}, resets at {resetAt}",
+                    data.RateLimit.Cost,
+                    data.RateLimit.Limit,
+                    data.RateLimit.Remaining,
+                    data.RateLimit.ResetAt);
+                rateLimitInfo = RateLimitInfo.Add(rateLimitInfo, data.RateLimit);
+
                 foreach (var issue in data.Search.Nodes)
                 {
                     var issueData = new IssueData()
                     {
+                        Type = IssueData.ParseType(issue.Type),
+                        Url = issue.Url,
                         Number = issue.Number,
                         Repository = issue.Repository,
                         Title = issue.Title,
@@ -82,14 +97,15 @@ namespace Hubbup.Web.DataSources
                         CommentCount = issue.Comments.TotalCount
                     };
 
-                    // Log a warning if there are labels or assignees beyond the 10 we fetched
+                    // Log a warning if there are labels or assignees beyond the ones we fetched
+                    // We could make additional requests to fetch these if we find we need them.
                     if (issue.Labels.PageInfo.HasNextPage)
                     {
-                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than 10 labels. Only the first 10 are fetched.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number);
+                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than the limit of {limit} labels.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, AssigneeBatchSize);
                     }
                     if (issue.Assignees.PageInfo.HasNextPage)
                     {
-                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than 10 assignees. Only the first 10 are fetched.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number);
+                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than  the limit of {limit} assignees.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, LabelBatchSize);
                     }
 
                     // Load the assignees and labels
@@ -110,17 +126,34 @@ namespace Hubbup.Web.DataSources
                 pageIndex += 1;
             } while (data.Search.PageInfo.HasNextPage);
 
-            return issues;
+            return new SearchResults<IReadOnlyList<IssueData>>(issues, rateLimitInfo);
         }
 
         private static class Queries
         {
             public static readonly string SearchIssues = @"
-query SearchIssues($searchQuery: String!, $pageSize: Int!, $cursor: String) {
+query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: Int!, $labelBatchSize: Int!, $cursor: String) {
+  rateLimit {
+    limit,
+    remaining,
+    cost,
+    resetAt
+  },
   search(first: $pageSize, query: $searchQuery, after: $cursor, type: ISSUE) {
+    issueCount,
+    pageInfo {
+      endCursor,
+      hasNextPage,
+    },
     nodes {
-      ... on Issue {
-        number,
+      type: __typename,
+      ... on Node {
+        id,
+      },
+      ... on UniformResourceLocatable {
+        url,
+      },
+      ... on RepositoryNode {
         repository {
           id,
           name,
@@ -130,7 +163,8 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $cursor: String) {
             avatarUrl,
           },
         },
-        title,
+      },
+      ... on Comment {
         author {
           ... on User {
             id,
@@ -138,13 +172,11 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $cursor: String) {
             avatarUrl
           },
         },
-        milestone {
-          id
-          title,
-        },
         createdAt,
         updatedAt,
-        assignees(first: 10){
+      },
+      ... on Assignable {
+        assignees(first: $assigneeBatchSize){
           nodes {
             id,
             name,
@@ -155,7 +187,9 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $cursor: String) {
             hasNextPage,
           },
         },
-        labels(first: 10) {
+      }
+      ... on Labelable {
+ 			  labels(first: $labelBatchSize) {
           nodes {
             id,
             name,
@@ -166,22 +200,23 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $cursor: String) {
             hasNextPage,
           },
         },
+      },
+      ... on PullRequest {
+        number,
+        title,
+        comments {
+          totalCount,
+        },
+      },
+      ... on Issue {
+        number,
+        title,
         comments {
           totalCount,
         },
       },
     },
-    pageInfo {
-      endCursor,
-      hasNextPage,
-    },
   },
-  rateLimit {
-    limit,
-    remaining,
-    cost,
-    resetAt
-  }
 }
 ".Trim().Replace("\r", "").Replace("\n", "").Replace("  ", " ");
         }
@@ -206,20 +241,6 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $cursor: String) {
                 public int Column { get; set; }
             }
 
-            public class SearchResult<T>
-            {
-                public T Search { get; set; }
-                public RateLimit RateLimit { get; set; }
-            }
-
-            public class RateLimit
-            {
-                public int Limit { get; set; }
-                public int Remaining { get; set; }
-                public int Cost { get; set; }
-                public DateTime ResetAt { get; set; }
-            }
-
             public class ConnectionResult<T>
             {
                 public T[] Nodes { get; set; }
@@ -234,6 +255,8 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $cursor: String) {
 
             public class Issue
             {
+                public string Type { get; set; }
+                public string Url { get; set; }
                 public int Number { get; set; }
                 public RepositoryReference Repository { get; set; }
                 public string Title { get; set; }

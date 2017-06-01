@@ -18,12 +18,14 @@
 <div class="row issue-list-row">
     <div class="col-md-2 col-md-push-10">
         <h3>Issues</h3>
+        <h3>Rate Limit</h3>
+        <div id="rate-limit-display"></div>
     </div>
 
     <div class="col-md-10 col-md-pull-2">
         <div class="tab-content">
             <div class="tab-pane active" id="group-by-assignee">
-                @foreach(var person in Model.People)
+                @foreach (var person in Model.People)
                 {
                     <div class="panel panel-default i-assignee-panel" data-assignee="@person">
                         <div class="panel-heading">
@@ -45,136 +47,152 @@
     </div>
 </div>
 
-<template id="assignee-info">
-    <h4>Working on issues <span class="badge">0</span></h4>
-    <div class="i-bind" data-bind="working"></div>
+@section scripts {
+    <script id="rate-limit-template" type="text/x-handlebars-template">
+        <div class="alert alert-dismissable {{alertClass}} small">Left: {{remaining}}</div>
+    </script>
 
-    <h4>Pull requests <span class="badge">0</span></h4>
-    <div class="i-bind" data-bind="prs"></div>
+    <script id="assignee-info-template" type="text/x-handlebars-template">
+        <h4>Working on issues <span class="badge">{{working.length}}</span></h4>
+        {{#if working}}
+            {{> issueList working}}
+        {{else}}
+            <div class="alert alert-info">Not working on any Issues</div>
+        {{/if}}
 
-    <h4>Other assigned issues <span class="badge">0</span></h4>
-    <div class="i-bind" data-bind="other"></div>
-</template>
+        <h4>Pull requests <span class="badge">{{prs.length}}</span></h4>
+        {{#if prs}}
+            {{> issueList prs}}
+        {{else}}
+            <div class="alert alert-info">Not working on any Pull Requests</div>
+        {{/if}}
 
-<template id="error">
-    <div class="error i-bind" data-bind="text"></div>
-</template>
+        <h4>Other assigned issues <span class="badge">{{other.length}}</span></h4>
+        {{#if other}}
+            {{> issueList other}}
+        {{else}}
+            <div class="alert alert-info">No other Issues assigned</div>
+        {{/if}}
 
-<template id="loader">
-    <div class="loader"></div>
-</template>
+        <div class="small">Rate Limit Cost: {{rateLimit.cost}}</div>
+    </script>
 
-<template id="empty-list">
-    <div class="issue-list-empty i-bind" data-bind="text"></div>
-</template>
+    <script id="error-template" type="text/x-handlebars-template">
+        <div class="error">{{message}}</div>
+    </script>
 
-<template id="list">
-    <ul class="i-bind" data-bind="items"></ul>
-</template>
+    <script id="loader-template" type="text/x-handlebars-template">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped active" style="width: 100%">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </script>
 
-<template id="issue-list-item">
-    <li class="i-bind" data-bind="title"></li>
-</template>
+    <script id="issue-list-partial" type="text/x-handlebars-template">
+        <ul class="list-group">
+            {{#each this}}
+                <li class="list-group-item">
+                    {{> issue}}
+                </li>
+            {{/each}}
+        </ul>
+    </script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", loaded);
+    <script id="issue-partial" type="text/x-handlebars-template">
+    </script>
 
-    function loaded() {
-        var panels = document.querySelectorAll(".i-assignee-panel")
-        panels.forEach(bindPanel);
-    }
-
-    function bindPanel(panel) {
-        var assignee = panel.dataset.assignee;
-        var refreshButton = panel.querySelector(".i-assignee-panel-refresh");
-        var content = panel.querySelector(".i-assignee-panel-content");
-
-        refreshButton.addEventListener("click", () => {
-            refresh(assignee, panel, content, refreshButton);
-        });
-
-        // Start the initial load
-        setTimeout(() => {
-            refresh(assignee, panel, content, refreshButton);
-        }, 0);
-    }
-
-    function refresh(assignee, panel, content, refreshButton) {
-        // Disable refresh while already refreshing.
-        refreshButton.disabled = true;
-        applyTemplate(content, "#loader");
-
-        // Fetch data
-        fetch(`/api/groups/@(Model.GroupName)/issues/${assignee}`, {
-            credentials: "same-origin"
-        }).then(response => {
-            return response.json();
-        }).then(json => {
-            refreshButton.disabled = false;
-
-            // Build parameters
-            var parameters = {
-                working: buildList(json.working, 'Not working on any assigned issues'),
-                prs: buildList([], 'No pull requests created or assigned'),
-                other: buildList(json.other, 'No other assigned issues')
-            };
-
-
-            applyTemplate(content, "#assignee-info", parameters);
-        }).catch(err => {
-            refreshButton.disabled = false;
-
-            applyTemplate(content, "#error", { text: err.message });
-        });
-    }
-
-    function buildList(list, emptyText) {
-        if (list.length == 0) {
-            return renderTemplate("#empty-list", { text: emptyText });
+    <script>
+        function loaded() {
+            applyTemplate(rateLimitDisplay, rateLimitTemplate, {
+                remaining: "?",
+                alertClass: "alert-info"
+            });
+            var panels = document.querySelectorAll(".i-assignee-panel")
+            panels.forEach(bindPanel);
         }
-        else {
-            // Format each item in the list
-            var items = list.map(entry => {
-                return renderTemplate("#issue-list-item", {
-                    title: entry.title
-                });
+
+        function bindPanel(panel) {
+            var assignee = panel.dataset.assignee;
+            var refreshButton = panel.querySelector(".i-assignee-panel-refresh");
+            var content = panel.querySelector(".i-assignee-panel-content");
+
+            refreshButton.addEventListener("click", () => {
+                refresh(assignee, panel, content, refreshButton);
             });
 
-            // Render the list template
-            return renderTemplate("#list", { items: items });
+            // Start the initial load
+            setTimeout(() => {
+                refresh(assignee, panel, content, refreshButton);
+            }, 0);
         }
-    }
 
-    function bind(item, value) {
-        if (Array.isArray(value)) {
-            value.forEach(entry => bind(item, entry));
+        function refresh(assignee, panel, content, refreshButton) {
+            // Disable refresh while already refreshing.
+            refreshButton.disabled = true;
+            applyTemplate(content, loaderTemplate);
+
+            // Fetch data
+            fetch(`/api/groups/@(Model.GroupName)/issues/${assignee}`, {
+                credentials: "same-origin"
+            }).then(response => {
+                return response.json();
+            }).then(json => {
+                refreshButton.disabled = false;
+
+                // Update rate limit display
+                var rateLimitInfo = {
+                    remaining: json.rateLimit.remaining
+                };
+                if (json.rateLimit.remaining < 1000) {
+                    rateLimitInfo.alertClass = "alert-danger";
+                }
+                else if(json.rateLimit.remaining < 2000) {
+                    rateLimitInfo.alertClass = "alert-warning";
+                }
+                else {
+                    rateLimitInfo.alertClass = "alert-info";
+                }
+                applyTemplate(rateLimitDisplay, rateLimitTemplate, rateLimitInfo);
+
+                // Build values
+                var parameters = {
+                    working: json.working,
+                    prs: json.prs,
+                    other: json.other,
+                    rateLimit: json.rateLimit
+                };
+
+
+                applyTemplate(content, assigneeInfoTemplate, parameters);
+            }).catch(err => {
+                refreshButton.disabled = false;
+
+                applyTemplate(content, errorTemplate, { message: err.message });
+            });
         }
-        else if (value instanceof DocumentFragment) {
-            item.appendChild(value);
+
+        function compileTemplate(selector) {
+            var source = document.querySelector(selector).innerHTML;
+            return Handlebars.compile(source, {
+                strict: true
+            });
         }
-        else if (value instanceof Element) {
-            item.appendChild(value);
+
+        function applyTemplate(target, template, parameters) {
+            target.innerHTML = template(parameters);
         }
-        else {
-            item.innerHTML = value;
-        }
-    }
 
-    function renderTemplate(template, parameters) {
-        parameters = parameters || {};
+        Handlebars.registerPartial("issueList", compileTemplate("#issue-list-partial"));
+        Handlebars.registerPartial("issue", compileTemplate("#issue-partial"));
 
-        template = document.querySelector(template);
+        var assigneeInfoTemplate = compileTemplate("#assignee-info-template");
+        var errorTemplate = compileTemplate("#error-template");
+        var loaderTemplate = compileTemplate("#loader-template");
+        var rateLimitTemplate = compileTemplate("#rate-limit-template");
 
-        template.content.querySelectorAll(".i-bind").forEach(item => {
-            item.innerText = '';
-            bind(item, parameters[item.dataset.bind]);
-        });
+        var rateLimitDisplay = document.querySelector("#rate-limit-display");
 
-        return document.importNode(template.content, true);
-    }
-
-    function applyTemplate(target, template, parameters) {
-        target.innerHTML = '';
-        target.appendChild(renderTemplate(template, parameters));
-    }
-</script>
+        document.addEventListener("DOMContentLoaded", loaded);
+    </script>
+}

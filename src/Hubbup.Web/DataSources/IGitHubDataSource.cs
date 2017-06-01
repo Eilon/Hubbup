@@ -6,6 +6,6 @@ namespace Hubbup.Web.DataSources
 {
     public interface IGitHubDataSource
     {
-        Task<IReadOnlyList<IssueData>> SearchIssuesAsync(string query, string accessToken);
+        Task<SearchResults<IReadOnlyList<IssueData>>> SearchIssuesAsync(string query, string accessToken);
     }
 }

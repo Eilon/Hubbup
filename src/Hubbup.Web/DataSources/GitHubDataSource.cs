@@ -117,6 +117,7 @@ namespace Hubbup.Web.DataSources
 
                     foreach (var label in issue.Labels.Nodes)
                     {
+                        label.ForeColor = ColorMath.GetHexForeColorForBackColor(label.Color);
                         issueData.Labels.Add(label);
                     }
 

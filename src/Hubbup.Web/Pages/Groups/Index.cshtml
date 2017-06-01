@@ -37,14 +37,26 @@
 
 @section scripts {
     <script id="rate-limit-template" type="text/x-handlebars-template">
-        <div class="alert alert-dismissable {{alertClass}} small">Left: {{remaining}}</div>
+        {{#if graphql}}
+            <div class="alert {{graphql.alertClass}} small">GraphQL Rate Limit Remaining: {{graphql.remaining}}</div>
+        {{/if}}
+        {{#if rest}}
+            <div class="alert {{rest.alertClass}} small">REST Rate Limit Remaining: {{rest.remaining}}</div>
+        {{/if}}
+        {{#if globalCost}}
+            <div class="alert alert-info small">GraphQL Rate Limit cost since last page load: {{globalCost}}</div>
+        {{/if}}
     </script>
 
     <script id="assignee-panel-template" type="text/x-handlebars-template">
         <div class="panel-heading">
             {{#if rateLimit}}
                 <div class="pull-right small">
-                    Rate Limit Cost: {{rateLimit.cost}}
+                    <button class="btn btn-xs btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-panel-{{id}}">
+                        <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
+                        Show/hide
+                    </button>
+                    <span class="badge">Rate Limit Cost: {{rateLimit.cost}}</span>
                 </div>
             {{/if}}
             <h3 class="panel-title">
@@ -53,7 +65,7 @@
                 </strong>
             </h3>
         </div>
-        <div class="panel-body i-assignee-panel-content">
+        <div id="collapse-panel-{{id}}" class="panel-body i-assignee-panel-content collapse in">
             {{#if errorMessage}}
                 {{> error errorMessage}}
             {{else}}
@@ -84,7 +96,7 @@
         <h4>
             Other assigned issues <span class="badge">{{other.length}}</span>
             {{#if other}}
-                <button class="btn btn-sm btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-otherissues-{{id}}">
+                <button class="btn btn-xs btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-otherissues-{{id}}">
                     <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
                     Show/hide
                 </button>
@@ -131,6 +143,14 @@
         <span class="badge pull-right" style="margin-left: 4px">{{this}}</span>
     </script>
 
+    <script id="age-badge-partial" type="text/x-handlebars-template">
+        {{#if stale}}
+            <span class="badge pull-right stale" style="margin-left: 4px" title="{{prefix}} on {{date}}">{{prefix}} {{timeAgo}}</span>
+        {{else}}
+            <span class="badge pull-right" style="margin-left: 4px" title="{{prefix}} on {{date}}">{{prefix}} {{timeAgo}}</span>
+        {{/if}}
+    </script>
+
     <script id="issue-partial" type="text/x-handlebars-template">
         <div class="row">
             <div class="col-md-3" style="white-space: nowrap">
@@ -149,11 +169,16 @@
                     <strong>{{title}}</strong>
                 </div>
 
-                {{#if stale}}
-                    <span class="badge pull-right stale" style="margin-left: 4px" title="Opened on {{updatedAt}}">Opened {{updatedTimeAgo}}</span>
+                {{#each labels}}
+                    <span class="label" style="background-color: #{{color}}; color: #{{foreColor}}">{{name}}</span>
+                {{/each}}
+
+                {{#if working}}
+                    {{> ageBadge date=workingStartedAt timeAgo=workingTimeAgo prefix="Started Working" stale=stale}}
                 {{else}}
-                    <span class="badge pull-right" style="margin-left: 4px" title="Opened on {{updatedAt}}">Opened {{updatedTimeAgo}}</span>
+                    {{> ageBadge date=createdAt timeAgo=createdTimeAgo prefix="Opened" stale=stale}}
                 {{/if}}
+
                 {{#unless isPr}}
                     {{#if milestone}}
                         {{> badge milestone.title}}
@@ -166,6 +191,9 @@
     </script>
 
     <script>
+        var lastRestRateLimit = null;
+        var globalCost = 0;
+            
         function loaded() {
             applyTemplate(rateLimitDisplay, rateLimitTemplate, {
                 remaining: "?",
@@ -187,6 +215,7 @@
 
         function refresh(assignee, id, panel) {
             var parameters = {
+                id: id,
                 assignee: assignee
             };
 
@@ -198,27 +227,26 @@
             }).then(response => {
                 return response.json();
             }).then(json => {
-                // Update rate limit display
-                var rateLimitInfo = {
-                    remaining: json.rateLimit.remaining
-                };
-                if (json.rateLimit.remaining < 1000) {
-                    rateLimitInfo.alertClass = "alert-danger";
-                }
-                else if(json.rateLimit.remaining < 2000) {
-                    rateLimitInfo.alertClass = "alert-warning";
-                }
-                else {
-                    rateLimitInfo.alertClass = "alert-info";
-                }
-
-                parameters.rateLimit = json.rateLimit;
+                parameters.rateLimit = json.graphQlRateLimit;
+                parameters.restRateLimit = json.restRateLimit;
                 parameters.data = {
                     working: json.working,
                     prs: json.prs,
                     other: json.other,
                     id: id
                 };
+
+                globalCost += json.graphQlRateLimit.cost;
+
+                // Update rate limit display
+                if (json.restRateLimit) {
+                    lastRestRateLimit = json.restRateLimit
+                }
+                var rateLimitInfo = {
+                    globalCost: globalCost,
+                    graphql: getRateLimitInfo(json.graphQlRateLimit.remaining),
+                    rest: lastRestRateLimit && getRateLimitInfo(lastRestRateLimit.remaining)
+                }
 
                 applyTemplate(rateLimitDisplay, rateLimitTemplate, rateLimitInfo);
 
@@ -228,6 +256,22 @@
 
                 applyTemplate(panel, assigneePanelTemplate, parameters);
             });
+        }
+
+        function getRateLimitInfo(remaining) {
+            var rateLimitInfo = {
+                remaining: remaining
+            };
+            if (remaining < 1000) {
+                rateLimitInfo.alertClass = "alert-danger";
+            }
+            else if(remaining < 2000) {
+                rateLimitInfo.alertClass = "alert-warning";
+            }
+            else {
+                rateLimitInfo.alertClass = "alert-info";
+            }
+            return rateLimitInfo;
         }
 
         function compileTemplate(selector) {
@@ -247,11 +291,8 @@
 
         Handlebars.registerHelper("listItemClasses", function (issue) {
             var cls = "";
-            if (issue.author && issue.assignees.length > 0 && issue.assignees[0] && issue.author.id != issue.assignees[0].id) {
+            if (issue.isPr && issue.author && issue.assignees.length > 0 && issue.assignees[0] && issue.author.id != issue.assignees[0].id) {
                 cls += "assigned-pr ";
-            }
-            if (issue.stale) {
-                cls += "stale ";
             }
             return cls;
         });
@@ -263,6 +304,7 @@
         Handlebars.registerPartial("badge", compileTemplate("#badge-partial"));
         Handlebars.registerPartial("issueList", compileTemplate("#issue-list-partial"));
         Handlebars.registerPartial("issue", compileTemplate("#issue-partial"));
+        Handlebars.registerPartial("ageBadge", compileTemplate("#age-badge-partial"));
 
         var assigneePanelTemplate = compileTemplate("#assignee-panel-template");
         var rateLimitTemplate = compileTemplate("#rate-limit-template");

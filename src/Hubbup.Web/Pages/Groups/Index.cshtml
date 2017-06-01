@@ -9,8 +9,8 @@
     <div class="col-md-8">
         <ul class="nav nav-pills" id="app-tabs">
             <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
-            <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
-            <li class=""><a href="#group-by-repo">Group by repo</a></li>
+            @*<li class=""><a href="#group-by-milestone">Group by milestone</a></li>
+            <li class=""><a href="#group-by-repo">Group by repo</a></li>*@
         </ul>
     </div>
 </div>
@@ -27,19 +27,7 @@
             <div class="tab-pane active" id="group-by-assignee">
                 @foreach (var person in Model.People)
                 {
-                    <div class="panel panel-default i-assignee-panel" data-assignee="@person">
-                        <div class="panel-heading">
-                            <div class="pull-right assignee-panel-header-refresh">
-                                <button class="btn btn-xs btn-info glyphicon glyphicon-refresh i-assignee-panel-refresh"></button>
-                            </div>
-                            <h3 class="panel-title">
-                                <strong>
-                                    <a href="https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+assignee%3A@(person)">@(person)</a>
-                                </strong>
-                            </h3>
-                        </div>
-                        <div class="panel-body i-assignee-panel-content">
-                        </div>
+                    <div class="panel panel-default i-assignee-panel" data-assignee="@person" data-id="@TagBuilder.CreateSanitizedId(person, "-")">
                     </div>
                 }
             </div>
@@ -52,7 +40,33 @@
         <div class="alert alert-dismissable {{alertClass}} small">Left: {{remaining}}</div>
     </script>
 
-    <script id="assignee-info-template" type="text/x-handlebars-template">
+    <script id="assignee-panel-template" type="text/x-handlebars-template">
+        <div class="panel-heading">
+            {{#if rateLimit}}
+                <div class="pull-right small">
+                    Rate Limit Cost: {{rateLimit.cost}}
+                </div>
+            {{/if}}
+            <h3 class="panel-title">
+                <strong>
+                    <a href="https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+assignee%3A{{assignee}}">{{assignee}}</a>
+                </strong>
+            </h3>
+        </div>
+        <div class="panel-body i-assignee-panel-content">
+            {{#if errorMessage}}
+                {{> error errorMessage}}
+            {{else}}
+                {{#if data}}
+                    {{> assigneeInfo data}}
+                {{else}}
+                    {{> loading}}
+                {{/if}}
+            {{/if}}
+        </div>
+    </script>
+
+    <script id="assignee-info-partial" type="text/x-handlebars-template">
         <h4>Working on issues <span class="badge">{{working.length}}</span></h4>
         {{#if working}}
             {{> issueList working}}
@@ -67,21 +81,29 @@
             <div class="alert alert-info">Not working on any Pull Requests</div>
         {{/if}}
 
-        <h4>Other assigned issues <span class="badge">{{other.length}}</span></h4>
+        <h4>
+            Other assigned issues <span class="badge">{{other.length}}</span>
+            {{#if other}}
+                <button class="btn btn-sm btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-otherissues-{{id}}">
+                    <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
+                    Show/hide
+                </button>
+            {{/if}}
+        </h4>
         {{#if other}}
-            {{> issueList other}}
+            <div class="collapse" id="collapse-otherissues-{{id}}" style="margin-top:10px">
+                {{> issueList other}}
+            </div>
         {{else}}
             <div class="alert alert-info">No other Issues assigned</div>
         {{/if}}
-
-        <div class="small">Rate Limit Cost: {{rateLimit.cost}}</div>
     </script>
 
-    <script id="error-template" type="text/x-handlebars-template">
-        <div class="error">{{message}}</div>
+    <script id="error-partial" type="text/x-handlebars-template">
+        <div class="error">{{this}}</div>
     </script>
 
-    <script id="loader-template" type="text/x-handlebars-template">
+    <script id="loading-partial" type="text/x-handlebars-template">
         <div class="progress">
             <div class="progress-bar progress-bar-striped active" style="width: 100%">
                 <span class="sr-only">Loading...</span>
@@ -92,14 +114,55 @@
     <script id="issue-list-partial" type="text/x-handlebars-template">
         <ul class="list-group">
             {{#each this}}
-                <li class="list-group-item">
+                <li class="list-group-item {{listItemClasses this}}">
                     {{> issue}}
                 </li>
             {{/each}}
         </ul>
     </script>
 
+    <script id="user-icon-partial" type="text/x-handlebars-template">
+        <a href="{{url}}">
+            <img style="margin:0.1em" height="32" width="32" src="{{avatarUrl}}" title="{{login}}" alt="{{login}}" />
+        </a>
+    </script>
+
+    <script id="badge-partial" type="text/x-handlebars-template">
+        <span class="badge pull-right" style="margin-left: 4px">{{this}}</span>
+    </script>
+
     <script id="issue-partial" type="text/x-handlebars-template">
+        <div class="row">
+            <div class="col-md-3" style="white-space: nowrap">
+                    {{#if (notsameuser author assignees.[0])}}
+                        {{> userIcon author}}
+                        <span class="glyphicon glyphicon-arrow-right"></span>
+                        {{> userIcon assignees.[0]}}
+                    {{else}}
+                        {{> userIcon author}}
+                    {{/if}}
+                <span style="margin-left:1.5em; font-size: large">#<a href="{{url}}">{{number}}</a></span>
+            </div>
+            <div class="col-md-9">
+                <div>
+                    <span style="font-weight:bolder; color: #999; margin-right: 4px; font-size: smaller">{{repository.owner.login}}/{{repository.name}}</span>
+                    <strong>{{title}}</strong>
+                </div>
+
+                {{#if stale}}
+                    <span class="badge pull-right stale" style="margin-left: 4px" title="Opened on {{updatedAt}}">Opened {{updatedTimeAgo}}</span>
+                {{else}}
+                    <span class="badge pull-right" style="margin-left: 4px" title="Opened on {{updatedAt}}">Opened {{updatedTimeAgo}}</span>
+                {{/if}}
+                {{#unless isPr}}
+                    {{#if milestone}}
+                        {{> badge milestone.title}}
+                    {{else}}
+                        {{> badge "< No Milestone >"}}
+                    {{/if}}
+                {{/unless}}
+            </div>
+        </div>
     </script>
 
     <script>
@@ -114,23 +177,20 @@
 
         function bindPanel(panel) {
             var assignee = panel.dataset.assignee;
-            var refreshButton = panel.querySelector(".i-assignee-panel-refresh");
-            var content = panel.querySelector(".i-assignee-panel-content");
-
-            refreshButton.addEventListener("click", () => {
-                refresh(assignee, panel, content, refreshButton);
-            });
+            var id = panel.dataset.id;
 
             // Start the initial load
             setTimeout(() => {
-                refresh(assignee, panel, content, refreshButton);
+                refresh(assignee, id, panel);
             }, 0);
         }
 
-        function refresh(assignee, panel, content, refreshButton) {
-            // Disable refresh while already refreshing.
-            refreshButton.disabled = true;
-            applyTemplate(content, loaderTemplate);
+        function refresh(assignee, id, panel) {
+            var parameters = {
+                assignee: assignee
+            };
+
+            applyTemplate(panel, assigneePanelTemplate, parameters);
 
             // Fetch data
             fetch(`/api/groups/@(Model.GroupName)/issues/${assignee}`, {
@@ -138,8 +198,6 @@
             }).then(response => {
                 return response.json();
             }).then(json => {
-                refreshButton.disabled = false;
-
                 // Update rate limit display
                 var rateLimitInfo = {
                     remaining: json.rateLimit.remaining
@@ -153,22 +211,22 @@
                 else {
                     rateLimitInfo.alertClass = "alert-info";
                 }
-                applyTemplate(rateLimitDisplay, rateLimitTemplate, rateLimitInfo);
 
-                // Build values
-                var parameters = {
+                parameters.rateLimit = json.rateLimit;
+                parameters.data = {
                     working: json.working,
                     prs: json.prs,
                     other: json.other,
-                    rateLimit: json.rateLimit
+                    id: id
                 };
 
+                applyTemplate(rateLimitDisplay, rateLimitTemplate, rateLimitInfo);
 
-                applyTemplate(content, assigneeInfoTemplate, parameters);
+                applyTemplate(panel, assigneePanelTemplate, parameters);
             }).catch(err => {
-                refreshButton.disabled = false;
+                parameters.errorMessage = err.message;
 
-                applyTemplate(content, errorTemplate, { message: err.message });
+                applyTemplate(panel, assigneePanelTemplate, parameters);
             });
         }
 
@@ -183,12 +241,30 @@
             target.innerHTML = template(parameters);
         }
 
+        Handlebars.registerHelper("notsameuser", function (left, right) {
+            return left && right && left.id != right.id;
+        });
+
+        Handlebars.registerHelper("listItemClasses", function (issue) {
+            var cls = "";
+            if (issue.author && issue.assignees.length > 0 && issue.assignees[0] && issue.author.id != issue.assignees[0].id) {
+                cls += "assigned-pr ";
+            }
+            if (issue.stale) {
+                cls += "stale ";
+            }
+            return cls;
+        });
+
+        Handlebars.registerPartial("assigneeInfo", compileTemplate("#assignee-info-partial"));
+        Handlebars.registerPartial("userIcon", compileTemplate("#user-icon-partial"));
+        Handlebars.registerPartial("error", compileTemplate("#error-partial"));
+        Handlebars.registerPartial("loading", compileTemplate("#loading-partial"));
+        Handlebars.registerPartial("badge", compileTemplate("#badge-partial"));
         Handlebars.registerPartial("issueList", compileTemplate("#issue-list-partial"));
         Handlebars.registerPartial("issue", compileTemplate("#issue-partial"));
 
-        var assigneeInfoTemplate = compileTemplate("#assignee-info-template");
-        var errorTemplate = compileTemplate("#error-template");
-        var loaderTemplate = compileTemplate("#loader-template");
+        var assigneePanelTemplate = compileTemplate("#assignee-panel-template");
         var rateLimitTemplate = compileTemplate("#rate-limit-template");
 
         var rateLimitDisplay = document.querySelector("#rate-limit-display");

@@ -53,3 +53,16 @@ textarea {
 #rate-limit-display {
     margin-top: 1em;
 }
+
+.list-group-item.assigned-pr {
+    background-color: wheat;
+}
+
+.list-group-item.stale {
+    background-color: salmon;
+}
+
+.badge.stale {
+    background-color: red;
+    color: white;
+}

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Hubbup.Web.Models;
+using Hubbup.Web.Utils;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -14,7 +15,7 @@ namespace Hubbup.Web.DataSources
     public class GitHubDataSource : IGitHubDataSource
     {
         private const string GraphQlEndPoint = "https://api.github.com/graphql";
-        private const int PageSize = 20;
+        private const int PageSize = 10;
         private const int AssigneeBatchSize = 5;
         private const int LabelBatchSize = 5;
         private static readonly JsonSerializerSettings _settings = new JsonSerializerSettings()
@@ -85,15 +86,15 @@ namespace Hubbup.Web.DataSources
                 {
                     var issueData = new IssueData()
                     {
-                        Type = IssueData.ParseType(issue.Type),
+                        IsPr = string.Equals(issue.Type, "PullRequest", StringComparison.Ordinal),
                         Url = issue.Url,
                         Number = issue.Number,
                         Repository = issue.Repository,
                         Title = issue.Title,
                         Author = issue.Author,
                         Milestone = issue.Milestone,
-                        CreatedAt = issue.CreatedAt,
-                        UpdatedAt = issue.UpdatedAt,
+                        CreatedAt = issue.CreatedAt.ToPacificTime(),
+                        UpdatedAt = issue.UpdatedAt.ToPacificTime(),
                         CommentCount = issue.Comments.TotalCount
                     };
 
@@ -159,6 +160,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
           name,
           owner {
             id,
+            url,
             login,
             avatarUrl,
           },
@@ -168,6 +170,8 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
         author {
           ... on User {
             id,
+            url,
+            login,
             name,
             avatarUrl
           },
@@ -179,6 +183,8 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
         assignees(first: $assigneeBatchSize){
           nodes {
             id,
+            url,
+            login,
             name,
             avatarUrl,
           },
@@ -206,10 +212,14 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
         title,
         comments {
           totalCount,
-        },
+        }
       },
       ... on Issue {
         number,
+        milestone {
+          id,
+          title,
+        },
         title,
         comments {
           totalCount,
@@ -262,8 +272,8 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
                 public string Title { get; set; }
                 public UserReference Author { get; set; }
                 public Milestone Milestone { get; set; }
-                public DateTime CreatedAt { get; set; }
-                public DateTime UpdatedAt { get; set; }
+                public DateTimeOffset CreatedAt { get; set; }
+                public DateTimeOffset UpdatedAt { get; set; }
                 public ConnectionResult<UserReference> Assignees { get; set; }
                 public ConnectionResult<Label> Labels { get; set; }
                 public Comments Comments { get; set; }

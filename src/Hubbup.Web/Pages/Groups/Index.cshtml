@@ -52,11 +52,11 @@
         <div class="panel-heading">
             {{#if rateLimit}}
                 <div class="pull-right small">
+                    <span class="badge">Rate Limit Cost: {{rateLimit.cost}}</span>
                     <button class="btn btn-xs btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-panel-{{id}}">
                         <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
                         Show/hide
                     </button>
-                    <span class="badge">Rate Limit Cost: {{rateLimit.cost}}</span>
                 </div>
             {{/if}}
             <h3 class="panel-title">

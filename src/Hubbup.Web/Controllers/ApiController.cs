@@ -34,9 +34,9 @@ namespace Hubbup.Web.Controllers
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
             // Issue the three queries simultaneously and wait for results
-            var assignedIssuesTask = _github.SearchIssuesAsync(repoSet.BaseQuery + $" is:issue assignee:{userName}", accessToken);
-            var assignedPrsTask = _github.SearchIssuesAsync(repoSet.BaseQuery + $" is:pr assignee:{userName}", accessToken);
-            var createdPrsTask = _github.SearchIssuesAsync(repoSet.BaseQuery + $" is:pr author:{userName}", accessToken);
+            var assignedIssuesTask = _github.SearchIssuesAsync(repoSet.BaseQuery + $"is:open is:issue assignee:{userName}", accessToken);
+            var assignedPrsTask = _github.SearchIssuesAsync(repoSet.BaseQuery + $"is:open is:pr assignee:{userName}", accessToken);
+            var createdPrsTask = _github.SearchIssuesAsync(repoSet.BaseQuery + $"is:open is:pr author:{userName}", accessToken);
             await Task.WhenAll(assignedIssuesTask, assignedPrsTask, createdPrsTask);
             var assignedIssues = await assignedIssuesTask;
             var assignedPrs = await assignedPrsTask;

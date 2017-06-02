@@ -8,6 +8,7 @@ namespace Hubbup.Web.Models
 {
     public class IssueData
     {
+        public string Id { get; set; }
         public bool IsPr { get; set; }
         public bool Working { get; set; }
         public string Url { get; set; }

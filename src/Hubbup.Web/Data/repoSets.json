@@ -20,7 +20,6 @@
         "Url": "https://msit.powerbi.com/groups/b5743765-ec44-4dfc-91df-e32401023530/reports/54ab8db5-5f70-409a-b522-1eb107ce52ee/ReportSection"
       }
     ],
-    "BaseQuery": "org:aspnet org:dotnet -repo:aspnet/PatchTool -repo:aspnet/specs -repo:aspnet/Stress",
     "Repos": [
       {
         "org": "aspnet",

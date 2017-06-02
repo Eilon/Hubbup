@@ -5,19 +5,9 @@
     ViewData["CurrentGroup"] = Model.GroupName;
 }
 
-<div class="row">
-    <div class="col-md-8">
-        <ul class="nav nav-pills" id="app-tabs">
-            <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
-            @*<li class=""><a href="#group-by-milestone">Group by milestone</a></li>
-            <li class=""><a href="#group-by-repo">Group by repo</a></li>*@
-        </ul>
-    </div>
-</div>
-
 <div class="row issue-list-row">
     <div class="col-md-2 col-md-push-10">
-        <h3>Issues</h3>
+        <a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@Model.GroupName">Switch to Legacy View</a>
         <h3>Rate Limit</h3>
         <div id="rate-limit-display"></div>
     </div>

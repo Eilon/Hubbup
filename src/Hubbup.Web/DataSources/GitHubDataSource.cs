@@ -64,7 +64,11 @@ namespace Hubbup.Web.DataSources
 
                 _logger.LogTrace("Requesting page {pageIndex} of search results from GitHub for query '{query}'", pageIndex, query);
                 var resp = await _client.SendAsync(req);
-                resp.EnsureSuccessStatusCode();
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var content = await resp.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Received {resp.StatusCode} response from GitHub: {content}");
+                }
 
                 json = await resp.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<Dtos.GraphQlResult<SearchResults<Dtos.ConnectionResult<Dtos.Issue>>>>(json, _settings);
@@ -86,6 +90,7 @@ namespace Hubbup.Web.DataSources
                 {
                     var issueData = new IssueData()
                     {
+                        Id = issue.Id,
                         IsPr = string.Equals(issue.Type, "PullRequest", StringComparison.Ordinal),
                         Url = issue.Url,
                         Number = issue.Number,
@@ -266,6 +271,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
 
             public class Issue
             {
+                public string Id { get; set; }
                 public string Type { get; set; }
                 public string Url { get; set; }
                 public int Number { get; set; }

@@ -154,7 +154,6 @@ namespace Hubbup.Web.DataSources
                         })
                         .ToList()
                     : new List<RepoExtraLink>(),
-                BaseQuery = repoInfo.BaseQuery,
                 Repos = repoInfo.Repos
                     .Select(repoDef => new RepoDefinition(repoDef.Org, repoDef.Repo, (RepoInclusionLevel)Enum.Parse(typeof(RepoInclusionLevel), repoDef.InclusionLevel, ignoreCase: true)))
                     .ToArray(),
@@ -191,7 +190,6 @@ namespace Hubbup.Web.DataSources
             public string[] WorkingLabels { get; set; }
             public string LabelFilter { get; set; }
             public RepoExtraLinkDto[] RepoExtraLinks { get; set; }
-            public string BaseQuery { get; set; }
             public RepoInfoDto[] Repos { get; set; }
         }
 

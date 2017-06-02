@@ -9,8 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0-*" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.0-beta3" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.0-preview1-final" />
     <PackageReference Include="NuGet.Versioning" Version="4.0.0" />
     <PackageReference Include="Octokit" Version="0.25.0-beta.45.build.2169" />
   </ItemGroup>

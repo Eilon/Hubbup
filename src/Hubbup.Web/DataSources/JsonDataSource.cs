@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hubbup.Web.Models;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -28,19 +25,16 @@ namespace Hubbup.Web.DataSources
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly ILogger _logger;
-        private readonly TelemetryClient _telemetryClient;
         private readonly object _reloadLock = new object();
 
         public JsonDataSource(
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<JsonDataSource> logger,
-            TelemetryClient telemetryClient)
+            ILogger<JsonDataSource> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _applicationLifetime = applicationLifetime;
             _logger = logger;
-            _telemetryClient = telemetryClient;
         }
 
         public RepoDataSet GetRepoDataSet() => _repoDataSet;
@@ -56,7 +50,7 @@ namespace Hubbup.Web.DataSources
 
         private async Task ReloadPersonSets()
         {
-            _logger.LogTrace("Reloading repoSets.json ...");
+            _logger.LogTrace("Reloading personSets.json ...");
             var getDataStopWatch = new Stopwatch();
             getDataStopWatch.Start();
 
@@ -71,7 +65,7 @@ namespace Hubbup.Web.DataSources
 
                         var dict = data.ToDictionary(
                             pair => pair.Key,
-                            pair => new PersonSet(pair.Value.People));
+                            pair => new PersonSet(pair.Value.GetAllPeople(data).ToList()));
 
                         // Atomically assign the entire data set
                         _repoEtag = result.Etag;
@@ -86,13 +80,6 @@ namespace Hubbup.Web.DataSources
             }
 
             getDataStopWatch.Stop();
-
-            var getDataEventTelemetry = new EventTelemetry
-            {
-                Name = "UpdatePersonSets",
-            };
-            getDataEventTelemetry.Properties.Add("durationInMilliseconds", getDataStopWatch.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture));
-            _telemetryClient.TrackEvent(getDataEventTelemetry);
             _logger.LogTrace("Reloaded repoSets.json in {durationInMilliseconds} milliseconds", getDataStopWatch.ElapsedMilliseconds);
         }
 
@@ -129,12 +116,6 @@ namespace Hubbup.Web.DataSources
 
             getDataStopWatch.Stop();
 
-            var getDataEventTelemetry = new EventTelemetry
-            {
-                Name = "UpdateRepoSets",
-            };
-            getDataEventTelemetry.Properties.Add("durationInMilliseconds", getDataStopWatch.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture));
-            _telemetryClient.TrackEvent(getDataEventTelemetry);
             _logger.LogTrace("Reloaded repoSets.json in {durationInMilliseconds} milliseconds", getDataStopWatch.ElapsedMilliseconds);
         }
 
@@ -181,7 +162,15 @@ namespace Hubbup.Web.DataSources
 
         private class PersonSetDto
         {
+            public string[] Import { get; set; }
             public string[] People { get; set; }
+
+            public IEnumerable<string> GetAllPeople(IDictionary<string, PersonSetDto> fullDataSet)
+            {
+                return Enumerable.Concat(
+                    People ?? Array.Empty<string>(),
+                    (Import ?? Array.Empty<string>()).SelectMany(i => fullDataSet[i].GetAllPeople(fullDataSet)));
+            }
         }
 
         private class RepoSetDto

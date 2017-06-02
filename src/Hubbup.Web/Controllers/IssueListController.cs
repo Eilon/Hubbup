@@ -10,11 +10,8 @@ using Hubbup.Web.DataSources;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Versioning;
 using Octokit;
@@ -25,19 +22,15 @@ namespace Hubbup.Web.Controllers
     {
         public IssueListController(
             IDataSource dataSource,
-            UrlEncoder urlEncoder,
-            TelemetryClient telemetryClient)
+            UrlEncoder urlEncoder)
         {
             DataSource = dataSource;
             UrlEncoder = urlEncoder;
-            TelemetryClient = telemetryClient;
         }
 
         public IDataSource DataSource { get; }
 
         public UrlEncoder UrlEncoder { get; }
-
-        public TelemetryClient TelemetryClient { get; }
 
         private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, IGitHubClient gitHubClient)
         {
@@ -119,14 +112,6 @@ namespace Hubbup.Web.Controllers
 
             if (!repoDataSet.RepoSetExists(repoSet))
             {
-                var invalidRepoSetPageViewTelemetry = new PageViewTelemetry("RepoSet")
-                {
-                    Url = new Uri(Request.GetDisplayUrl()),
-                };
-                invalidRepoSetPageViewTelemetry.Properties.Add("GitHubUser", gitHubName);
-                invalidRepoSetPageViewTelemetry.Properties.Add("repoSet", repoSet);
-                invalidRepoSetPageViewTelemetry.Properties.Add("repoSetValid", "false");
-                TelemetryClient.TrackPageView(invalidRepoSetPageViewTelemetry);
                 return NotFound();
             }
 
@@ -243,16 +228,6 @@ namespace Hubbup.Web.Controllers
                             FailureMessage = string.Format("Pull requests couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
                             Exception = repoTask.Value.Task.Exception,
                         }));
-
-            foreach (var repoFailure in repoFailures)
-            {
-                TelemetryClient.TrackException(new ExceptionTelemetry
-                {
-                    Exception = repoFailure.Exception,
-                    Message = repoFailure.FailureMessage,
-                    SeverityLevel = SeverityLevel.Error,
-                });
-            }
 
             var allIssues = allIssuesByRepo
                 .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
@@ -542,16 +517,6 @@ namespace Hubbup.Web.Controllers
 
             requestStopwatch.Stop();
             issueListViewModel.PageRequestTime = requestStopwatch.Elapsed;
-
-            var pageViewTelemetry = new PageViewTelemetry("RepoSet")
-            {
-                Duration = requestStopwatch.Elapsed,
-                Url = new Uri(Request.GetDisplayUrl()),
-            };
-            pageViewTelemetry.Properties.Add("GitHubUser", gitHubName);
-            pageViewTelemetry.Properties.Add("repoSet", repoSet);
-            pageViewTelemetry.Properties.Add("repoSetValid", "true");
-            TelemetryClient.TrackPageView(pageViewTelemetry);
 
             return View(issueListViewModel);
         }

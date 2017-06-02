@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,9 +15,8 @@ namespace Hubbup.Web.DataSources
             IOptions<RemoteJsonDataSourceOptions> remoteJsonRepoSetProviderOptions,
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<RemoteJsonDataSource> logger,
-            TelemetryClient telemetryClient)
-            : base(hostingEnvironment, applicationLifetime, logger, telemetryClient)
+            ILogger<RemoteJsonDataSource> logger)
+            : base(hostingEnvironment, applicationLifetime, logger)
         {
             RemoteUrlBase = remoteJsonRepoSetProviderOptions.Value.BaseUrl;
         }
@@ -36,7 +34,10 @@ namespace Hubbup.Web.DataSources
 
             var http = new HttpClient();
             var req = new HttpRequestMessage(HttpMethod.Get, url);
-            req.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(etag));
+            if (!string.IsNullOrEmpty(etag))
+            {
+                req.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(etag));
+            }
 
             var resp = await http.SendAsync(req);
             if (resp.StatusCode == HttpStatusCode.NotModified)

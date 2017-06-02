@@ -1,21 +1,6 @@
 {
-  "Eilon": {
-    "people": [
-      "ajaybhargavb",
-      "dougbu",
-      "Eilon",
-      "javiercn",
-      "jbagga",
-      "kichalla",
-      "NTaylorMullen",
-      "pranavkm",
-      "ryanbrandenburg",
-      "rynowak",
-      "sebastienros"
-    ]
-  },
   "Murat": {
-    "people": [
+    "People": [
       "anurse",
       "BrennanConroy",
       "cesarbs",
@@ -29,20 +14,6 @@
       "natemcmaster",
       "pakrym",
       "Tratcher"
-    ]
-  },
-  "Diego": {
-    "people": [
-      "ajcvickers",
-      "AndriySvyryd",
-      "anpete",
-      "bricelam",
-      "divega",
-      "HaoK",
-      "lajones",
-      "maumar",
-      "rowanmiller",
-      "smitpatel"
     ]
   }
 }

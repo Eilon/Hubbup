@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Hubbup.Web
 {
@@ -14,12 +13,6 @@ namespace Hubbup.Web
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseApplicationInsights()
-                .ConfigureLogging(loggerFactory =>
-                {
-                    loggerFactory.AddConsole();
-                    loggerFactory.AddDebug();
-                })
                 .Build();
     }
 }

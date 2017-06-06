@@ -74,8 +74,8 @@ namespace Hubbup.Web
                 options.UserInformationEndpoint = "https://api.github.com/user";
                 options.ClaimsIssuer = "GitHub";
 
-                options.ClientId = Configuration["Authentication:GitHub:ClientId"];
-                options.ClientSecret = Configuration["Authentication:GitHub:ClientSecret"];
+                options.ClientId = Configuration["GitHubClientId"];
+                options.ClientSecret = Configuration["GitHubClientSecret"];
                 options.Scope.Add("repo");
                 options.SaveTokens = true;
 

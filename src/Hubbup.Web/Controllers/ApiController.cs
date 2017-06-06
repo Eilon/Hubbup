@@ -71,7 +71,8 @@ namespace Hubbup.Web.Controllers
                 other = SortIssues(otherIssues),
                 prs = SortIssues(Enumerable.Concat(assignedPrs.Search, createdPrs.Search)),
                 graphQlRateLimit = rateLimitCost,
-                restRateLimit = gitHub.GetLastApiInfo()?.RateLimit
+                restRateLimit = gitHub.GetLastApiInfo()?.RateLimit,
+                pages = assignedIssues.Pages + assignedPrs.Pages + createdPrs.Pages
             });
         }
 

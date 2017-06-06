@@ -4,6 +4,8 @@ namespace Hubbup.Web.DataSources
     {
         public RateLimitInfo RateLimit { get; set; }
 
+        public int Pages { get; set; }
+
         public T Search { get; set; }
 
         public SearchResults()
@@ -11,10 +13,11 @@ namespace Hubbup.Web.DataSources
 
         }
 
-        public SearchResults(T search, RateLimitInfo rateLimit)
+        public SearchResults(T search, RateLimitInfo rateLimit, int pages)
         {
             Search = search;
             RateLimit = rateLimit;
+            Pages = pages;
         }
     }
 }

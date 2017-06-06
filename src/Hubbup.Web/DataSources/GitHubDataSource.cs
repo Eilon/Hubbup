@@ -133,7 +133,7 @@ namespace Hubbup.Web.DataSources
                 pageIndex += 1;
             } while (data.Search.PageInfo.HasNextPage);
 
-            return new SearchResults<IReadOnlyList<IssueData>>(issues, rateLimitInfo);
+            return new SearchResults<IReadOnlyList<IssueData>>(issues, rateLimitInfo, pageIndex);
         }
 
         private static class Queries

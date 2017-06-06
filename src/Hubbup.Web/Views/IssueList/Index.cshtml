@@ -1,6 +1,7 @@
 @model IssueListViewModel
 
 @{
+    ViewData["PageTitlePrefix"] = Model.RepoSetName;
     ViewData["CurrentGroup"] = Model.RepoSetName;
 }
 
@@ -79,7 +80,7 @@
 
 <div class="row">
     <div class="col-md-2 col-md-push-10">
-        <a asp-page="/Groups/Index" asp-route-groupName="@Model.RepoSetName">Switch to the new fastness</a>
+        <a asp-page="/Index" asp-route-groupName="@Model.RepoSetName">Switch to the new fastness</a>
         <h3>Issues</h3>
         <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in Backlog milestone">
             <a href="@Model.OpenIssuesQuery">Open</a> <span class="badge">@Model.TotalIssues</span>

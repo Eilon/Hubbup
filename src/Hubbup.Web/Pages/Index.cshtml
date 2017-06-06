@@ -43,6 +43,7 @@
             {{#if rateLimit}}
                 <div class="pull-right small">
                     <span class="badge">Rate Limit Cost: {{rateLimit.cost}}</span>
+                    <span class="badge">Page Count: {{pages}}</span>
                     <button class="btn btn-xs btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-panel-{{id}}">
                         <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
                         Show/hide
@@ -219,6 +220,7 @@
             }).then(json => {
                 parameters.rateLimit = json.graphQlRateLimit;
                 parameters.restRateLimit = json.restRateLimit;
+                parameters.pages = json.pages;
                 parameters.data = {
                     working: json.working,
                     prs: json.prs,

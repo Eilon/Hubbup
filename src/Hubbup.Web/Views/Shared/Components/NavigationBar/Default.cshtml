@@ -19,7 +19,7 @@
                 <li class="@(Model.CurrentGroup == "" ? "active" : "")"><a asp-controller="Home" asp-action="Index">Home</a></li>
                 @foreach (var repoSetName in Model.GroupNames.Take(10))
                 {
-                    <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-groupName="@repoSetName">@repoSetName</a></li>
+                    <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a asp-page="/Index" asp-route-groupName="@repoSetName">@repoSetName</a></li>
                 }
                 @if (Model.GroupNames.Count > 10)
                 {

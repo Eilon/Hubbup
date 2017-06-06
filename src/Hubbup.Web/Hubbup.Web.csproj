@@ -30,8 +30,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Pages\Groups\" />
-  </ItemGroup>
-
 </Project>

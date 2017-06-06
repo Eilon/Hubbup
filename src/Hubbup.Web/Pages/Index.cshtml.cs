@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Hubbup.Web.DataSources;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Hubbup.Web.Pages.Groups
+namespace Hubbup.Web.Pages
 {
     public class IndexModel : PageModel
     {

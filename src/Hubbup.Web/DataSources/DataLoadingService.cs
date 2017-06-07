@@ -9,7 +9,7 @@ namespace Hubbup.Web
 {
     public class DataLoadingService : IHostedService
     {
-        private static readonly TimeSpan TimerPeriod = TimeSpan.FromMinutes(120);
+        private static readonly TimeSpan TimerPeriod = TimeSpan.FromMinutes(10);
 
         private readonly IDataSource _dataSource;
         private readonly ILogger _logger;
@@ -27,16 +27,11 @@ namespace Hubbup.Web
             _timer = new Timer(state => ((DataLoadingService)state).OnTimerAsync(), this, Timeout.Infinite, Timeout.Infinite);
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            // Load data before we start things up.
-            // Until https://github.com/aspnet/Hosting/issues/1085 is fixed, there's a race here
-            // if this doesn't complete before a request comes in.
-            _logger.LogInformation("Loading data.");
-            await _dataSource.ReloadAsync(_cancellationTokenSource.Token);
-
-            // Now start the reload timer
+            // Start the reload timer
             _timer.Change(TimerPeriod, TimerPeriod);
+            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

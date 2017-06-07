@@ -201,7 +201,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
         },
       }
       ... on Labelable {
- 			  labels(first: $labelBatchSize) {
+        labels(first: $labelBatchSize) {
           nodes {
             id,
             name,

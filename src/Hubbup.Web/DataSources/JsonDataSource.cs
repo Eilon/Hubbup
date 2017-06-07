@@ -19,13 +19,13 @@ namespace Hubbup.Web.DataSources
         private volatile RepoDataSet _repoDataSet = RepoDataSet.Empty;
         private volatile Dictionary<string, PersonSet> _personSets = new Dictionary<string, PersonSet>();
 
-        private volatile string _repoEtag = null;
-        private volatile string _personSetEtag = null;
+        private string _repoEtag = null;
+        private string _personSetEtag = null;
 
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly ILogger _logger;
-        private readonly object _reloadLock = new object();
+        private readonly SemaphoreSlim _reloadLock = new SemaphoreSlim(1, 1);
 
         public JsonDataSource(
             IHostingEnvironment hostingEnvironment,
@@ -68,8 +68,16 @@ namespace Hubbup.Web.DataSources
                             pair => new PersonSet(pair.Value.GetAllPeople(data).ToList()));
 
                         // Atomically assign the entire data set
-                        _repoEtag = result.Etag;
-                        _personSets = dict;
+                        await _reloadLock.WaitAsync();
+                        try
+                        {
+                            _repoEtag = result.Etag;
+                            _personSets = dict;
+                        }
+                        finally
+                        {
+                            _reloadLock.Release();
+                        }
                     }
                     _logger.LogInformation("Reloaded person sets");
                 }
@@ -102,9 +110,19 @@ namespace Hubbup.Web.DataSources
                             pair => pair.Key,
                             pair => CreateRepoSetDefinition(pair.Value));
 
+                        var newDataSet = new RepoDataSet(repoSetList);
+
                         // Atomically assign the entire data set
-                        _repoEtag = result.Etag;
-                        _repoDataSet = new RepoDataSet(repoSetList);
+                        await _reloadLock.WaitAsync();
+                        try
+                        {
+                            _repoEtag = result.Etag;
+                            _repoDataSet = newDataSet;
+                        }
+                        finally
+                        {
+                            _reloadLock.Release();
+                        }
                     }
                     _logger.LogInformation("Reloaded repo sets");
                 }

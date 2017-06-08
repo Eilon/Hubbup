@@ -1,15 +1,13 @@
-@page "{groupName}"
+@page "{repoSetName}"
 @model IndexModel
 @{
-    ViewData["PageTitlePrefix"] = Model.GroupName;
-    ViewData["CurrentGroup"] = Model.GroupName;
+    ViewData["PageTitlePrefix"] = Model.RepoSetName;
+    ViewData["CurrentGroup"] = Model.RepoSetName;
 }
 
 <div class="row issue-list-row">
     <div class="col-md-2 col-md-push-10">
-        <a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@Model.GroupName">Switch to Legacy View</a>
-        <h3>Rate Limit</h3>
-        <div id="rate-limit-display"></div>
+        <a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@Model.RepoSetName">Switch to Legacy View</a>
     </div>
 
     <div class="col-md-10 col-md-pull-2">
@@ -23,18 +21,22 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-10">
+        <div id="rate-limit-display"></div>
+    </div>
 </div>
 
 @section scripts {
     <script id="rate-limit-template" type="text/x-handlebars-template">
         {{#if graphql}}
-            <div class="alert {{graphql.alertClass}} small">GraphQL Rate Limit Remaining: {{graphql.remaining}}</div>
+            <div class="col-md-4">GraphQL Rate Limit Remaining: {{graphql.remaining}}</div>
         {{/if}}
         {{#if rest}}
-            <div class="alert {{rest.alertClass}} small">REST Rate Limit Remaining: {{rest.remaining}}</div>
+            <div class="col-md-4">REST Rate Limit Remaining: {{rest.remaining}}</div>
         {{/if}}
         {{#if globalCost}}
-            <div class="alert alert-info small">GraphQL Rate Limit cost since last page load: {{globalCost}}</div>
+            <div class="col-md-4">GraphQL cost since last refresh: {{globalCost}}</div>
         {{/if}}
     </script>
 
@@ -42,8 +44,10 @@
         <div class="panel-heading">
             {{#if rateLimit}}
                 <div class="pull-right small">
-                    <span class="badge">Rate Limit Cost: {{rateLimit.cost}}</span>
-                    <span class="badge">Page Count: {{pages}}</span>
+                    <environment include="Development">
+                        <span class="badge">Rate Limit Cost: {{rateLimit.cost}}</span>
+                        <span class="badge">Page Count: {{pages}}</span>
+                    </environment>
                     <button class="btn btn-xs btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-panel-{{id}}">
                         <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
                         Show/hide
@@ -74,14 +78,14 @@
         {{#if working}}
             {{> issueList working}}
         {{else}}
-            <div class="alert alert-info">Not working on any Issues</div>
+            <div class="alert alert-info">Not working on any assigned Issues</div>
         {{/if}}
 
         <h4>Pull requests <span class="badge">{{prs.length}}</span></h4>
         {{#if prs}}
             {{> issueList prs}}
         {{else}}
-            <div class="alert alert-info">Not working on any Pull Requests</div>
+            <div class="alert alert-info">No pull requests created or assigned</div>
         {{/if}}
 
         <h4>
@@ -98,12 +102,12 @@
                 {{> issueList other}}
             </div>
         {{else}}
-            <div class="alert alert-info">No other Issues assigned</div>
+            <div class="alert alert-info">No other assigned issues</div>
         {{/if}}
     </script>
 
     <script id="error-partial" type="text/x-handlebars-template">
-        <div class="error">{{this}}</div>
+        <div class="alert alert-danger error">{{this}}</div>
     </script>
 
     <script id="loading-partial" type="text/x-handlebars-template">
@@ -213,7 +217,7 @@
             applyTemplate(panel, assigneePanelTemplate, parameters);
 
             // Fetch data
-            fetch(`/api/groups/@(Model.GroupName)/issues/${assignee}`, {
+            fetch(`/api/repoSet/@(Model.RepoSetName)/issues/${assignee}`, {
                 credentials: "same-origin"
             }).then(response => {
                 return response.json();
@@ -257,7 +261,7 @@
             if (remaining < 1000) {
                 rateLimitInfo.alertClass = "alert-danger";
             }
-            else if(remaining < 2000) {
+            else if (remaining < 2000) {
                 rateLimitInfo.alertClass = "alert-warning";
             }
             else {

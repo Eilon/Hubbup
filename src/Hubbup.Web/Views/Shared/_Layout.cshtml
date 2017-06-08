@@ -1,35 +1,35 @@
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
 
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>@ViewData["PageTitlePrefix"] - Hubbup</title>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["PageTitlePrefix"] - Hubbup</title>
 
-        <link rel="stylesheet" href="~/css/site.css" />
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-    </head>
-    <body>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+</head>
+<body>
 
-        <environment exclude="Production">
-            <div class="alert alert-info" style="text-align:center;"><h2>Current environment is: @HostingEnvironment.EnvironmentName</h2></div>
-        </environment>
+    <environment exclude="Production">
+        <div class="alert alert-info" style="text-align:center;"><h2>Current environment is: @HostingEnvironment.EnvironmentName</h2></div>
+    </environment>
 
-        <vc:navigation-bar current-group="@ViewData["CurrentGroup"]" />
+    <vc:navigation-bar current-group="@ViewData["CurrentGroup"]" />
 
-        <div class="container body-content">
-            @RenderBody()
-            <hr />
-            <footer>
-                <p>&copy; <a href="https://github.com/Eilon/ProjectKIssueList">Hubbup</a> - GitHub standup tool</p>
-            </footer>
-        </div>
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; <a href="https://github.com/Eilon/ProjectKIssueList">Hubbup</a> - GitHub standup tool</p>
+        </footer>
+    </div>
 
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/lib/handlebars/handlebars.js"></script>
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="~/lib/handlebars/handlebars.js"></script>
 
-        @RenderSection("scripts", required: false)
-    </body>
+    @RenderSection("scripts", required: false)
+</body>
 </html>

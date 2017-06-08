@@ -15,7 +15,7 @@ namespace Hubbup.Web
         private readonly ILogger _logger;
 
         private readonly Timer _timer;
-        private int _loading = 0;
+        private int _loading;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public DataLoadingService(IDataSource dataSource, ILogger<DataLoadingService> logger)

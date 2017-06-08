@@ -27,10 +27,10 @@ namespace Hubbup.Web.DataSources
             var path = Path.Combine(BasePath, fileName);
 
             // Etag should be a date
-            if(etag != null && DateTime.TryParseExact(etag, "O", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var date))
+            if (etag != null && DateTime.TryParseExact(etag, "O", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var date))
             {
                 // Check if the file has changed
-                if(File.GetLastWriteTimeUtc(path) <= date)
+                if (File.GetLastWriteTimeUtc(path) <= date)
                 {
                     return UnchangedReadResultTask;
                 }

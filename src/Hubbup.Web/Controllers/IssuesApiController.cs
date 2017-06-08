@@ -13,23 +13,23 @@ using Octokit;
 namespace Hubbup.Web.Controllers
 {
     [Route("api")]
-    public class ApiController : Controller
+    public class IssuesApiController : Controller
     {
         private readonly IDataSource _dataSource;
         private readonly IGitHubDataSource _github;
-        private readonly ILogger<ApiController> _logger;
+        private readonly ILogger<IssuesApiController> _logger;
 
-        public ApiController(IDataSource dataSource, IGitHubDataSource github, ILogger<ApiController> logger)
+        public IssuesApiController(IDataSource dataSource, IGitHubDataSource github, ILogger<IssuesApiController> logger)
         {
             _dataSource = dataSource;
             _github = github;
             _logger = logger;
         }
 
-        [Route("groups/{groupName}/issues/{userName}")]
-        public async Task<IActionResult> GetIssuesByUserAsync(string groupName, string userName)
+        [Route("repoSet/{repoSetName}/issues/{userName}")]
+        public async Task<IActionResult> GetIssuesByUserAsync(string repoSetName, string userName)
         {
-            var repoSet = _dataSource.GetRepoDataSet().GetRepoSet(groupName);
+            var repoSet = _dataSource.GetRepoDataSet().GetRepoSet(repoSetName);
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
@@ -63,7 +63,7 @@ namespace Hubbup.Web.Controllers
 
             // Update rate limit information
             var rateLimitCost = RateLimitInfo.Add(RateLimitInfo.Add(assignedIssues.RateLimit, assignedPrs.RateLimit), createdPrs.RateLimit);
-            _logger.LogInformation("Fetched issues for {user} in repo group {group}. Total Rate Limit Cost: {cost}", userName, groupName, rateLimitCost.Cost);
+            _logger.LogInformation("Fetched issues for {user} in repo group {group}. Total Rate Limit Cost: {cost}", userName, repoSetName, rateLimitCost.Cost);
 
             return Json(new
             {

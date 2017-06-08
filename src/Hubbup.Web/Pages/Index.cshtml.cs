@@ -9,7 +9,7 @@ namespace Hubbup.Web.Pages
         private readonly IDataSource _dataSource;
 
         [BindProperty(SupportsGet = true)]
-        public string GroupName { get; set; }
+        public string RepoSetName { get; set; }
 
         public IReadOnlyList<string> People { get; set; }
 
@@ -21,7 +21,7 @@ namespace Hubbup.Web.Pages
         public void OnGet()
         {
             // Load all the people in this group
-            var group = _dataSource.GetRepoDataSet().GetRepoSet(GroupName);
+            var group = _dataSource.GetRepoDataSet().GetRepoSet(RepoSetName);
             var people = _dataSource.GetPersonSet(group.AssociatedPersonSetName);
 
             People = people.People;

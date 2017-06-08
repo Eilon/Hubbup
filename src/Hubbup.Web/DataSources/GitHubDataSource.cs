@@ -14,7 +14,7 @@ namespace Hubbup.Web.DataSources
 {
     public class GitHubDataSource : IGitHubDataSource
     {
-        private const string GraphQlEndPoint = "https://api.github.com/graphql";
+        private const string GraphQlEndpoint = "https://api.github.com/graphql";
         private const int PageSize = 10;
         private const int AssigneeBatchSize = 5;
         private const int LabelBatchSize = 5;
@@ -53,7 +53,7 @@ namespace Hubbup.Web.DataSources
                     queryRequest.Variables["cursor"] = data.Search.PageInfo.EndCursor;
                 }
 
-                var req = new HttpRequestMessage(HttpMethod.Post, GraphQlEndPoint);
+                var req = new HttpRequestMessage(HttpMethod.Post, GraphQlEndpoint);
                 req.Headers.UserAgent.Add(new ProductInfoHeaderValue("hubbup.io", Startup.Version));
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 

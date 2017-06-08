@@ -1,0 +1,312 @@
+@page "{repoSetName}"
+@model IndexModel
+@{
+    ViewData["PageTitlePrefix"] = Model.RepoSetName;
+    ViewData["CurrentGroup"] = Model.RepoSetName;
+}
+
+<div class="row issue-list-row">
+    <div class="col-md-2 col-md-push-10">
+        <a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@Model.RepoSetName">Switch to Legacy View</a>
+    </div>
+
+    <div class="col-md-10 col-md-pull-2">
+        <div class="tab-content">
+            <div class="tab-pane active" id="group-by-assignee">
+                @foreach (var person in Model.People)
+                {
+                    <div class="panel panel-default i-assignee-panel" data-assignee="@person" data-id="@TagBuilder.CreateSanitizedId(person, "-")">
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div id="rate-limit-display"></div>
+    </div>
+</div>
+
+@section scripts {
+    <script id="rate-limit-template" type="text/x-handlebars-template">
+        {{#if graphql}}
+            <div class="col-md-4">GraphQL Rate Limit Remaining: {{graphql.remaining}}</div>
+        {{/if}}
+        {{#if rest}}
+            <div class="col-md-4">REST Rate Limit Remaining: {{rest.remaining}}</div>
+        {{/if}}
+        {{#if globalCost}}
+            <div class="col-md-4">GraphQL cost since last refresh: {{globalCost}}</div>
+        {{/if}}
+    </script>
+
+    <script id="assignee-panel-template" type="text/x-handlebars-template">
+        <div class="panel-heading">
+            {{#if rateLimit}}
+                <div class="pull-right small">
+                    <environment include="Development">
+                        <span class="badge">Rate Limit Cost: {{rateLimit.cost}}</span>
+                        <span class="badge">Page Count: {{pages}}</span>
+                    </environment>
+                    <button class="btn btn-xs btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-panel-{{id}}">
+                        <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
+                        Show/hide
+                    </button>
+                </div>
+            {{/if}}
+            <h3 class="panel-title">
+                <strong>
+                    <a href="https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+assignee%3A{{assignee}}">{{assignee}}</a>
+                </strong>
+            </h3>
+        </div>
+        <div id="collapse-panel-{{id}}" class="panel-body i-assignee-panel-content collapse in">
+            {{#if errorMessage}}
+                {{> error errorMessage}}
+            {{else}}
+                {{#if data}}
+                    {{> assigneeInfo data}}
+                {{else}}
+                    {{> loading}}
+                {{/if}}
+            {{/if}}
+        </div>
+    </script>
+
+    <script id="assignee-info-partial" type="text/x-handlebars-template">
+        <h4>Working on issues <span class="badge">{{working.length}}</span></h4>
+        {{#if working}}
+            {{> issueList working}}
+        {{else}}
+            <div class="alert alert-info">Not working on any assigned Issues</div>
+        {{/if}}
+
+        <h4>Pull requests <span class="badge">{{prs.length}}</span></h4>
+        {{#if prs}}
+            {{> issueList prs}}
+        {{else}}
+            <div class="alert alert-info">No pull requests created or assigned</div>
+        {{/if}}
+
+        <h4>
+            Other assigned issues <span class="badge">{{other.length}}</span>
+            {{#if other}}
+                <button class="btn btn-xs btn-info chevronButton" type="button" data-toggle="collapse" data-target="#collapse-otherissues-{{id}}">
+                    <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
+                    Show/hide
+                </button>
+            {{/if}}
+        </h4>
+        {{#if other}}
+            <div class="collapse" id="collapse-otherissues-{{id}}" style="margin-top:10px">
+                {{> issueList other}}
+            </div>
+        {{else}}
+            <div class="alert alert-info">No other assigned issues</div>
+        {{/if}}
+    </script>
+
+    <script id="error-partial" type="text/x-handlebars-template">
+        <div class="alert alert-danger error">{{this}}</div>
+    </script>
+
+    <script id="loading-partial" type="text/x-handlebars-template">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped active" style="width: 100%">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </script>
+
+    <script id="issue-list-partial" type="text/x-handlebars-template">
+        <ul class="list-group">
+            {{#each this}}
+                <li class="list-group-item {{listItemClasses this}}">
+                    {{> issue}}
+                </li>
+            {{/each}}
+        </ul>
+    </script>
+
+    <script id="user-icon-partial" type="text/x-handlebars-template">
+        <a href="{{url}}">
+            <img style="margin:0.1em" height="32" width="32" src="{{avatarUrl}}" title="{{login}}" alt="{{login}}" />
+        </a>
+    </script>
+
+    <script id="badge-partial" type="text/x-handlebars-template">
+        <span class="badge pull-right" style="margin-left: 4px">{{this}}</span>
+    </script>
+
+    <script id="age-badge-partial" type="text/x-handlebars-template">
+        {{#if stale}}
+            <span class="badge pull-right stale" style="margin-left: 4px" title="{{prefix}} on {{date}}">{{prefix}} {{timeAgo}}</span>
+        {{else}}
+            <span class="badge pull-right" style="margin-left: 4px" title="{{prefix}} on {{date}}">{{prefix}} {{timeAgo}}</span>
+        {{/if}}
+    </script>
+
+    <script id="issue-partial" type="text/x-handlebars-template">
+        <div class="row">
+            <div class="col-md-3" style="white-space: nowrap">
+                    {{#if (notsameuser author assignees.[0])}}
+                        {{> userIcon author}}
+                        <span class="glyphicon glyphicon-arrow-right"></span>
+                        {{> userIcon assignees.[0]}}
+                    {{else}}
+                        {{> userIcon author}}
+                    {{/if}}
+                <span style="margin-left:1.5em; font-size: large">#<a href="{{url}}">{{number}}</a></span>
+            </div>
+            <div class="col-md-9">
+                <div>
+                    <span style="font-weight:bolder; color: #999; margin-right: 4px; font-size: smaller">{{repository.owner.login}}/{{repository.name}}</span>
+                    <strong>{{title}}</strong>
+                </div>
+
+                {{#each labels}}
+                    <span class="label" style="background-color: #{{color}}; color: #{{foreColor}}">{{name}}</span>
+                {{/each}}
+
+                {{#if working}}
+                    {{> ageBadge date=workingStartedAt timeAgo=workingTimeAgo prefix="Started Working" stale=stale}}
+                {{else}}
+                    {{> ageBadge date=createdAt timeAgo=createdTimeAgo prefix="Opened" stale=stale}}
+                {{/if}}
+
+                {{#unless isPr}}
+                    {{#if milestone}}
+                        {{> badge milestone.title}}
+                    {{else}}
+                        {{> badge "< No Milestone >"}}
+                    {{/if}}
+                {{/unless}}
+            </div>
+        </div>
+    </script>
+
+    <script>
+        var lastRestRateLimit = null;
+        var globalCost = 0;
+            
+        function loaded() {
+            applyTemplate(rateLimitDisplay, rateLimitTemplate, {
+                remaining: "?",
+                alertClass: "alert-info"
+            });
+            var panels = document.querySelectorAll(".i-assignee-panel")
+            panels.forEach(bindPanel);
+        }
+
+        function bindPanel(panel) {
+            var assignee = panel.dataset.assignee;
+            var id = panel.dataset.id;
+
+            // Start the initial load
+            setTimeout(() => {
+                refresh(assignee, id, panel);
+            }, 0);
+        }
+
+        function refresh(assignee, id, panel) {
+            var parameters = {
+                id: id,
+                assignee: assignee
+            };
+
+            applyTemplate(panel, assigneePanelTemplate, parameters);
+
+            // Fetch data
+            fetch(`/api/repoSet/@(Model.RepoSetName)/issues/${assignee}`, {
+                credentials: "same-origin"
+            }).then(response => {
+                return response.json();
+            }).then(json => {
+                parameters.rateLimit = json.graphQlRateLimit;
+                parameters.restRateLimit = json.restRateLimit;
+                parameters.pages = json.pages;
+                parameters.data = {
+                    working: json.working,
+                    prs: json.prs,
+                    other: json.other,
+                    id: id
+                };
+
+                globalCost += json.graphQlRateLimit.cost;
+
+                // Update rate limit display
+                if (json.restRateLimit) {
+                    lastRestRateLimit = json.restRateLimit
+                }
+                var rateLimitInfo = {
+                    globalCost: globalCost,
+                    graphql: getRateLimitInfo(json.graphQlRateLimit.remaining),
+                    rest: lastRestRateLimit && getRateLimitInfo(lastRestRateLimit.remaining)
+                }
+
+                applyTemplate(rateLimitDisplay, rateLimitTemplate, rateLimitInfo);
+
+                applyTemplate(panel, assigneePanelTemplate, parameters);
+            }).catch(err => {
+                parameters.errorMessage = err.message;
+
+                applyTemplate(panel, assigneePanelTemplate, parameters);
+            });
+        }
+
+        function getRateLimitInfo(remaining) {
+            var rateLimitInfo = {
+                remaining: remaining
+            };
+            if (remaining < 1000) {
+                rateLimitInfo.alertClass = "alert-danger";
+            }
+            else if (remaining < 2000) {
+                rateLimitInfo.alertClass = "alert-warning";
+            }
+            else {
+                rateLimitInfo.alertClass = "alert-info";
+            }
+            return rateLimitInfo;
+        }
+
+        function compileTemplate(selector) {
+            var source = document.querySelector(selector).innerHTML;
+            return Handlebars.compile(source, {
+                strict: true
+            });
+        }
+
+        function applyTemplate(target, template, parameters) {
+            target.innerHTML = template(parameters);
+        }
+
+        Handlebars.registerHelper("notsameuser", function (left, right) {
+            return left && right && left.id != right.id;
+        });
+
+        Handlebars.registerHelper("listItemClasses", function (issue) {
+            var cls = "";
+            if (issue.isPr && issue.author && issue.assignees.length > 0 && issue.assignees[0] && issue.author.id != issue.assignees[0].id) {
+                cls += "assigned-pr ";
+            }
+            return cls;
+        });
+
+        Handlebars.registerPartial("assigneeInfo", compileTemplate("#assignee-info-partial"));
+        Handlebars.registerPartial("userIcon", compileTemplate("#user-icon-partial"));
+        Handlebars.registerPartial("error", compileTemplate("#error-partial"));
+        Handlebars.registerPartial("loading", compileTemplate("#loading-partial"));
+        Handlebars.registerPartial("badge", compileTemplate("#badge-partial"));
+        Handlebars.registerPartial("issueList", compileTemplate("#issue-list-partial"));
+        Handlebars.registerPartial("issue", compileTemplate("#issue-partial"));
+        Handlebars.registerPartial("ageBadge", compileTemplate("#age-badge-partial"));
+
+        var assigneePanelTemplate = compileTemplate("#assignee-panel-template");
+        var rateLimitTemplate = compileTemplate("#rate-limit-template");
+
+        var rateLimitDisplay = document.querySelector("#rate-limit-display");
+
+        document.addEventListener("DOMContentLoaded", loaded);
+    </script>
+}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Hubbup.Web.Models
 {
@@ -8,10 +9,17 @@ namespace Hubbup.Web.Models
 
         public string AssociatedPersonSetName { get; set; }
 
-        public string[] WorkingLabels { get; set; }
+        public HashSet<string> WorkingLabels { get; set; }
 
         public string LabelFilter { get; set; }
 
         public List<RepoExtraLink> RepoExtraLinks { get; set; }
+
+        public string GenerateQuery(params string[] additionalFields)
+        {
+            return string.Join(" ", Enumerable.Concat(
+                Repos.Select(r => $"repo:{r.Owner}/{r.Name}"),
+                additionalFields));
+        }
     }
 }

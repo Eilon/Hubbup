@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Hubbup.Web.Models
 {
     public class RepoDataSet
     {
+        public static readonly RepoDataSet Empty = new RepoDataSet(new Dictionary<string, RepoSetDefinition>());
+
         private readonly IDictionary<string, RepoSetDefinition> _repoSetList;
 
         public RepoDataSet(IDictionary<string, RepoSetDefinition> repoSetList)

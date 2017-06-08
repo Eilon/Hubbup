@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,14 +6,12 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Hubbup.Web.DataSources;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Versioning;
 using Octokit;
@@ -23,24 +21,16 @@ namespace Hubbup.Web.Controllers
     public class IssueListController : Controller, IGitHubQueryProvider
     {
         public IssueListController(
-            IRepoSetProvider repoSetProvider,
-            IPersonSetProvider personSetProvider,
-            UrlEncoder urlEncoder,
-            TelemetryClient telemetryClient)
+            IDataSource dataSource,
+            UrlEncoder urlEncoder)
         {
-            RepoSetProvider = repoSetProvider;
-            PersonSetProvider = personSetProvider;
+            DataSource = dataSource;
             UrlEncoder = urlEncoder;
-            TelemetryClient = telemetryClient;
         }
 
-        public IRepoSetProvider RepoSetProvider { get; }
-
-        public IPersonSetProvider PersonSetProvider { get; }
+        public IDataSource DataSource { get; }
 
         public UrlEncoder UrlEncoder { get; }
-
-        public TelemetryClient TelemetryClient { get; }
 
         private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, IGitHubClient gitHubClient)
         {
@@ -77,7 +67,7 @@ namespace Hubbup.Web.Controllers
             return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, string[] workingLabels, IGitHubClient gitHubClient)
+        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, HashSet<string> workingLabels, IGitHubClient gitHubClient)
         {
             var workingLabelsOnThisIssue =
                 issue.Labels
@@ -110,26 +100,18 @@ namespace Hubbup.Web.Controllers
             return null;
         }
 
-        [Route("{repoSet}")]
+        [Route("/legacy/{repoSet}")]
         [Authorize]
         public async Task<IActionResult> Index(string repoSet)
         {
             var gitHubName = HttpContext.User.Identity.Name;
-            var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
+            var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
             // Authenticated and all claims have been read
 
-            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
-            
+            var repoDataSet = DataSource.GetRepoDataSet();
+
             if (!repoDataSet.RepoSetExists(repoSet))
             {
-                var invalidRepoSetPageViewTelemetry = new PageViewTelemetry("RepoSet")
-                {
-                    Url = new Uri(Request.GetDisplayUrl()),
-                };
-                invalidRepoSetPageViewTelemetry.Properties.Add("GitHubUser", gitHubName);
-                invalidRepoSetPageViewTelemetry.Properties.Add("repoSet", repoSet);
-                invalidRepoSetPageViewTelemetry.Properties.Add("repoSetValid", "false");
-                TelemetryClient.TrackPageView(invalidRepoSetPageViewTelemetry);
                 return NotFound();
             }
 
@@ -143,9 +125,9 @@ namespace Hubbup.Web.Controllers
                     .Where(repo => repo.RepoInclusionLevel != RepoInclusionLevel.None)
                     .ToArray();
             var personSetName = repos.AssociatedPersonSetName;
-            var personSet = PersonSetProvider.GetPersonSet(personSetName);
+            var personSet = DataSource.GetPersonSet(personSetName);
             var peopleInPersonSet = personSet?.People ?? new string[0];
-            var workingLabels = repos.WorkingLabels ?? new string[0];
+            var workingLabels = repos.WorkingLabels ?? new HashSet<string>();
 
             var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<Issue>>>();
             var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<PullRequest>>>();
@@ -246,16 +228,6 @@ namespace Hubbup.Web.Controllers
                             FailureMessage = string.Format("Pull requests couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
                             Exception = repoTask.Value.Task.Exception,
                         }));
-
-            foreach (var repoFailure in repoFailures)
-            {
-                TelemetryClient.TrackException(new ExceptionTelemetry
-                {
-                    Exception = repoFailure.Exception,
-                    Message = repoFailure.FailureMessage,
-                    SeverityLevel = SeverityLevel.Error,
-                });
-            }
 
             var allIssues = allIssuesByRepo
                 .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
@@ -546,20 +518,10 @@ namespace Hubbup.Web.Controllers
             requestStopwatch.Stop();
             issueListViewModel.PageRequestTime = requestStopwatch.Elapsed;
 
-            var pageViewTelemetry = new PageViewTelemetry("RepoSet")
-            {
-                Duration = requestStopwatch.Elapsed,
-                Url = new Uri(Request.GetDisplayUrl()),
-            };
-            pageViewTelemetry.Properties.Add("GitHubUser", gitHubName);
-            pageViewTelemetry.Properties.Add("repoSet", repoSet);
-            pageViewTelemetry.Properties.Add("repoSetValid", "true");
-            TelemetryClient.TrackPageView(pageViewTelemetry);
-
             return View(issueListViewModel);
         }
 
-        private bool ItemIncludedByInclusionLevel(string itemAssignee, RepoDefinition repo, string[] peopleInPersonSet)
+        private bool ItemIncludedByInclusionLevel(string itemAssignee, RepoDefinition repo, IReadOnlyList<string> peopleInPersonSet)
         {
             if (repo.RepoInclusionLevel == RepoInclusionLevel.AllItems)
             {
@@ -637,7 +599,7 @@ namespace Hubbup.Web.Controllers
             return GetGitHubQuery("is:issue", "is:open", GetRepoQuery(repos), excludedMilestonesQuery, labelQuery);
         }
 
-        public string GetWorkingIssuesQuery(string labelQuery, string[] workingLabels, params RepoDefinition[] repos)
+        public string GetWorkingIssuesQuery(string labelQuery, HashSet<string> workingLabels, params RepoDefinition[] repos)
         {
             // TODO: No way to do a query for "label:L1 OR label:L2" so we just pick the first label, if any
             var workingLabelsQuery = string.Empty;
@@ -739,7 +701,7 @@ namespace Hubbup.Web.Controllers
             List<IssueWithRepo> workingIssues,
             List<PullRequestWithRepo> allPullRequests,
             string labelQuery,
-            string[] workingLabels,
+            HashSet<string> workingLabels,
             IGitHubQueryProvider gitHubQueryProvider)
         {
             return repos
@@ -771,7 +733,7 @@ namespace Hubbup.Web.Controllers
         string GetExcludedMilestonesQuery();
         string GetUnassignedIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos);
         string GetUntriagedIssuesQuery(string labelQuery, params RepoDefinition[] repos);
-        string GetWorkingIssuesQuery(string labelQuery, string[] workingLabels, params RepoDefinition[] repos);
+        string GetWorkingIssuesQuery(string labelQuery, HashSet<string> workingLabels, params RepoDefinition[] repos);
         string GetOpenPRsQuery(params RepoDefinition[] repos);
         string GetStalePRsQuery(params RepoDefinition[] repos);
     }

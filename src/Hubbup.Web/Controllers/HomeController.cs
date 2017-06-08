@@ -1,35 +1,32 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using Hubbup.Web.Models;
+using Hubbup.Web.DataSources;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hubbup.Web.Controllers
 {
     public class HomeController : Controller
     {
-        public HomeController(IRepoSetProvider repoSetProvider)
-        {
-            RepoSetProvider = repoSetProvider;
-        }
+        private readonly IDataSource _dataSource;
 
-        public IRepoSetProvider RepoSetProvider { get; }
+        public HomeController(IDataSource dataSource)
+        {
+            _dataSource = dataSource;
+        }
 
         [Route("")]
         [Authorize]
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
-
+            var repoDataSet = _dataSource.GetRepoDataSet();
             return View(new HomeViewModel
             {
-                GitHubUserName = HttpContext.User.Identity.Name,
-                RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
                 RepoSetLists = repoDataSet.GetRepoSetLists(),
             });
         }
@@ -39,10 +36,10 @@ namespace Hubbup.Web.Controllers
         public async Task<IActionResult> MissingRepos()
         {
             var gitHubName = HttpContext.User.Identity.Name;
-            var gitHubAccessToken = await HttpContext.Authentication.GetTokenAsync("access_token");
+            var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            var repoDataSet = await RepoSetProvider.GetRepoDataSet();
+            var repoDataSet = _dataSource.GetRepoDataSet();
 
             var repoSetLists = repoDataSet.GetRepoSetLists();
             var distinctOrgs =

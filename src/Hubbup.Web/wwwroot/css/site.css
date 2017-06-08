@@ -1,4 +1,4 @@
-﻿body {
+body {
     padding-top: 0px;
     padding-bottom: 20px;
     background-color: #f6f6f6;
@@ -16,4 +16,52 @@ input,
 select,
 textarea {
     max-width: 280px;
+}
+
+.issue-list-row {
+    margin-top: 1em;
+}
+
+.loader {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3498db; /* Blue */
+    border-bottom: 4px solid red; /* Blue */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.assignee-panel-header-refresh {
+    margin-top: -0.25em;
+}
+
+.issue-list-empty {
+    margin-left: 2em;
+}
+
+#rate-limit-display {
+    margin-top: 1em;
+}
+
+.list-group-item.assigned-pr {
+    background-color: wheat;
+}
+
+.list-group-item.stale {
+    background-color: salmon;
+}
+
+.badge.stale {
+    background-color: red;
 }

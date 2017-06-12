@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,8 +16,9 @@ namespace Hubbup.Web.DataSources
             IOptions<RemoteJsonDataSourceOptions> remoteJsonRepoSetProviderOptions,
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<RemoteJsonDataSource> logger)
-            : base(hostingEnvironment, applicationLifetime, logger)
+            ILogger<RemoteJsonDataSource> logger,
+            TelemetryClient telemetryClient)
+            : base(hostingEnvironment, applicationLifetime, logger, telemetryClient)
         {
             RemoteUrlBase = remoteJsonRepoSetProviderOptions.Value.BaseUrl;
         }

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hubbup.Web.Models;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -25,16 +27,19 @@ namespace Hubbup.Web.DataSources
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly ILogger _logger;
+        private readonly TelemetryClient _telemetryClient;
         private readonly SemaphoreSlim _reloadLock = new SemaphoreSlim(1, 1);
 
         public JsonDataSource(
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<JsonDataSource> logger)
+            ILogger<JsonDataSource> logger,
+            TelemetryClient telemetryClient)
         {
             _hostingEnvironment = hostingEnvironment;
             _applicationLifetime = applicationLifetime;
             _logger = logger;
+            _telemetryClient = telemetryClient;
         }
 
         public RepoDataSet GetRepoDataSet() => _repoDataSet;
@@ -50,91 +55,121 @@ namespace Hubbup.Web.DataSources
 
         private async Task ReloadPersonSets()
         {
-            _logger.LogTrace("Reloading personSets.json ...");
-            var getDataStopWatch = new Stopwatch();
-            getDataStopWatch.Start();
-
-            using (var result = await ReadJsonStream("personSets.json", _personSetEtag))
+            try
             {
-                if (result.Changed)
+                _logger.LogTrace("Reloading personSets.json ...");
+                var getDataStopWatch = new Stopwatch();
+                getDataStopWatch.Start();
+
+                using (var result = await ReadJsonStream("personSets.json", _personSetEtag))
                 {
-                    using (var jsonTextReader = new JsonTextReader(result.Content))
+                    if (result.Changed)
                     {
-                        var jsonSerializer = new JsonSerializer();
-                        var data = jsonSerializer.Deserialize<IDictionary<string, PersonSetDto>>(jsonTextReader);
-
-                        var dict = data.ToDictionary(
-                            pair => pair.Key,
-                            pair => new PersonSet(pair.Value.GetAllPeople(data).ToList()));
-
-                        // Atomically assign the entire data set
-                        await _reloadLock.WaitAsync();
-                        try
+                        using (var jsonTextReader = new JsonTextReader(result.Content))
                         {
-                            _repoEtag = result.Etag;
-                            _personSets = dict;
+                            var jsonSerializer = new JsonSerializer();
+                            var data = jsonSerializer.Deserialize<IDictionary<string, PersonSetDto>>(jsonTextReader);
+
+                            var dict = data.ToDictionary(
+                                pair => pair.Key,
+                                pair => new PersonSet(pair.Value.GetAllPeople(data).ToList()));
+
+                            // Atomically assign the entire data set
+                            await _reloadLock.WaitAsync();
+                            try
+                            {
+                                _repoEtag = result.Etag;
+                                _personSets = dict;
+                            }
+                            finally
+                            {
+                                _reloadLock.Release();
+                            }
                         }
-                        finally
-                        {
-                            _reloadLock.Release();
-                        }
+                        _logger.LogInformation("Reloaded person sets");
                     }
-                    _logger.LogInformation("Reloaded person sets");
+                    else
+                    {
+                        _logger.LogInformation("Skipped reloading person set, nothing changed.");
+                    }
                 }
-                else
-                {
-                    _logger.LogInformation("Skipped reloading person set, nothing changed.");
-                }
-            }
 
-            getDataStopWatch.Stop();
-            _logger.LogTrace("Reloaded repoSets.json in {durationInMilliseconds} milliseconds", getDataStopWatch.ElapsedMilliseconds);
+                getDataStopWatch.Stop();
+                _logger.LogTrace("Reloaded repoSets.json in {durationInMilliseconds} milliseconds", getDataStopWatch.ElapsedMilliseconds);
+            }
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackException(new ExceptionTelemetry
+                {
+                    Exception = ex,
+                    Message = "The repo set data file could not be read",
+                    SeverityLevel = SeverityLevel.Warning,
+                });
+                _logger.LogError(
+                    exception: ex,
+                    message: "The repo set data file could not be read");
+            }
         }
 
         private async Task ReloadRepoSets()
         {
-            _logger.LogTrace("Reloading repoSets.json ...");
-            var getDataStopWatch = new Stopwatch();
-            getDataStopWatch.Start();
-
-            using (var result = await ReadJsonStream("repoSets.json", _personSetEtag))
+            try
             {
-                if (result.Changed)
+                _logger.LogTrace("Reloading repoSets.json ...");
+                var getDataStopWatch = new Stopwatch();
+                getDataStopWatch.Start();
+
+                using (var result = await ReadJsonStream("repoSets.json", _personSetEtag))
                 {
-                    using (var jsonTextReader = new JsonTextReader(result.Content))
+                    if (result.Changed)
                     {
-                        var jsonSerializer = new JsonSerializer();
-                        var data = jsonSerializer.Deserialize<IDictionary<string, RepoSetDto>>(jsonTextReader);
-
-                        var repoSetList = data.ToDictionary(
-                            pair => pair.Key,
-                            pair => CreateRepoSetDefinition(pair.Value));
-
-                        var newDataSet = new RepoDataSet(repoSetList);
-
-                        // Atomically assign the entire data set
-                        await _reloadLock.WaitAsync();
-                        try
+                        using (var jsonTextReader = new JsonTextReader(result.Content))
                         {
-                            _repoEtag = result.Etag;
-                            _repoDataSet = newDataSet;
+                            var jsonSerializer = new JsonSerializer();
+                            var data = jsonSerializer.Deserialize<IDictionary<string, RepoSetDto>>(jsonTextReader);
+
+                            var repoSetList = data.ToDictionary(
+                                pair => pair.Key,
+                                pair => CreateRepoSetDefinition(pair.Value));
+
+                            var newDataSet = new RepoDataSet(repoSetList);
+
+                            // Atomically assign the entire data set
+                            await _reloadLock.WaitAsync();
+                            try
+                            {
+                                _repoEtag = result.Etag;
+                                _repoDataSet = newDataSet;
+                            }
+                            finally
+                            {
+                                _reloadLock.Release();
+                            }
                         }
-                        finally
-                        {
-                            _reloadLock.Release();
-                        }
+                        _logger.LogInformation("Reloaded repo sets");
                     }
-                    _logger.LogInformation("Reloaded repo sets");
+                    else
+                    {
+                        _logger.LogInformation("Skipped reloading repo sets, nothing changed.");
+                    }
                 }
-                else
-                {
-                    _logger.LogInformation("Skipped reloading repo sets, nothing changed.");
-                }
+
+                getDataStopWatch.Stop();
+
+                _logger.LogTrace("Reloaded repoSets.json in {durationInMilliseconds} milliseconds", getDataStopWatch.ElapsedMilliseconds);
             }
-
-            getDataStopWatch.Stop();
-
-            _logger.LogTrace("Reloaded repoSets.json in {durationInMilliseconds} milliseconds", getDataStopWatch.ElapsedMilliseconds);
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackException(new ExceptionTelemetry
+                {
+                    Exception = ex,
+                    Message = "The person set data file could not be read",
+                    SeverityLevel = SeverityLevel.Warning,
+                });
+                _logger.LogError(
+                    exception: ex,
+                    message: "The person set data file could not be read");
+            }
         }
 
         private static RepoSetDefinition CreateRepoSetDefinition(RepoSetDto repoInfo)

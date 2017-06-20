@@ -57,12 +57,6 @@ module.exports = {
                 // this assumes your vendor imports exist in the node_modules directory
                 return module.context && module.context.indexOf('node_modules') !== -1;
             }
-        }),
-
-        function () {
-            this.plugin("done", function (stats) {
-                path.join()
-            });
-        },
+        })
     ],
 };

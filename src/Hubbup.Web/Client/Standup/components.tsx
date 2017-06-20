@@ -3,16 +3,16 @@ import * as React from 'react';
 import * as Data from '../data';
 
 const fetchSettings: RequestInit = {
-    credentials: "same-origin",
+    credentials: 'same-origin',
     headers: {
-        ["X-Requested-With"]: "XMLHttpRequest"
+        ['X-Requested-With']: 'XMLHttpRequest'
     },
 };
 
 class LoadingPanel extends React.Component<undefined, undefined> {
     render() {
         return <div className="progress">
-            <div className="progress-bar progress-bar-striped active" style={{ width: "100%" }}>
+            <div className="progress-bar progress-bar-striped active" style={{ width: '100%' }}>
                 <span className="sr-only">Loading...</span>
             </div>
         </div>
@@ -28,7 +28,7 @@ class ErrorPanel extends React.Component<{ message: string }, undefined> {
 class UserIcon extends React.Component<{ user: Data.User }, undefined> {
     render() {
         return <a href={this.props.user.url}>
-            <img style={{ "margin": "0.1em" }} height="32" width="32" src={this.props.user.avatarUrl} title={this.props.user.login} alt={this.props.user.login} />
+            <img style={{ margin: '0.1em' }} height="32" width="32" src={this.props.user.avatarUrl} title={this.props.user.login} alt={this.props.user.login} />
         </a>;
     }
 }
@@ -42,7 +42,7 @@ class IssueUserView extends React.Component<{ issue: Data.Issue }, undefined> {
             </a>
         </span>;
 
-        let style = { "whiteSpace": "nowrap" };
+        let style = { whiteSpace: 'nowrap' };
         if (issue.assignees && issue.assignees[0] && issue.assignees[0].id != issue.author.id) {
             return <div className="col-md-3" style={style}>
                 <UserIcon user={issue.author} />
@@ -63,8 +63,8 @@ class IssueUserView extends React.Component<{ issue: Data.Issue }, undefined> {
 class LabelView extends React.Component<{ label: Data.Label }, undefined> {
     render() {
         let style = {
-            "backgroundColor": `#${this.props.label.color}`,
-            "color": `#${this.props.label.foreColor}`
+            backgroundColor: `#${this.props.label.color}`,
+            color: `#${this.props.label.foreColor}`
         };
         return <span className="label" style={style}>
             {this.props.label.name}
@@ -74,9 +74,9 @@ class LabelView extends React.Component<{ label: Data.Label }, undefined> {
 
 class AgeBadge extends React.Component<{ date: Date, timeAgo: string, prefix: string, stale: boolean }, undefined> {
     render() {
-        let cssClass = "badge-pad badge pull-right";
+        let cssClass = 'badge-pad badge pull-right';
         if (this.props.stale) {
-            cssClass += " stale";
+            cssClass += ' stale';
         }
         return <span className={cssClass} title={`${this.props.prefix} on ${this.props.date}`}>
             {this.props.prefix} {this.props.timeAgo}
@@ -96,7 +96,7 @@ class IssueView extends React.Component<{ issue: Data.Issue }, undefined> {
 
         let milestoneBadge;
         if (!issue.isPr) {
-            let title = issue.milestone ? issue.milestone.title : "< No Milestone >";
+            let title = issue.milestone ? issue.milestone.title : '< No Milestone >';
             milestoneBadge = <Badge title={title} />;
         }
 
@@ -138,7 +138,7 @@ class IssueList extends React.Component<{ id: string, issues: Data.Issue[], empt
                     {' ' /* https://facebook.github.io/react/blog/2014/02/20/react-v0.9.html#jsx-whitespace */}
                     Show/hide
                 </button>;
-                content = <div className="collapse" id={`collapse-otherissues-${this.props.id}`} style={{ "marginTop": "10px" }}>
+                content = <div className="collapse" id={`collapse-otherissues-${this.props.id}`} style={{ marginTop: '10px' }}>
                     {content}
                 </div>;
             }
@@ -175,7 +175,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
         super(props);
         this.state = {
             loading: true,
-            error: "",
+            error: '',
             data: null
         };
     }
@@ -189,7 +189,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
         // This doesn't immediately clear the loading widget, but it will when the function returns and we re-render.
         this.setState({
             loading: true,
-            error: "",
+            error: '',
             data: null
         });
 
@@ -211,7 +211,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
             // Update my state
             this.setState({
                 loading: false,
-                error: "",
+                error: '',
                 data: data
             });
         }
@@ -222,8 +222,8 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
         let rateLimitDisplay;
 
         let headerBadgeStyles = {
-            "marginLeft": "0.5em",
-            "marginTop": "-5px"
+            marginLeft: '0.5em',
+            marginTop: '-5px'
         };
 
         if (this.state.loading) {
@@ -243,7 +243,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
                 <IssueList id={this.props.login} issues={this.state.data.other} emptyText="No other assigned issues" title="Other assigned issues" collapsable={true} />
             </div>
 
-            if (this.props.environment === "Development") {
+            if (this.props.environment === 'Development') {
                 rateLimitDisplay = <span>
                     <span className="badge" style={headerBadgeStyles}>Rate Limit Cost: {this.state.data.graphQlRateLimit.cost}</span>
                     <span className="badge" style={headerBadgeStyles}>Page Count: {this.state.data.pages}</span>
@@ -290,7 +290,7 @@ export class Page extends React.Component<PageProps, PageState> {
         super(props);
         this.state = {
             loading: true,
-            error: "",
+            error: '',
             people: [],
             rateLimit: {
                 graphQl: null,
@@ -310,7 +310,7 @@ export class Page extends React.Component<PageProps, PageState> {
         }
         else {
             newState.loading = false;
-            newState.error = "";
+            newState.error = '';
             newState.people = (await resp.json()) as string[];
         }
 
@@ -343,9 +343,9 @@ export class Page extends React.Component<PageProps, PageState> {
             let personViews = this.state.people.map(person =>
                 <Person key={person} login={person} repoSet={this.props.repoSet} baseUrl={this.props.baseUrl} environment={this.props.environment} updateRateLimit={this.updateRateLimit.bind(this)} />);
             return <div className="tab-pane active">
-                {this.props.environment === "Development" ? rateLimitDisplay : ""}
+                {this.props.environment === 'Development' ? rateLimitDisplay : ''}
                 {personViews}
-                {this.props.environment !== "Development" ? rateLimitDisplay : ""}
+                {this.props.environment !== 'Development' ? rateLimitDisplay : ''}
             </div>;
         }
     }
@@ -356,7 +356,7 @@ class RateLimitDisplay extends React.Component<{ graphQl: { remaining: number, r
         if (this.props.graphQl && this.props.rest) {
             let gqlReset = new Date(this.props.graphQl.resetAt).toLocaleTimeString();
             let resetReset = new Date(this.props.rest.reset).toLocaleTimeString();
-            return <div className="alert" style={{ "marginBottom": "3em" }}>
+            return <div className="alert" style={{ marginBottom: '3em' }}>
                 <h4>Rate limit status</h4>
                 <div className="col-md-4"><strong>GraphQL:</strong> {this.props.graphQl.remaining} (Reset: {gqlReset})</div>
                 <div className="col-md-4"><strong>REST:</strong> {this.props.rest.remaining} (Reset: {resetReset})</div>

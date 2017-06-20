@@ -50,8 +50,7 @@ class IssueUserView extends React.Component<{ issue: Data.Issue }, undefined> {
                 <UserIcon user={issue.assignees[0]} />
                 {issueLink}
             </div>
-        }
-        else {
+        } else {
             return <div className="col-md-3" style={style}>
                 <UserIcon user={issue.author} />
                 {issueLink}
@@ -139,8 +138,7 @@ class IssueList extends React.Component<{ id: string, issues: Data.Issue[], empt
                     {content}
                 </div>;
             }
-        }
-        else {
+        } else {
             content = <div className="alert alert-info">{this.props.emptyText}</div>;
         }
 
@@ -196,8 +194,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
                     error: `Unexpected response fetching issues: ${resp.status} ${resp.statusText}`,
                     data: null
                 });
-            }
-            else {
+            } else {
                 const data = (await resp.json()) as Data.RepoSetIssueResult;
 
                 // Update rate limit info
@@ -210,8 +207,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
                     data: data
                 });
             }
-        }
-        catch (e: Error) {
+        } catch (e: Error) {
             // Either a network error occurred or a JSON parse error
             this.setState({
                 loading: false,
@@ -234,13 +230,11 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
             content = <div className="panel-body">
                 <LoadingPanel />
             </div>;
-        }
-        else if (this.state.error) {
+        } else if (this.state.error) {
             content = <div className="panel-body">
                 <ErrorPanel message={this.state.error} />
             </div>;
-        }
-        else if (this.state.data) {
+        } else if (this.state.data) {
             content = <div className="panel-body">
                 <IssueList id={this.props.login} issues={this.state.data.working} emptyText="Not working on any assigned issues" title="Working on issues" />
                 <IssueList id={this.props.login} issues={this.state.data.prs} emptyText="No pull requests created or assigneds" title="Pull requests" />
@@ -311,8 +305,7 @@ export class Page extends React.Component<PageProps, PageState> {
         if (resp.status < 200 || resp.status > 299) {
             newState.loading = false;
             newState.error = `Unexpected response from server: ${resp.status} ${resp.statusText}`;
-        }
-        else {
+        } else {
             newState.loading = false;
             newState.error = '';
             newState.people = (await resp.json()) as string[];
@@ -338,11 +331,9 @@ export class Page extends React.Component<PageProps, PageState> {
     render() {
         if (this.state.loading) {
             return <LoadingPanel />;
-        }
-        else if (this.state.error) {
+        } else if (this.state.error) {
             return <ErrorPanel message={this.state.error} />
-        }
-        else {
+        } else {
             const rateLimitDisplay = <RateLimitDisplay graphQl={this.state.rateLimit.graphQl} rest={this.state.rateLimit.rest} sinceReload={this.state.rateLimit.sinceReload} />;
             const personViews = this.state.people.map(person =>
                 <Person key={person} login={person} repoSet={this.props.repoSet} baseUrl={this.props.baseUrl} environment={this.props.environment} updateRateLimit={this.updateRateLimit.bind(this)} />);
@@ -366,8 +357,7 @@ class RateLimitDisplay extends React.Component<{ graphQl: { remaining: number, r
                 <div className="col-md-4"><strong>REST:</strong> {this.props.rest.remaining} (Reset: {resetReset})</div>
                 <div className="col-md-4"><strong>GraphQL Cost Since Reload:</strong> {this.props.sinceReload}</div>
             </div>;
-        }
-        else {
+        } else {
             return null;
         }
     }

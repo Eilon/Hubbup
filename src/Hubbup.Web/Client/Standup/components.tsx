@@ -157,14 +157,12 @@ class IssueList extends React.Component<{ id: string, issues: Data.Issue[], empt
     }
 }
 
-type RateLimitUpdater = (graphQl: { cost: number, remaining: number, resetAt: string }, rest: { remaining: number, reset: string }) => void;
-
 interface PersonProps {
     baseUrl: string,
     repoSet: string,
     login: string,
     environment: string,
-    updateRateLimit: RateLimitUpdater;
+    updateRateLimit: (graphQl: { cost: number, remaining: number, resetAt: string }, rest: { remaining: number, reset: string }) => void;
 }
 
 class Person extends React.Component<PersonProps, { loading: boolean, error: string, data: Data.RepoSetIssueResult }> {

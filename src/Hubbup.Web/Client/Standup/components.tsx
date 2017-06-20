@@ -300,18 +300,31 @@ export class Page extends React.Component<PageProps, PageState> {
 
     async componentDidMount() {
         // Fetch the list of people
-        const newState = { ... this.state };
-        const resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/people`, fetchSettings);
-        if (resp.status < 200 || resp.status > 299) {
-            newState.loading = false;
-            newState.error = `Unexpected response from server: ${resp.status} ${resp.statusText}`;
-        } else {
-            newState.loading = false;
-            newState.error = '';
-            newState.people = (await resp.json()) as string[];
+        try {
+            const resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/people`, fetchSettings);
+            if (resp.status < 200 || resp.status > 299) {
+                this.setState({
+                    ... this.state,
+                    loading: false,
+                    error: `Unexpected response from server: ${resp.status} ${resp.statusText}`
+                });
+            } else {
+                this.setState({
+                    ... this.state,
+                    loading: false,
+                    error: '',
+                    people: await resp.json()
+                });
+            }
+        } catch (e: Error) {
+            // Either a network error occurred or a JSON parse error
+            this.setState({
+                ... this.state,
+                loading: false,
+                error: e.message,
+                people: null
+            });
         }
-
-        this.setState(newState);
     }
 
     updateRateLimit(graphQl: { cost: number, remaining: number, resetAt: string }, rest: { remaining: number, reset: string }) {

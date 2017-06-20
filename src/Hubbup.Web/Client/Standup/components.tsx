@@ -43,7 +43,7 @@ class IssueUserView extends React.Component<{ issue: Data.Issue }, undefined> {
         </span>;
 
         const style = { whiteSpace: 'nowrap' };
-        if (issue.assignees && issue.assignees[0] && issue.assignees[0].id != issue.author.id) {
+        if (issue.assignees && issue.assignees[0] && issue.assignees[0].id !== issue.author.id) {
             return <div className="col-md-3" style={style}>
                 <UserIcon user={issue.author} />
                 <span className="glyphicon glyphicon-arrow-right" />

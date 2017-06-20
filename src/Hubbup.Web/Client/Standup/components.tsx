@@ -195,7 +195,6 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
                 error: `Unexpected response fetching issues: ${resp.status} ${resp.statusText}`,
                 data: null
             });
-            return;
         }
         else {
             const data = (await resp.json()) as Data.RepoSetIssueResult;

@@ -74,7 +74,7 @@ class LabelView extends React.Component<{ label: Data.Label }, undefined> {
 
 class AgeBadge extends React.Component<{ date: Date, timeAgo: string, prefix: string, stale: boolean }, undefined> {
     render() {
-        const cssClass =  ? `badge-pad badge pull-right${this.props.stale ? ' stale': ''}`;
+        const cssClass =  ? `badge-pad badge pull-right${this.props.stale ? ' stale' : ''}`;
         return <span className={cssClass} title={`${this.props.prefix} on ${this.props.date}`}>
             {this.props.prefix} {this.props.timeAgo}
         </span>;
@@ -188,25 +188,35 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
             data: null
         });
 
-        const resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/issues/${this.props.login}`, fetchSettings)
-        if (resp.status < 200 || resp.status > 299) {
-            this.setState({
-                loading: false,
-                error: `Unexpected response fetching issues: ${resp.status} ${resp.statusText}`,
-                data: null
-            });
+        try {
+            const resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/issues/${this.props.login}`, fetchSettings)
+            if (!resp.ok) {
+                this.setState({
+                    loading: false,
+                    error: `Unexpected response fetching issues: ${resp.status} ${resp.statusText}`,
+                    data: null
+                });
+            }
+            else {
+                const data = (await resp.json()) as Data.RepoSetIssueResult;
+
+                // Update rate limit info
+                this.props.updateRateLimit(data.graphQlRateLimit, data.restRateLimit);
+
+                // Update my state
+                this.setState({
+                    loading: false,
+                    error: '',
+                    data: data
+                });
+            }
         }
-        else {
-            const data = (await resp.json()) as Data.RepoSetIssueResult;
-
-            // Update rate limit info
-            this.props.updateRateLimit(data.graphQlRateLimit, data.restRateLimit);
-
-            // Update my state
+        catch (e: Error) {
+            // Either a network error occurred or a JSON parse error
             this.setState({
                 loading: false,
-                error: '',
-                data: data
+                error: e.message,
+                data: null
             });
         }
     }

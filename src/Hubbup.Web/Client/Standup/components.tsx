@@ -35,14 +35,14 @@ class UserIcon extends React.Component<{ user: Data.User }, undefined> {
 
 class IssueUserView extends React.Component<{ issue: Data.Issue }, undefined> {
     render() {
-        let issue = this.props.issue;
-        let issueLink = <span className="issue-link">
+        const issue = this.props.issue;
+        const issueLink = <span className="issue-link">
             <a href={issue.url}>
                 #{issue.number}
             </a>
         </span>;
 
-        let style = { whiteSpace: 'nowrap' };
+        const style = { whiteSpace: 'nowrap' };
         if (issue.assignees && issue.assignees[0] && issue.assignees[0].id != issue.author.id) {
             return <div className="col-md-3" style={style}>
                 <UserIcon user={issue.author} />
@@ -62,7 +62,7 @@ class IssueUserView extends React.Component<{ issue: Data.Issue }, undefined> {
 
 class LabelView extends React.Component<{ label: Data.Label }, undefined> {
     render() {
-        let style = {
+        const style = {
             backgroundColor: `#${this.props.label.color}`,
             color: `#${this.props.label.foreColor}`
         };
@@ -74,10 +74,7 @@ class LabelView extends React.Component<{ label: Data.Label }, undefined> {
 
 class AgeBadge extends React.Component<{ date: Date, timeAgo: string, prefix: string, stale: boolean }, undefined> {
     render() {
-        let cssClass = 'badge-pad badge pull-right';
-        if (this.props.stale) {
-            cssClass += ' stale';
-        }
+        const cssClass =  ? `badge-pad badge pull-right${this.props.stale ? ' stale': ''}`;
         return <span className={cssClass} title={`${this.props.prefix} on ${this.props.date}`}>
             {this.props.prefix} {this.props.timeAgo}
         </span>;
@@ -92,11 +89,11 @@ class Badge extends React.Component<{ title: string }, undefined> {
 
 class IssueView extends React.Component<{ issue: Data.Issue }, undefined> {
     render() {
-        let issue = this.props.issue;
+        const issue = this.props.issue;
 
         let milestoneBadge;
         if (!issue.isPr) {
-            let title = issue.milestone ? issue.milestone.title : '< No Milestone >';
+            const title = issue.milestone ? issue.milestone.title : '< No Milestone >';
             milestoneBadge = <Badge title={title} />;
         }
 
@@ -193,7 +190,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
             data: null
         });
 
-        let resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/issues/${this.props.login}`, fetchSettings)
+        const resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/issues/${this.props.login}`, fetchSettings)
         if (resp.status < 200 || resp.status > 299) {
             this.setState({
                 loading: false,
@@ -203,7 +200,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
             return;
         }
         else {
-            let data = (await resp.json()) as Data.RepoSetIssueResult;
+            const data = (await resp.json()) as Data.RepoSetIssueResult;
 
             // Update rate limit info
             this.props.updateRateLimit(data.graphQlRateLimit, data.restRateLimit);
@@ -221,7 +218,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
         let content;
         let rateLimitDisplay;
 
-        let headerBadgeStyles = {
+        const headerBadgeStyles = {
             marginLeft: '0.5em',
             marginTop: '-5px'
         };
@@ -302,8 +299,8 @@ export class Page extends React.Component<PageProps, PageState> {
 
     async componentDidMount() {
         // Fetch the list of people
-        let newState = { ... this.state };
-        let resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/people`, fetchSettings);
+        const newState = { ... this.state };
+        const resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/people`, fetchSettings);
         if (resp.status < 200 || resp.status > 299) {
             newState.loading = false;
             newState.error = `Unexpected response from server: ${resp.status} ${resp.statusText}`;
@@ -339,8 +336,8 @@ export class Page extends React.Component<PageProps, PageState> {
             return <ErrorPanel message={this.state.error} />
         }
         else {
-            let rateLimitDisplay = <RateLimitDisplay graphQl={this.state.rateLimit.graphQl} rest={this.state.rateLimit.rest} sinceReload={this.state.rateLimit.sinceReload} />;
-            let personViews = this.state.people.map(person =>
+            const rateLimitDisplay = <RateLimitDisplay graphQl={this.state.rateLimit.graphQl} rest={this.state.rateLimit.rest} sinceReload={this.state.rateLimit.sinceReload} />;
+            const personViews = this.state.people.map(person =>
                 <Person key={person} login={person} repoSet={this.props.repoSet} baseUrl={this.props.baseUrl} environment={this.props.environment} updateRateLimit={this.updateRateLimit.bind(this)} />);
             return <div className="tab-pane active">
                 {this.props.environment === 'Development' ? rateLimitDisplay : ''}
@@ -354,8 +351,8 @@ export class Page extends React.Component<PageProps, PageState> {
 class RateLimitDisplay extends React.Component<{ graphQl: { remaining: number, resetAt: string }, rest: { remaining: number, reset: string }, sinceReload: number }, undefined> {
     render() {
         if (this.props.graphQl && this.props.rest) {
-            let gqlReset = new Date(this.props.graphQl.resetAt).toLocaleTimeString();
-            let resetReset = new Date(this.props.rest.reset).toLocaleTimeString();
+            const gqlReset = new Date(this.props.graphQl.resetAt).toLocaleTimeString();
+            const resetReset = new Date(this.props.rest.reset).toLocaleTimeString();
             return <div className="alert" style={{ marginBottom: '3em' }}>
                 <h4>Rate limit status</h4>
                 <div className="col-md-4"><strong>GraphQL:</strong> {this.props.graphQl.remaining} (Reset: {gqlReset})</div>

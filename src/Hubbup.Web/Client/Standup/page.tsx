@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import * as Data from '../data';
 import { Page } from './components';
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     // Find the app root and repo set name
     const appRoot = document.querySelector('#app-root');
     const repoSet = appRoot.getAttribute('data-repo-set');

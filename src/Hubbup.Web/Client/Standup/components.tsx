@@ -302,7 +302,7 @@ export class Page extends React.Component<PageProps, PageState> {
         // Fetch the list of people
         try {
             const resp = await fetch(`${this.props.baseUrl}api/repoSets/${this.props.repoSet}/people`, fetchSettings);
-            if (resp.status < 200 || resp.status > 299) {
+            if (!resp.ok) {
                 this.setState({
                     ... this.state,
                     loading: false,

@@ -73,7 +73,7 @@ class LabelView extends React.Component<{ label: Data.Label }, undefined> {
 
 class AgeBadge extends React.Component<{ date: Date, timeAgo: string, prefix: string, stale: boolean }, undefined> {
     render() {
-        const cssClass =  ? `badge-pad badge pull-right${this.props.stale ? ' stale' : ''}`;
+        const cssClass = `badge-pad badge pull-right${this.props.stale ? ' stale' : ''}`;
         return <span className={cssClass} title={`${this.props.prefix} on ${this.props.date}`}>
             {this.props.prefix} {this.props.timeAgo}
         </span>;
@@ -207,7 +207,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
                     data: data
                 });
             }
-        } catch (e: Error) {
+        } catch (e) {
             // Either a network error occurred or a JSON parse error
             this.setState({
                 loading: false,
@@ -316,7 +316,7 @@ export class Page extends React.Component<PageProps, PageState> {
                     people: await resp.json()
                 });
             }
-        } catch (e: Error) {
+        } catch (e) {
             // Either a network error occurred or a JSON parse error
             this.setState({
                 ... this.state,

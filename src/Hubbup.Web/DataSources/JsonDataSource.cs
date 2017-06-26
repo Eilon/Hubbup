@@ -178,7 +178,7 @@ namespace Hubbup.Web.DataSources
             {
                 AssociatedPersonSetName = repoInfo.AssociatedPersonSetName,
                 LabelFilter = repoInfo.LabelFilter,
-                WorkingLabels = new HashSet<string>(repoInfo.WorkingLabels),
+                WorkingLabels = new HashSet<string>(repoInfo.WorkingLabels ?? Enumerable.Empty<string>()),
                 RepoExtraLinks = repoInfo.RepoExtraLinks != null
                     ? repoInfo.RepoExtraLinks
                         .Select(extraLink => new RepoExtraLink

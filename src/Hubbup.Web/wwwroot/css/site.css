@@ -59,9 +59,9 @@ textarea {
 }
 
 .list-group-item.stale {
-    background-color: salmon;
+    background-color: #d9534f;
 }
 
 .badge.stale {
-    background-color: red;
+    background-color: #d9534f;
 }

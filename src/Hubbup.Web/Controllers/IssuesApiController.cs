@@ -6,6 +6,7 @@ using Hubbup.Web.DataSources;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -13,6 +14,7 @@ using Octokit;
 namespace Hubbup.Web.Controllers
 {
     [Route("api")]
+    [Authorize(AuthenticationSchemes = "Cookies")]
     public class IssuesApiController : Controller
     {
         private readonly IDataSource _dataSource;
@@ -26,7 +28,15 @@ namespace Hubbup.Web.Controllers
             _logger = logger;
         }
 
-        [Route("repoSet/{repoSetName}/issues/{userName}")]
+        [Route("repoSets/{repoSetName}/people")]
+        public IActionResult GetPeopleInRepoSet(string repoSetName)
+        {
+            var personSetName = _dataSource.GetRepoDataSet().GetRepoSet(repoSetName).AssociatedPersonSetName;
+            var personSet = _dataSource.GetPersonSet(personSetName);
+            return Json(personSet.People);
+        }
+
+        [Route("repoSets/{repoSetName}/issues/{userName}")]
         public async Task<IActionResult> GetIssuesByUserAsync(string repoSetName, string userName)
         {
             var repoSet = _dataSource.GetRepoDataSet().GetRepoSet(repoSetName);
@@ -34,9 +44,12 @@ namespace Hubbup.Web.Controllers
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
             // Issue the three queries simultaneously and wait for results
-            var assignedIssuesTask = _github.SearchIssuesAsync(repoSet.GenerateQuery("is:open", "is:issue", $"assignee:{userName}"), accessToken);
-            var assignedPrsTask = _github.SearchIssuesAsync(repoSet.GenerateQuery("is:open", "is:pr", $"assignee:{userName}"), accessToken);
-            var createdPrsTask = _github.SearchIssuesAsync(repoSet.GenerateQuery("is:open", "is:pr", $"author:{userName}"), accessToken);
+            var assignedIssuesQuery = repoSet.GenerateQuery("is:open", "is:issue", $"assignee:{userName}");
+            var assignedPrsQuery = repoSet.GenerateQuery("is:open", "is:pr", $"assignee:{userName}");
+            var createdPrsQuery = repoSet.GenerateQuery("is:open", "is:pr", $"author:{userName}");
+            var assignedIssuesTask = _github.SearchIssuesAsync(assignedIssuesQuery, accessToken);
+            var assignedPrsTask = _github.SearchIssuesAsync(assignedPrsQuery, accessToken);
+            var createdPrsTask = _github.SearchIssuesAsync(createdPrsQuery, accessToken);
             await Task.WhenAll(assignedIssuesTask, assignedPrsTask, createdPrsTask);
             var assignedIssues = await assignedIssuesTask;
             var assignedPrs = await assignedPrsTask;
@@ -72,7 +85,13 @@ namespace Hubbup.Web.Controllers
                 prs = SortIssues(Enumerable.Concat(assignedPrs.Search, createdPrs.Search)),
                 graphQlRateLimit = rateLimitCost,
                 restRateLimit = gitHub.GetLastApiInfo()?.RateLimit,
-                pages = assignedIssues.Pages + assignedPrs.Pages + createdPrs.Pages
+                pages = assignedIssues.Pages + assignedPrs.Pages + createdPrs.Pages,
+                queries = new string[]
+                {
+                    assignedIssuesQuery,
+                    assignedPrsQuery,
+                    createdPrsQuery
+                }
             });
         }
 

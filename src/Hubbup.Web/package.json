@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "name": "Hubbup",
+  "private": true,
+  "devDependencies": {
+    "clean-webpack-plugin": "^0.1.16",
+    "css-loader": "^0.28.4",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "file-loader": "^0.11.2",
+    "ts-loader": "^2.1.0",
+    "typescript": "^2.3.4",
+    "webpack": "^2.6.1"
+  },
+  "scripts": {
+    "build": "webpack"
+  },
+  "dependencies": {
+    "@types/react": "^15.0.27",
+    "@types/react-dom": "^15.5.0",
+    "bootstrap": "^3.3.7",
+    "jquery": "^3.2.1",
+    "promise-polyfill": "^6.0.2",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "whatwg-fetch": "^2.0.3"
+  }
+}

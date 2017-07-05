@@ -5,3 +5,6 @@ PublishProfiles/
 *.user
 project.lock.json
 node_modules
+
+# Created during WebPack build
+src/Hubbup.Web/wwwroot/dist/

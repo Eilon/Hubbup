@@ -8,70 +8,20 @@
 <div class="row">
     <div class="col-md-8">
         <ul class="nav nav-pills" id="app-tabs">
-            <li class="active"><a href="#group-by-assignee">Group by assignee</a></li>
-            <li class=""><a href="#group-by-milestone">Group by milestone</a></li>
-            <li class=""><a href="#group-by-repo">Group by repo</a></li>
+            <li class="active"><a href="#tab-interesting-items">Interesting items</a></li>
+            <li class=""><a href="#tab-super-grid">Super grid</a></li>
         </ul>
     </div>
     <div class="col-md-4 text-right">
-        <button class="btn btn-info chevronButton" type="button" data-toggle="collapse" data-target="#reposIncludedGroup">
-            <span id="chevronGlyph" class="glyphicon glyphicon-chevron-right"></span>
-            Included repos <span class="badge">@Model.MainReposIncluded.Count</span>
-        </button>
+        <ul class="nav nav-pills" id="app-tabs">
+            <li>
+                <span class="badge">Included repos: @Model.MainReposIncluded.Count</span>
+            </li>
+        </ul>
     </div>
 </div>
 
 <br />
-
-<div class="collapse" id="reposIncludedGroup">
-    <div class="well">
-        @await Html.PartialAsync("_RepoList", Model.MainReposIncluded)
-
-        @await Html.PartialAsync("_MilestoneSummary", Model.MainMilestoneSummary)
-
-        @if (Model.ExtraReposIncluded.Any())
-        {
-            <hr />
-
-            <h2>Other repos</h2>
-
-            @await Html.PartialAsync("_RepoList", Model.ExtraReposIncluded)
-
-            @await Html.PartialAsync("_MilestoneSummary", Model.ExtraMilestoneSummary)
-        }
-
-        @if (Model.MissingRepos.Any())
-        {
-            <hr />
-
-            <h2>Repos not included</h2>
-
-            @foreach (var missingRepoSet in Model.MissingRepos)
-            {
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><strong>@missingRepoSet.Org</strong> <span class="badge">@missingRepoSet.MissingRepos.Count</span></h3>
-                    </div>
-                    <div class="panel-body">
-                        @if (missingRepoSet.MissingRepos.Count > 0)
-                        {
-                            @foreach (var repo in missingRepoSet.MissingRepos)
-                            {
-                                <span class="bg-info" style="padding:5px; margin: 5px; line-height: 2.5em; border: 1px solid #ccc;">
-                                    <a style="white-space:nowrap;" href="https://github.com/@missingRepoSet.Org/@repo/issues">@missingRepoSet.Org/@repo</a>
-                                </span>
-                            }
-                        }
-                        else
-                        {
-                            <h3>No missing repos in this org</h3>
-                        }
-                    </div>
-                </div>
-            }
-        }
-    </div>
-</div>
 
 @foreach (var repoFailure in Model.RepoFailures)
 {
@@ -80,7 +30,7 @@
 
 <div class="row">
     <div class="col-md-2 col-md-push-10">
-        <a asp-page="/Index" asp-route-repoSetName="@Model.RepoSetName">Switch to the new fastness</a>
+        <a asp-page="/Index" asp-route-repoSetName="@Model.RepoSetName">Go to standup view</a>
         <h3>Issues</h3>
         <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in Backlog milestone">
             <a href="@Model.OpenIssuesQuery">Open</a> <span class="badge">@Model.TotalIssues</span>
@@ -117,7 +67,7 @@
 
     <div class="col-md-10 col-md-pull-2">
         <div class="tab-content">
-            <div class="tab-pane active" id="group-by-assignee">
+            <div class="tab-pane active" id="tab-interesting-items">
                 @foreach (var assignee in Model.GroupByAssignee.Assignees)
                 {
                     <div class="panel panel-default">
@@ -198,101 +148,53 @@
                         </div>
                     </div>
                 }
-
             </div>
 
-            <div class="tab-pane" id="group-by-milestone">
-                @foreach (var milestone in Model.GroupByMilestone.Milestones)
+            <div class="tab-pane" id="tab-super-grid">
+                @await Html.PartialAsync("_RepoList", Model.MainReposIncluded)
+
+                @await Html.PartialAsync("_MilestoneSummary", Model.MainMilestoneSummary)
+
+                @if (Model.ExtraReposIncluded.Any())
                 {
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title"><strong>@(milestone.Milestone ?? "<no milestone>")</strong></h3>
-                        </div>
-                        <div class="panel-body">
+                    <hr />
 
-                            <h4>Issues being worked on in this milestone <span class="badge">@milestone.Issues.Count</span></h4>
-                            @if (milestone.Issues.Any())
-                            {
-                                <ul class="list-group">
-                                    @foreach (var issue in milestone.Issues)
-                                    {
-                                        <li class="list-group-item" style="@(issue.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
-                                            @await Html.PartialAsync("_Issue", issue)
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                            else
-                            {
-                                <div style="margin-left: 2em;">Not working on issues in this milestone</div>
-                            }
+                    <h2>Other repos</h2>
 
-                            <h4>Pull requests in this milestone <span class="badge">@milestone.PullRequests.Count</span></h4>
-                            @if (milestone.PullRequests.Any())
-                            {
-                                <ul class="list-group">
-                                    @foreach (var pullRequest in milestone.PullRequests)
-                                    {
-                                        <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
-                                            @await Html.PartialAsync("_PullRequest", pullRequest)
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                            else
-                            {
-                                <div style="margin-left: 2em;">No pull requests in this milestone</div>
-                            }
+                    @await Html.PartialAsync("_RepoList", Model.ExtraReposIncluded)
 
-                        </div>
-                    </div>
+                    @await Html.PartialAsync("_MilestoneSummary", Model.ExtraMilestoneSummary)
                 }
-            </div>
 
-            <div class="tab-pane" id="group-by-repo">
-                @foreach (var repo in Model.GroupByRepo.Repos)
+                @if (Model.MissingRepos.Any())
                 {
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title"><strong>@repo.Repo.Owner/@repo.Repo.Name</strong></h3>
-                        </div>
-                        <div class="panel-body">
+                    <hr />
 
-                            <h4>Issues being worked on in this repo <span class="badge">@repo.Issues.Count</span></h4>
-                            @if (repo.Issues.Any())
-                            {
-                                <ul class="list-group">
-                                    @foreach (var issue in repo.Issues)
-                                    {
-                                        <li class="list-group-item" style="@(issue.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
-                                            @await Html.PartialAsync("_Issue", issue)
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                            else
-                            {
-                                <div style="margin-left: 2em;">Not working on issues in this repo</div>
-                            }
+                    <h2>Repos not included</h2>
 
-                            <h4>Pull requests in this repo <span class="badge">@repo.PullRequests.Count</span></h4>
-                            @if (repo.PullRequests.Any())
-                            {
-                                <ul class="list-group">
-                                    @foreach (var pullRequest in repo.PullRequests)
+                    @foreach (var missingRepoSet in Model.MissingRepos)
+                    {
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><strong>@missingRepoSet.Org</strong> <span class="badge">@missingRepoSet.MissingRepos.Count</span></h3>
+                            </div>
+                            <div class="panel-body">
+                                @if (missingRepoSet.MissingRepos.Count > 0)
+                                {
+                                    @foreach (var repo in missingRepoSet.MissingRepos)
                                     {
-                                        <li class="list-group-item" style="@(pullRequest.IsInAssociatedPersonSet ? "" : "background-color: wheat")">
-                                            @await Html.PartialAsync("_PullRequest", pullRequest)
-                                        </li>
+                                        <span class="bg-info" style="padding:5px; margin: 5px; line-height: 2.5em; border: 1px solid #ccc;">
+                                            <a style="white-space:nowrap;" href="https://github.com/@missingRepoSet.Org/@repo/issues">@missingRepoSet.Org/@repo</a>
+                                        </span>
                                     }
-                                </ul>
-                            }
-                            else
-                            {
-                                <div style="margin-left: 2em;">No pull requests in this repo</div>
-                            }
+                                }
+                                else
+                                {
+                                    <h3>No missing repos in this org</h3>
+                                }
+                            </div>
                         </div>
-                    </div>
+                    }
                 }
             </div>
         </div>

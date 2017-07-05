@@ -36,8 +36,6 @@ namespace Hubbup.Web.ViewModels
         public string StalePRsQuery { get; set; }
 
         public GroupByAssigneeViewModel GroupByAssignee { get; set; }
-        public GroupByMilestoneViewModel GroupByMilestone { get; set; }
-        public GroupByRepoViewModel GroupByRepo { get; set; }
 
         public TimeSpan PageRequestTime { get; set; }
         public ApiInfo LastApiInfo { get; set; }

@@ -74,40 +74,7 @@ namespace Hubbup.Web.Controllers
             return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static async Task<DateTimeOffset?> GetWorkingStartTime(RepoDefinition repo, Issue issue, HashSet<string> workingLabels, IGitHubClient gitHubClient)
-        {
-            var workingLabelsOnThisIssue =
-                issue.Labels
-                    .Where(label => workingLabels.Contains(label.Name, StringComparer.OrdinalIgnoreCase))
-                    .Select(label => label.Name);
-
-            if (!workingLabelsOnThisIssue.Any())
-            {
-                // Item isn't in any Working state, so ignore it
-                return null;
-            }
-
-            // Find all "labeled" events for this issue
-            var issueEvents = await gitHubClient.Issue.Events.GetAllForIssue(repo.Owner, repo.Name, issue.Number);
-
-            foreach (var workingLabelOnThisIssue in workingLabelsOnThisIssue)
-            {
-                var labelEvent = issueEvents.LastOrDefault(
-                    issueEvent =>
-                        issueEvent.Event == EventInfoState.Labeled &&
-                        string.Equals(issueEvent.Label.Name, workingLabelOnThisIssue, StringComparison.OrdinalIgnoreCase));
-
-                if (labelEvent != null)
-                {
-                    // If an event where this label was applied was found, return the date on which it was applied
-                    return labelEvent.CreatedAt;
-                }
-            }
-
-            return null;
-        }
-
-        [Route("/legacy/{repoSet}")]
+        [Route("/triage/{repoSet}")]
         [Authorize]
         public async Task<IActionResult> Index(string repoSet)
         {
@@ -268,7 +235,6 @@ namespace Hubbup.Web.Controllers
                             {
                                 Issue = issue,
                                 Repo = issueList.Key,
-                                WorkingStartTime = GetWorkingStartTime(issueList.Key, issue, workingLabels, gitHubClient).Result,
                                 IsInAssociatedPersonSet = IsInAssociatedPersonSet(issue.Assignee?.Login, personSet),
                             }))
                 .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
@@ -401,38 +367,11 @@ namespace Hubbup.Web.Controllers
                 GroupByAssignee = new GroupByAssigneeViewModel
                 {
                     Assignees =
-                        peopleInPersonSet
-                            .OrderBy(person => person, StringComparer.OrdinalIgnoreCase)
-                            .Select(person =>
-                                new GroupByAssigneeAssignee
-                                {
-                                    Assignee = person,
-                                    IsInAssociatedPersonSet = IsInAssociatedPersonSet(person, personSet),
-                                    Issues = workingIssues
-                                        .Where(workingIssue =>
-                                            workingIssue.Issue.Assignee?.Login == person)
-                                        .ToList(),
-                                    PullRequests = allPullRequests
-                                        .Where(
-                                            pr =>
-                                                pr.PullRequest.User.Login == person ||
-                                                pr.PullRequest.Assignee?.Login == person)
-                                        .OrderBy(pr => pr.PullRequest.CreatedAt)
-                                        .ToList(),
-                                    OtherIssues = allIssues
-                                        .Where(issue =>
-                                            issue.Issue.Assignee?.Login == person)
-                                        .Except(workingIssues)
-                                        .OrderBy(issueWithRepo => new PossibleSemanticVersion(issueWithRepo.Issue.Milestone?.Title))
-                                        .ThenBy(issueWithRepo => issueWithRepo.Repo.Name, StringComparer.OrdinalIgnoreCase)
-                                        .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
-                                        .ToList(),
-                                })
-                            .Concat(new[]
+                            new[]
                             {
                                 new GroupByAssigneeAssignee
                                 {
-                                    Assignee = "<other assignees>",
+                                    Assignee = "<assigned outside this person set>",
                                     IsMetaAssignee = true,
                                     IsInAssociatedPersonSet = false,
                                     Issues = workingIssues
@@ -483,59 +422,9 @@ namespace Hubbup.Web.Controllers
                                         .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
                                         .ToList(),
                                 },
-                            })
+                            }
                             .ToList()
                             .AsReadOnly(),
-                },
-
-                GroupByMilestone = new GroupByMilestoneViewModel
-                {
-                    Milestones =
-                        workingIssues
-                            .Select(issue => issue.Issue.Milestone?.Title)
-                            .Concat(new string[] { null })
-                            .Distinct()
-                            .OrderBy(milestone => new PossibleSemanticVersion(milestone))
-                            .Select(milestone =>
-                                new GroupByMilestoneMilestone
-                                {
-                                    Milestone = milestone,
-                                    Issues = workingIssues
-                                        .Where(issue => issue.Issue.Milestone?.Title == milestone)
-                                        .OrderBy(issue => issue.WorkingStartTime)
-                                        .ToList(),
-                                    PullRequests = allPullRequests
-                                        .Where(pullRequest => pullRequest.PullRequest.Milestone?.Title == milestone)
-                                            .OrderBy(pullRequest => pullRequest.PullRequest.CreatedAt)
-                                        .ToList(),
-                                })
-                            .OrderBy(group => new PossibleSemanticVersion(group.Milestone))
-                            .ToList()
-                },
-
-                GroupByRepo = new GroupByRepoViewModel
-                {
-                    Repos =
-                        workingIssues
-                            .Select(issue => issue.Repo)
-                            .Concat(allPullRequests.Select(pullRequest => pullRequest.Repo))
-                            .Distinct()
-                            .OrderBy(repo => repo)
-                            .Select(repo =>
-                                new GroupByRepoRepo
-                                {
-                                    Repo = repo,
-                                    Issues = workingIssues
-                                        .Where(issue => issue.Repo == repo)
-                                        .OrderBy(issue => issue.WorkingStartTime)
-                                        .ToList(),
-                                    PullRequests = allPullRequests
-                                        .Where(pullRequest => pullRequest.Repo == repo)
-                                        .OrderBy(pullRequest => pullRequest.PullRequest.Assignee?.Login)
-                                        .ThenBy(pullRequest => pullRequest.PullRequest.Number)
-                                        .ToList(),
-                                })
-                            .ToList()
                 },
             };
 

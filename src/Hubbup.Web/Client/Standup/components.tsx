@@ -63,7 +63,8 @@ class LabelView extends React.Component<{ label: Data.Label }, undefined> {
     render() {
         const style = {
             backgroundColor: `#${this.props.label.color}`,
-            color: `#${this.props.label.foreColor}`
+            color: `#${this.props.label.foreColor}`,
+            marginLeft: '3px'
         };
         return <span className="label" style={style}>
             {this.props.label.name}
@@ -92,7 +93,7 @@ class IssueView extends React.Component<{ issue: Data.Issue }, undefined> {
 
         let milestoneBadge;
         if (!issue.isPr) {
-            const title = issue.milestone ? issue.milestone.title : '< No Milestone >';
+            const title = issue.milestone ? issue.milestone.title : '<no milestone>';
             milestoneBadge = <Badge title={title} />;
         }
 
@@ -237,7 +238,7 @@ class Person extends React.Component<PersonProps, { loading: boolean, error: str
         } else if (this.state.data) {
             content = <div className="panel-body">
                 <IssueList id={this.props.login} issues={this.state.data.working} emptyText="Not working on any assigned issues" title="Working on issues" />
-                <IssueList id={this.props.login} issues={this.state.data.prs} emptyText="No pull requests created or assigneds" title="Pull requests" />
+                <IssueList id={this.props.login} issues={this.state.data.prs} emptyText="No pull requests created or assigned" title="Pull requests" />
                 <IssueList id={this.props.login} issues={this.state.data.other} emptyText="No other assigned issues" title="Other assigned issues" collapsable={true} />
             </div>
 

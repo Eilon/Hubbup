@@ -7,8 +7,12 @@
 }
 
 <div class="row issue-list-row">
-    <div class="col-md-12">
-        <a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@repoSet">Switch to Legacy View</a>
+
+    <div class="col-md-2 col-md-push-10">
+        <a asp-controller="IssueList" asp-action="Index" asp-route-repoSet="@repoSet">Go to triage view</a>
+    </div>
+
+    <div class="col-md-10 col-md-pull-2">
         <div class="tab-content" id="app-root" data-repo-set="@repoSet" data-base-url="@Url.Content("~/")" data-environment="@HostingEnvironment.EnvironmentName">
         </div>
     </div>

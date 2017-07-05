@@ -80,9 +80,9 @@ namespace Hubbup.Web.Controllers
 
             return Json(new
             {
-                working = SortIssues(workingIssues),
-                other = SortIssues(otherIssues),
-                prs = SortIssues(Enumerable.Concat(assignedPrs.Search, createdPrs.Search)),
+                working = SortWorkingIssues(workingIssues),
+                other = SortOtherAssignedIssues(otherIssues),
+                prs = SortPRs(Enumerable.Concat(assignedPrs.Search, createdPrs.Search)),
                 graphQlRateLimit = rateLimitCost,
                 restRateLimit = gitHub.GetLastApiInfo()?.RateLimit,
                 pages = assignedIssues.Pages + assignedPrs.Pages + createdPrs.Pages,
@@ -95,11 +95,32 @@ namespace Hubbup.Web.Controllers
             });
         }
 
-        private IReadOnlyList<IssueData> SortIssues(IEnumerable<IssueData> issues)
+        private IReadOnlyList<IssueData> SortWorkingIssues(IEnumerable<IssueData> issues)
         {
-            return issues
-                .OrderBy(i => i.Repository.Owner.Name)
-                .ThenBy(i => i.Repository.Name)
+            var x = issues.ToList();
+            var y = issues
+                .OrderBy(i => i.WorkingStartedAt)
+                .ThenBy(i => i.Number)
+                .Distinct(IssueComparer.Instance)
+                .ToList();
+            return y;
+        }
+
+        private IReadOnlyList<IssueData> SortOtherAssignedIssues(IEnumerable<IssueData> issues)
+        {
+            var x = issues.ToList();
+            var y = issues
+                .OrderBy(i => i.Repository.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(i => i.Number)
+                .Distinct(IssueComparer.Instance)
+                .ToList();
+            return y;
+        }
+
+        private IReadOnlyList<IssueData> SortPRs(IEnumerable<IssueData> prs)
+        {
+            return prs
+                .OrderBy(i => i.CreatedAt)
                 .ThenBy(i => i.Number)
                 .Distinct(IssueComparer.Instance)
                 .ToList();

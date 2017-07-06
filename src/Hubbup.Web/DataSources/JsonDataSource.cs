@@ -21,8 +21,8 @@ namespace Hubbup.Web.DataSources
         private volatile RepoDataSet _repoDataSet = RepoDataSet.Empty;
         private volatile Dictionary<string, PersonSet> _personSets = new Dictionary<string, PersonSet>();
 
-        private string _repoEtag = null;
-        private string _personSetEtag = null;
+        private string _repoEtag;
+        private string _personSetEtag;
 
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IApplicationLifetime _applicationLifetime;
@@ -44,7 +44,11 @@ namespace Hubbup.Web.DataSources
 
         public RepoDataSet GetRepoDataSet() => _repoDataSet;
 
-        public PersonSet GetPersonSet(string personSetName) => _personSets[personSetName];
+        public PersonSet GetPersonSet(string personSetName)
+        {
+            _personSets.TryGetValue(personSetName, out var value);
+            return value;
+        }
 
         protected abstract Task<ReadFileResult> ReadJsonStream(string fileName, string etag);
 

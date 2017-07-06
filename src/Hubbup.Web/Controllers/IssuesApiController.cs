@@ -33,6 +33,10 @@ namespace Hubbup.Web.Controllers
         {
             var personSetName = _dataSource.GetRepoDataSet().GetRepoSet(repoSetName).AssociatedPersonSetName;
             var personSet = _dataSource.GetPersonSet(personSetName);
+            if (personSet == null)
+            {
+                return NotFound();
+            }
             return Json(personSet.People);
         }
 

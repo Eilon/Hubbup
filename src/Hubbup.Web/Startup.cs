@@ -1,8 +1,11 @@
+using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Claims;
 using Hubbup.Web.DataSources;
+using Hubbup.Web.Diagnostics;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -103,6 +106,16 @@ namespace Hubbup.Web
                     options.SslPort = 44347;
                 }
             });
+
+            services.AddMetrics(
+                options =>
+                {
+                    options.FlushRate = TimeSpan.FromSeconds(5);
+                },
+                builder =>
+                {
+                    builder.AddApplicationInsights();
+                });
         }
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory, IDataSource dataSource, IApplicationLifetime lifetime)
@@ -110,9 +123,11 @@ namespace Hubbup.Web
             // Load data before we start things up.
             // Until https://github.com/aspnet/Hosting/issues/1088 is resolved, this has to synchronously block.
             var logger = loggerFactory.CreateLogger<Startup>();
-            logger.LogInformation("Loading repo set and person set data...");
+            logger.LogDebug("Loading repo set and person set data...");
             dataSource.ReloadAsync(lifetime.ApplicationStopping).Wait();
-            logger.LogInformation("Loaded repo set and person set data");
+            logger.LogDebug("Loaded repo set and person set data");
+
+            app.UseRequestMetrics();
 
             if (HostingEnvironment.IsDevelopment())
             {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Hubbup.Web.Diagnostics;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Microsoft.Extensions.Logging;
@@ -26,10 +27,12 @@ namespace Hubbup.Web.DataSources
 
         private readonly HttpClient _client = new HttpClient();
         private readonly ILogger<GitHubDataSource> _logger;
+        private readonly IMetricsService _metricsService;
 
-        public GitHubDataSource(ILogger<GitHubDataSource> logger)
+        public GitHubDataSource(ILogger<GitHubDataSource> logger, IMetricsService metricsService)
         {
             _logger = logger;
+            _metricsService = metricsService;
         }
 
         public async Task<SearchResults<IReadOnlyList<IssueData>>> SearchIssuesAsync(string query, string accessToken)
@@ -63,14 +66,23 @@ namespace Hubbup.Web.DataSources
                 req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
                 _logger.LogTrace("Requesting page {pageIndex} of search results from GitHub for query '{query}'", pageIndex, query);
-                var resp = await _client.SendAsync(req);
-                if (!resp.IsSuccessStatusCode)
+
+                HttpResponseMessage resp;
+                using (_metricsService.Time("GitHubDataSource:RequestSearchResultPage"))
                 {
-                    var content = await resp.Content.ReadAsStringAsync();
-                    throw new HttpRequestException($"Received {resp.StatusCode} response from GitHub: {content}");
+                    resp = await _client.SendAsync(req);
+
+                    _metricsService.Increment($"GitHubDataSource:SearchResultResponses:{(int)resp.StatusCode}");
+
+                    if (!resp.IsSuccessStatusCode)
+                    {
+                        var content = await resp.Content.ReadAsStringAsync();
+                        throw new HttpRequestException($"Received {resp.StatusCode} response from GitHub: {content}");
+                    }
+
+                    json = await resp.Content.ReadAsStringAsync();
                 }
 
-                json = await resp.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<Dtos.GraphQlResult<SearchResults<Dtos.ConnectionResult<Dtos.Issue>>>>(json, _settings);
                 if (result.Errors != null && result.Errors.Any())
                 {
@@ -86,6 +98,9 @@ namespace Hubbup.Web.DataSources
                     data.RateLimit.ResetAt);
                 rateLimitInfo = RateLimitInfo.Add(rateLimitInfo, data.RateLimit);
 
+                _metricsService.Record("GitHubDataSource:QueryRateLimitCost", data.RateLimit.Cost);
+
+                var count = 0;
                 foreach (var issue in data.Search.Nodes)
                 {
                     var issueData = new IssueData()
@@ -128,7 +143,9 @@ namespace Hubbup.Web.DataSources
 
                     // Add this to the list of issues
                     issues.Add(issueData);
+                    count += 1;
                 }
+                _metricsService.Increment("GitHubDataSource:IssuesLoaded", count);
 
                 pageIndex += 1;
             } while (data.Search.PageInfo.HasNextPage);

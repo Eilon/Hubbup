@@ -90,11 +90,11 @@ namespace Hubbup.Web.DataSources
                                 _reloadLock.Release();
                             }
                         }
-                        _logger.LogInformation("Reloaded person sets");
+                        _logger.LogDebug("Reloaded person sets");
                     }
                     else
                     {
-                        _logger.LogInformation("Skipped reloading person set, nothing changed.");
+                        _logger.LogDebug("Skipped reloading person set, nothing changed.");
                     }
                 }
 
@@ -150,11 +150,11 @@ namespace Hubbup.Web.DataSources
                                 _reloadLock.Release();
                             }
                         }
-                        _logger.LogInformation("Reloaded repo sets");
+                        _logger.LogDebug("Reloaded repo sets");
                     }
                     else
                     {
-                        _logger.LogInformation("Skipped reloading repo sets, nothing changed.");
+                        _logger.LogDebug("Skipped reloading repo sets, nothing changed.");
                     }
                 }
 

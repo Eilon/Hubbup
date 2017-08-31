@@ -1,6 +1,6 @@
 using System;
 
-namespace Hubbup.Web.Diagnostics
+namespace Hubbup.Web.Diagnostics.Metrics
 {
     public class MetricsOptions
     {

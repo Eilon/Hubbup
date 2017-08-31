@@ -1,4 +1,4 @@
-namespace Hubbup.Web.Diagnostics
+namespace Hubbup.Web.Diagnostics.Metrics
 {
     public interface IMetricsService
     {

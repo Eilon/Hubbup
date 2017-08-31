@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Hubbup.Web.Diagnostics;
+using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Microsoft.Extensions.Logging;
@@ -65,7 +65,7 @@ namespace Hubbup.Web.DataSources
                 req.Content = new StringContent(json);
                 req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-                _logger.LogTrace("Requesting page {pageIndex} of search results from GitHub for query '{query}'", pageIndex, query);
+                _logger.LogTrace("Requesting page {PageIndex} of search results from GitHub for query '{Query}'", pageIndex, query);
 
                 HttpResponseMessage resp;
                 using (_metricsService.Time("GitHubDataSource:RequestSearchResultPage"))
@@ -91,7 +91,7 @@ namespace Hubbup.Web.DataSources
                 data = result.Data;
 
                 // Add rate limit info
-                _logger.LogTrace("Request completed, consumed {cost} of rate limit {limit}. Remaining: {remaining}, resets at {resetAt}",
+                _logger.LogTrace("Request completed, consumed {Cost} of rate limit {Limit}. Remaining: {Remaining}, resets at {ResetAt}",
                     data.RateLimit.Cost,
                     data.RateLimit.Limit,
                     data.RateLimit.Remaining,
@@ -99,6 +99,7 @@ namespace Hubbup.Web.DataSources
                 rateLimitInfo = RateLimitInfo.Add(rateLimitInfo, data.RateLimit);
 
                 _metricsService.Record("GitHubDataSource:QueryRateLimitCost", data.RateLimit.Cost);
+                _metricsService.Record("GitHubDataSource:QueryRateLimitRemaining", data.RateLimit.Remaining);
 
                 var count = 0;
                 foreach (var issue in data.Search.Nodes)
@@ -118,15 +119,18 @@ namespace Hubbup.Web.DataSources
                         CommentCount = issue.Comments.TotalCount
                     };
 
+                    _metricsService.Record("GitHubDataSource:LabelsPerIssue", issue.Labels.TotalCount);
+                    _metricsService.Record("GitHubDataSource:AssigneesPerIssue", issue.Assignees.TotalCount);
+
                     // Log a warning if there are labels or assignees beyond the ones we fetched
                     // We could make additional requests to fetch these if we find we need them.
                     if (issue.Labels.PageInfo.HasNextPage)
                     {
-                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than the limit of {limit} labels.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, AssigneeBatchSize);
+                        _logger.LogWarning("Issue {RepositoryOwner}/{RepositoryName}#{IssueNumber} has more than the limit of {Limit} labels.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, AssigneeBatchSize);
                     }
                     if (issue.Assignees.PageInfo.HasNextPage)
                     {
-                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than  the limit of {limit} assignees.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, LabelBatchSize);
+                        _logger.LogWarning("Issue {RepositoryOwner}/{RepositoryName}#{IssueNumber} has more than the limit of {Limit} assignees.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, LabelBatchSize);
                     }
 
                     // Load the assignees and labels
@@ -211,6 +215,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
             name,
             avatarUrl,
           },
+          totalCount
           pageInfo {
             endCursor,
             hasNextPage,
@@ -224,6 +229,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
             name,
             color
           },
+          totalCount
           pageInfo {
             endCursor,
             hasNextPage,
@@ -277,6 +283,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
             public class ConnectionResult<T>
             {
                 public T[] Nodes { get; set; }
+                public int TotalCount { get; set; }
                 public PageInfo PageInfo { get; set; }
             }
 

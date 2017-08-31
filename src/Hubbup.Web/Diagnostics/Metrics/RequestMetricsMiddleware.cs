@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace Hubbup.Web.Diagnostics
+namespace Hubbup.Web.Diagnostics.Metrics
 {
     public class RequestMetricsMiddleware
     {

@@ -6,8 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hubbup.Web.Models;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -27,19 +25,16 @@ namespace Hubbup.Web.DataSources
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly ILogger _logger;
-        private readonly TelemetryClient _telemetryClient;
         private readonly SemaphoreSlim _reloadLock = new SemaphoreSlim(1, 1);
 
         public JsonDataSource(
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<JsonDataSource> logger,
-            TelemetryClient telemetryClient)
+            ILogger<JsonDataSource> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _applicationLifetime = applicationLifetime;
             _logger = logger;
-            _telemetryClient = telemetryClient;
         }
 
         public RepoDataSet GetRepoDataSet() => _repoDataSet;
@@ -82,7 +77,7 @@ namespace Hubbup.Web.DataSources
                             await _reloadLock.WaitAsync();
                             try
                             {
-                                _repoEtag = result.Etag;
+                                _personSetEtag = result.Etag;
                                 _personSets = dict;
                             }
                             finally
@@ -103,12 +98,6 @@ namespace Hubbup.Web.DataSources
             }
             catch (Exception ex)
             {
-                _telemetryClient.TrackException(new ExceptionTelemetry
-                {
-                    Exception = ex,
-                    Message = "The repo set data file could not be read",
-                    SeverityLevel = SeverityLevel.Warning,
-                });
                 _logger.LogError(
                     exception: ex,
                     message: "The repo set data file could not be read");
@@ -164,12 +153,6 @@ namespace Hubbup.Web.DataSources
             }
             catch (Exception ex)
             {
-                _telemetryClient.TrackException(new ExceptionTelemetry
-                {
-                    Exception = ex,
-                    Message = "The person set data file could not be read",
-                    SeverityLevel = SeverityLevel.Warning,
-                });
                 _logger.LogError(
                     exception: ex,
                     message: "The person set data file could not be read");

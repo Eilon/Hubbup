@@ -6,10 +6,8 @@
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <UserSecretsId>hubbup</UserSecretsId>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked> 
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
+    <LangVersion>latest</LangVersion> 
+    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0-preview2-final" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
     <PackageReference Include="NuGet.Versioning" Version="4.0.0" />
-    <PackageReference Include="Octokit" Version="0.25.0-beta.45.build.2169" />
+    <PackageReference Include="Octokit" Version="0.26.0" />
   </ItemGroup>
 
   <Target Name="ClientBuild" BeforeTargets="Build">

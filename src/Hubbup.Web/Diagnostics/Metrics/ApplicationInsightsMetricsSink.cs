@@ -5,7 +5,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Logging;
 
-namespace Hubbup.Web.Diagnostics
+namespace Hubbup.Web.Diagnostics.Metrics
 {
     public class ApplicationInsightsMetricsSink : IMetricsSink
     {

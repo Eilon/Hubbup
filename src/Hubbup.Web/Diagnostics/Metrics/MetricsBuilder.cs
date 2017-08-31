@@ -1,4 +1,4 @@
-using Hubbup.Web.Diagnostics;
+using Hubbup.Web.Diagnostics.Metrics;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

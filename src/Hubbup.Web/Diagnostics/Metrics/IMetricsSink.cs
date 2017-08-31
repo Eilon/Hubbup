@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Hubbup.Web.Diagnostics
+namespace Hubbup.Web.Diagnostics.Metrics
 {
     public interface IMetricsSink
     {

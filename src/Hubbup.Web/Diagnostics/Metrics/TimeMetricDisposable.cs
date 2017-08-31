@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Hubbup.Web.Diagnostics
+namespace Hubbup.Web.Diagnostics.Metrics
 {
     public struct TimeMetricDisposable : IDisposable
     {

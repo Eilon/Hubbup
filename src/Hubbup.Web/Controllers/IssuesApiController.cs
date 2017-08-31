@@ -80,7 +80,7 @@ namespace Hubbup.Web.Controllers
 
             // Update rate limit information
             var rateLimitCost = RateLimitInfo.Add(RateLimitInfo.Add(assignedIssues.RateLimit, assignedPrs.RateLimit), createdPrs.RateLimit);
-            _logger.LogDebug("Fetched issues for {user} in repo group {group}. Total Rate Limit Cost: {cost}", userName, repoSetName, rateLimitCost.Cost);
+            _logger.LogDebug("Fetched issues for {User} in repo group {Group}. Total Rate Limit Cost: {Cost}", userName, repoSetName, rateLimitCost.Cost);
 
             return Json(new
             {

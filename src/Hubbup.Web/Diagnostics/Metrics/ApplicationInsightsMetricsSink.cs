@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Logging;
@@ -12,14 +13,22 @@ namespace Hubbup.Web.Diagnostics.Metrics
         private readonly TelemetryClient _telemetryClient;
         private readonly ILogger<ApplicationInsightsMetricsSink> _logger;
 
-        public ApplicationInsightsMetricsSink(TelemetryClient telemetryClient, ILogger<ApplicationInsightsMetricsSink> logger)
+        public ApplicationInsightsMetricsSink(IServiceProvider services, ILogger<ApplicationInsightsMetricsSink> logger)
         {
-            _telemetryClient = telemetryClient;
+            // This is so we don't fail when App Insights isn't autoregistered by HostingStartup. In the future, this should live inside the HostingStartup so it doesn't need to do this
+            _telemetryClient = services.GetService<TelemetryClient>();
+
             _logger = logger;
         }
 
         public void ReceiveMetrics(IReadOnlyList<Metric> metrics)
         {
+            if(_telemetryClient == null)
+            {
+                _logger.LogTrace("Not recording metrics because Application Insights was not registered");
+                return;
+            }
+
             // Group metrics by measurement name
             foreach (var grouping in metrics.GroupBy(m => m.Measurement))
             {

@@ -20,7 +20,7 @@ namespace Hubbup.Web.Diagnostics.Telemetry
         public void AddProperty(string name, object value)
         {
             _logger.LogTrace("Recording request telemetry value: {Name} = {Value}", name, value);
-            foreach(var listener in _listeners)
+            foreach (var listener in _listeners)
             {
                 listener.AddProperty(_httpContext, name, value);
             }

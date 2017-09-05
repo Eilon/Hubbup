@@ -16,7 +16,7 @@ namespace Hubbup.Web.Diagnostics.Telemetry
         public void AddProperty(HttpContext httpContext, string name, object value)
         {
             var telemetry = httpContext.Features.Get<RequestTelemetry>();
-            if(telemetry == null)
+            if (telemetry == null)
             {
                 _logger.LogError("Unable to record telemetry property, the Application Insights RequestTelemetry object has not been initialized yet");
             }

@@ -98,9 +98,6 @@ namespace Hubbup.Web.DataSources
                     data.RateLimit.ResetAt);
                 rateLimitInfo = RateLimitInfo.Add(rateLimitInfo, data.RateLimit);
 
-                _metricsService.Record("GitHubDataSource:QueryRateLimitCost", data.RateLimit.Cost);
-                _metricsService.Record("GitHubDataSource:QueryRateLimitRemaining", data.RateLimit.Remaining);
-
                 var count = 0;
                 foreach (var issue in data.Search.Nodes)
                 {

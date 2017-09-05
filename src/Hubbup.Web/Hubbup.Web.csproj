@@ -36,7 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Diagnostics\" />
     <Folder Include="Properties\PublishProfiles\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hubbup.Web.Diagnostics\Hubbup.Web.Diagnostics.csproj" />
   </ItemGroup>
 
 </Project>

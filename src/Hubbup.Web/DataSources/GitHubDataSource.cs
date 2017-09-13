@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Microsoft.Extensions.Logging;
@@ -26,10 +27,12 @@ namespace Hubbup.Web.DataSources
 
         private readonly HttpClient _client = new HttpClient();
         private readonly ILogger<GitHubDataSource> _logger;
+        private readonly IMetricsService _metricsService;
 
-        public GitHubDataSource(ILogger<GitHubDataSource> logger)
+        public GitHubDataSource(ILogger<GitHubDataSource> logger, IMetricsService metricsService)
         {
             _logger = logger;
+            _metricsService = metricsService;
         }
 
         public async Task<SearchResults<IReadOnlyList<IssueData>>> SearchIssuesAsync(string query, string accessToken)
@@ -62,15 +65,24 @@ namespace Hubbup.Web.DataSources
                 req.Content = new StringContent(json);
                 req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-                _logger.LogTrace("Requesting page {pageIndex} of search results from GitHub for query '{query}'", pageIndex, query);
-                var resp = await _client.SendAsync(req);
-                if (!resp.IsSuccessStatusCode)
+                _logger.LogTrace("Requesting page {PageIndex} of search results from GitHub for query '{Query}'", pageIndex, query);
+
+                HttpResponseMessage resp;
+                using (_metricsService.Time("GitHubDataSource:RequestSearchResultPage"))
                 {
-                    var content = await resp.Content.ReadAsStringAsync();
-                    throw new HttpRequestException($"Received {resp.StatusCode} response from GitHub: {content}");
+                    resp = await _client.SendAsync(req);
+
+                    _metricsService.Increment($"GitHubDataSource:SearchResultResponses:{(int)resp.StatusCode}");
+
+                    if (!resp.IsSuccessStatusCode)
+                    {
+                        var content = await resp.Content.ReadAsStringAsync();
+                        throw new HttpRequestException($"Received {resp.StatusCode} response from GitHub: {content}");
+                    }
+
+                    json = await resp.Content.ReadAsStringAsync();
                 }
 
-                json = await resp.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<Dtos.GraphQlResult<SearchResults<Dtos.ConnectionResult<Dtos.Issue>>>>(json, _settings);
                 if (result.Errors != null && result.Errors.Any())
                 {
@@ -79,13 +91,14 @@ namespace Hubbup.Web.DataSources
                 data = result.Data;
 
                 // Add rate limit info
-                _logger.LogTrace("Request completed, consumed {cost} of rate limit {limit}. Remaining: {remaining}, resets at {resetAt}",
+                _logger.LogTrace("Request completed, consumed {Cost} of rate limit {Limit}. Remaining: {Remaining}, resets at {ResetAt}",
                     data.RateLimit.Cost,
                     data.RateLimit.Limit,
                     data.RateLimit.Remaining,
                     data.RateLimit.ResetAt);
                 rateLimitInfo = RateLimitInfo.Add(rateLimitInfo, data.RateLimit);
 
+                var count = 0;
                 foreach (var issue in data.Search.Nodes)
                 {
                     var issueData = new IssueData()
@@ -103,15 +116,18 @@ namespace Hubbup.Web.DataSources
                         CommentCount = issue.Comments.TotalCount
                     };
 
+                    _metricsService.Record("GitHubDataSource:LabelsPerIssue", issue.Labels.TotalCount);
+                    _metricsService.Record("GitHubDataSource:AssigneesPerIssue", issue.Assignees.TotalCount);
+
                     // Log a warning if there are labels or assignees beyond the ones we fetched
                     // We could make additional requests to fetch these if we find we need them.
                     if (issue.Labels.PageInfo.HasNextPage)
                     {
-                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than the limit of {limit} labels.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, AssigneeBatchSize);
+                        _logger.LogWarning("Issue {RepositoryOwner}/{RepositoryName}#{IssueNumber} has more than the limit of {Limit} labels.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, AssigneeBatchSize);
                     }
                     if (issue.Assignees.PageInfo.HasNextPage)
                     {
-                        _logger.LogWarning("Issue {owner}/{repo}#{issueNumber} has more than  the limit of {limit} assignees.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, LabelBatchSize);
+                        _logger.LogWarning("Issue {RepositoryOwner}/{RepositoryName}#{IssueNumber} has more than the limit of {Limit} assignees.", issue.Repository.Owner.Name, issue.Repository.Name, issue.Number, LabelBatchSize);
                     }
 
                     // Load the assignees and labels
@@ -128,7 +144,9 @@ namespace Hubbup.Web.DataSources
 
                     // Add this to the list of issues
                     issues.Add(issueData);
+                    count += 1;
                 }
+                _metricsService.Increment("GitHubDataSource:IssuesLoaded", count);
 
                 pageIndex += 1;
             } while (data.Search.PageInfo.HasNextPage);
@@ -194,6 +212,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
             name,
             avatarUrl,
           },
+          totalCount
           pageInfo {
             endCursor,
             hasNextPage,
@@ -207,6 +226,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
             name,
             color
           },
+          totalCount
           pageInfo {
             endCursor,
             hasNextPage,
@@ -260,6 +280,7 @@ query SearchIssues($searchQuery: String!, $pageSize: Int!, $assigneeBatchSize: I
             public class ConnectionResult<T>
             {
                 public T[] Nodes { get; set; }
+                public int TotalCount { get; set; }
                 public PageInfo PageInfo { get; set; }
             }
 

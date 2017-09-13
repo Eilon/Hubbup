@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Hubbup.Web.Models
 {
@@ -7,5 +7,6 @@ namespace Hubbup.Web.Models
         public RepoDefinition Repo { get; set; }
         public string FailureMessage { get; set; }
         public Exception Exception { get; set; }
+        public IssueType IssueType { get; set; }
     }
 }

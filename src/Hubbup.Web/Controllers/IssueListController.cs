@@ -7,67 +7,86 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
+using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Models;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 using Octokit;
 
 namespace Hubbup.Web.Controllers
 {
-    public class IssueListController : Controller, IGitHubQueryProvider
+    public class TriageController : Controller, IGitHubQueryProvider
     {
-        public IssueListController(
-            IDataSource dataSource,
-            UrlEncoder urlEncoder,
-            TelemetryClient telemetryClient)
-        {
-            DataSource = dataSource;
-            UrlEncoder = urlEncoder;
-            TelemetryClient = telemetryClient;
-        }
-
-        public IDataSource DataSource { get; }
-
-        public UrlEncoder UrlEncoder { get; }
-
-        public TelemetryClient TelemetryClient { get; }
-
-        private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, IGitHubClient gitHubClient)
-        {
-            var repositoryIssueRequest = new RepositoryIssueRequest
-            {
-                State = ItemStateFilter.Open,
-            };
-
-            return new RepoTask<IReadOnlyList<Issue>>
-            {
-                Repo = repo,
-                Task = gitHubClient.Issue.GetAllForRepository(repo.Owner, repo.Name, repositoryIssueRequest),
-            };
-        }
-
-        private RepoTask<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(RepoDefinition repo, IGitHubClient gitHubClient)
-        {
-            return new RepoTask<IReadOnlyList<PullRequest>>
-            {
-                Repo = repo,
-                Task = gitHubClient.PullRequest.GetAllForRepository(repo.Owner, repo.Name),
-            };
-        }
-
         private static readonly string[] ExcludedMilestones = new[] {
             "Backlog",
             "Discussion",
             "Discussions",
             "Future",
         };
+
+        private readonly IDataSource _dataSource;
+        private readonly UrlEncoder _urlEncoder;
+        private readonly IMetricsService _metricsService;
+        private readonly ILogger<TriageController> _logger;
+
+        public TriageController(
+            IDataSource dataSource,
+            UrlEncoder urlEncoder,
+            IMetricsService metricsService,
+            ILogger<TriageController> logger)
+        {
+            _dataSource = dataSource;
+            _urlEncoder = urlEncoder;
+            _metricsService = metricsService;
+            _logger = logger;
+        }
+
+        private RepoTask<IReadOnlyList<Issue>> GetIssuesForRepo(RepoDefinition repo, IGitHubClient gitHubClient, string metricsPrefix)
+        {
+            async Task<IReadOnlyList<Issue>> RunRequestAsync()
+            {
+                var repositoryIssueRequest = new RepositoryIssueRequest
+                {
+                    State = ItemStateFilter.Open,
+                };
+
+                using (_metricsService.Time($"{metricsPrefix}:Repo({repo.Owner}/{repo.Name}):GetAllIssues"))
+                {
+                    return await gitHubClient.Issue.GetAllForRepository(repo.Owner, repo.Name, repositoryIssueRequest);
+                }
+            }
+
+            return new RepoTask<IReadOnlyList<Issue>>
+            {
+                Repo = repo,
+                Task = RunRequestAsync(),
+            };
+        }
+
+        private RepoTask<IReadOnlyList<PullRequest>> GetPullRequestsForRepo(RepoDefinition repo, IGitHubClient gitHubClient, string metricsPrefix)
+        {
+            async Task<IReadOnlyList<PullRequest>> RunRequestAsync()
+            {
+                using (_metricsService.Time($"{metricsPrefix}:Repo({repo.Owner}/{repo.Name}):GetAllPullRequests"))
+                {
+                    return await gitHubClient.PullRequest.GetAllForRepository(repo.Owner, repo.Name);
+                }
+            }
+
+            return new RepoTask<IReadOnlyList<PullRequest>>
+            {
+                Repo = repo,
+                Task = RunRequestAsync(),
+            };
+        }
 
         private static bool IsExcludedMilestone(string repoName)
         {
@@ -78,297 +97,321 @@ namespace Hubbup.Web.Controllers
         [Authorize]
         public async Task<IActionResult> Index(string repoSet)
         {
-            var gitHubName = HttpContext.User.Identity.Name;
-            var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
-            // Authenticated and all claims have been read
-
-            var repoDataSet = DataSource.GetRepoDataSet();
-
-            if (!repoDataSet.RepoSetExists(repoSet))
+            using (_logger.BeginScope("Requesting Triage Data for {RepoSet}", repoSet))
             {
-                var invalidRepoSetPageViewTelemetry = new PageViewTelemetry("RepoSet")
+                HttpContext.AddTelemetryProperty("RepoSet", repoSet);
+                HttpContext.AddTelemetryProperty("RepoSetView", "Triage");
+                var metricsPrefix = $"TriageController:RepoSet({repoSet})";
+
+                var gitHubName = HttpContext.User.Identity.Name;
+                HttpContext.AddTelemetryProperty("GitHubUser", gitHubName);
+
+                var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
+                // Authenticated and all claims have been read
+
+                var repoDataSet = _dataSource.GetRepoDataSet();
+
+                if (!repoDataSet.RepoSetExists(repoSet))
                 {
-                    Url = new Uri(Request.GetDisplayUrl()),
-                };
-                invalidRepoSetPageViewTelemetry.Properties.Add("GitHubUser", gitHubName);
-                invalidRepoSetPageViewTelemetry.Properties.Add("repoSet", repoSet);
-                invalidRepoSetPageViewTelemetry.Properties.Add("repoSetValid", "false");
-                TelemetryClient.TrackPageView(invalidRepoSetPageViewTelemetry);
-                return NotFound();
-            }
+                    var invalidRepoSetPageViewTelemetry = new PageViewTelemetry("RepoSet")
+                    {
+                        Url = new Uri(Request.GetDisplayUrl()),
+                    };
+                    HttpContext.AddTelemetryProperty("RepoSetValid", false);
+                    return NotFound();
+                }
 
-            var requestStopwatch = new Stopwatch();
-            requestStopwatch.Start();
+                var requestStopwatch = new Stopwatch();
+                requestStopwatch.Start();
 
-            var repos = repoDataSet.GetRepoSet(repoSet);
-            var distinctRepos =
-                repos.Repos
-                    .Distinct()
-                    .Where(repo => repo.RepoInclusionLevel != RepoInclusionLevel.None)
-                    .ToArray();
-            var personSetName = repos.AssociatedPersonSetName;
-            var personSet = DataSource.GetPersonSet(personSetName);
-            var peopleInPersonSet = personSet?.People ?? new string[0];
-            var workingLabels = repos.WorkingLabels ?? new HashSet<string>();
+                var repos = repoDataSet.GetRepoSet(repoSet);
+                var distinctRepos =
+                    repos.Repos
+                        .Distinct()
+                        .Where(repo => repo.RepoInclusionLevel != RepoInclusionLevel.None)
+                        .ToArray();
+                var personSetName = repos.AssociatedPersonSetName;
+                var personSet = _dataSource.GetPersonSet(personSetName);
+                var peopleInPersonSet = personSet?.People ?? new string[0];
+                var workingLabels = repos.WorkingLabels ?? new HashSet<string>();
 
-            var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<Issue>>>();
-            var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<PullRequest>>>();
+                var allIssuesByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<Issue>>>();
+                var allPullRequestsByRepo = new ConcurrentDictionary<RepoDefinition, RepoTask<IReadOnlyList<PullRequest>>>();
 
-            var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
+                var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
 
-            // Get missing repos
-            var distinctOrgs =
-                distinctRepos
-                    .Select(
-                        repoDefinition => repoDefinition.Owner)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(org => org)
+                // Get missing repos
+                var distinctOrgs =
+                    distinctRepos
+                        .Select(
+                            repoDefinition => repoDefinition.Owner)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(org => org)
+                        .ToList();
+
+                var allOrgRepos = new ConcurrentDictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+
+                using (_metricsService.Time($"{metricsPrefix}:GetAllRepositories"))
+                {
+                    var getAllOrgReposTask = AsyncParallelUtils.ForEachAsync(distinctOrgs, 5, async org =>
+                    {
+                        IReadOnlyList<Repository> reposInOrg;
+                        using (_metricsService.Time($"{metricsPrefix}:Org({org}):GetRepositories"))
+                        {
+                            reposInOrg = await gitHubClient.Repository.GetAllForOrg(org);
+                        }
+                        allOrgRepos[org] = reposInOrg.Where(repo => !repo.Fork).Select(repo => repo.Name).ToArray();
+                    });
+                    await getAllOrgReposTask;
+                }
+
+                var missingOrgRepos = allOrgRepos.Select(org =>
+                    new MissingRepoSet
+                    {
+                        Org = org.Key,
+                        MissingRepos =
+                            org.Value
+                                .Except(
+                                    distinctRepos
+                                        .Select(repoDefinition => repoDefinition.Name), StringComparer.OrdinalIgnoreCase)
+                                .OrderBy(repo => repo, StringComparer.OrdinalIgnoreCase)
+                                .ToList(),
+                    })
+                    .OrderBy(missingRepoSet => missingRepoSet.Org, StringComparer.OrdinalIgnoreCase)
                     .ToList();
 
-            var allOrgRepos = new ConcurrentDictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
 
-            var getAllOrgReposTask = AsyncParallelUtils.ForEachAsync(distinctOrgs, 5, async org =>
-            {
-                var reposInOrg = await gitHubClient.Repository.GetAllForOrg(org);
-                allOrgRepos[org] = reposInOrg.Where(repo => !repo.Fork).Select(repo => repo.Name).ToArray();
-            });
-            await getAllOrgReposTask;
+                // Get bugs/PR data
+                Parallel.ForEach(distinctRepos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubClient, metricsPrefix));
+                Parallel.ForEach(distinctRepos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, gitHubClient, metricsPrefix));
 
-            var missingOrgRepos = allOrgRepos.Select(org =>
-                new MissingRepoSet
+                // while waiting for queries to run, do some other work...
+
+                var distinctMainRepos = distinctRepos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).ToArray();
+                var distinctExtraRepos = distinctRepos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.ItemsAssignedToPersonSet).ToArray();
+
+                var labelQuery = GetLabelQuery(repos.LabelFilter);
+
+                var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctMainRepos);
+                var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, workingLabels, distinctMainRepos);
+                var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctMainRepos);
+                var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, distinctMainRepos);
+                var openPRsQuery = GetOpenPRsQuery(distinctMainRepos);
+                var stalePRsQuery = GetStalePRsQuery(distinctMainRepos);
+
+                // now wait for queries to finish executing
+
+                var failuresOccurred = false;
+                try
                 {
-                    Org = org.Key,
-                    MissingRepos =
-                        org.Value
-                            .Except(
-                                distinctRepos
-                                    .Select(repoDefinition => repoDefinition.Name), StringComparer.OrdinalIgnoreCase)
-                            .OrderBy(repo => repo, StringComparer.OrdinalIgnoreCase)
-                            .ToList(),
-                })
-                .OrderBy(missingRepoSet => missingRepoSet.Org, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-
-            // Get bugs/PR data
-            Parallel.ForEach(distinctRepos, repo => allIssuesByRepo[repo] = GetIssuesForRepo(repo, gitHubClient));
-            Parallel.ForEach(distinctRepos, repo => allPullRequestsByRepo[repo] = GetPullRequestsForRepo(repo, gitHubClient));
-
-            // while waiting for queries to run, do some other work...
-
-            var distinctMainRepos = distinctRepos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).ToArray();
-            var distinctExtraRepos = distinctRepos.Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.ItemsAssignedToPersonSet).ToArray();
-
-            var labelQuery = GetLabelQuery(repos.LabelFilter);
-
-            var openIssuesQuery = GetOpenIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctMainRepos);
-            var workingIssuesQuery = GetWorkingIssuesQuery(labelQuery, workingLabels, distinctMainRepos);
-            var unassignedIssuesQuery = GetUnassignedIssuesQuery(GetExcludedMilestonesQuery(), labelQuery, distinctMainRepos);
-            var untriagedIssuesQuery = GetUntriagedIssuesQuery(labelQuery, distinctMainRepos);
-            var openPRsQuery = GetOpenPRsQuery(distinctMainRepos);
-            var stalePRsQuery = GetStalePRsQuery(distinctMainRepos);
-
-            // now wait for queries to finish executing
-
-            try
-            {
-                Task.WaitAll(allIssuesByRepo.Select(x => x.Value.Task).ToArray());
-            }
-            catch (AggregateException)
-            {
-                // Just hide the exceptions here - faulted tasks will be aggregated later
-            }
-
-            try
-            {
-                Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value.Task).ToArray());
-            }
-            catch (AggregateException)
-            {
-                // Just hide the exceptions here - faulted tasks will be aggregated later
-            }
-
-            var repoFailures = new List<RepoFailure>();
-            repoFailures.AddRange(
-                allIssuesByRepo
-                    .Where(repoTask => repoTask.Value.Task.IsFaulted || repoTask.Value.Task.IsCanceled)
-                    .Select(repoTask =>
-                        new RepoFailure
-                        {
-                            Repo = repoTask.Key,
-                            FailureMessage = string.Format("Issues couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
-                            Exception = repoTask.Value.Task.Exception,
-                        }));
-            repoFailures.AddRange(
-                allPullRequestsByRepo
-                    .Where(repoTask => repoTask.Value.Task.IsFaulted || repoTask.Value.Task.IsCanceled)
-                    .Select(repoTask =>
-                        new RepoFailure
-                        {
-                            Repo = repoTask.Key,
-                            FailureMessage = string.Format("Pull requests couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
-                            Exception = repoTask.Value.Task.Exception,
-                        }));
-
-            foreach (var repoFailure in repoFailures)
-            {
-                TelemetryClient.TrackException(new ExceptionTelemetry
+                    Task.WaitAll(allIssuesByRepo.Select(x => x.Value.Task).ToArray());
+                }
+                catch (AggregateException)
                 {
-                    Exception = repoFailure.Exception,
-                    Message = repoFailure.FailureMessage,
-                    SeverityLevel = SeverityLevel.Error,
-                });
-            }
+                    // Just hide the exceptions here - faulted tasks will be aggregated later
+                    failuresOccurred = true;
+                }
 
-            var allIssues = allIssuesByRepo
-                .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
-                .SelectMany(issueList =>
-                    issueList.Value.Task.Result
-                        .Where(
-                            issue =>
-                                !IsExcludedMilestone(issue.Milestone?.Title) &&
-                                issue.PullRequest == null &&
-                                IsFilteredIssue(issue, repos) &&
-                                ItemIncludedByInclusionLevel(issue.Assignee?.Login, issueList.Key, peopleInPersonSet))
-                        .Select(
-                            issue => new IssueWithRepo
-                            {
-                                Issue = issue,
-                                Repo = issueList.Key,
-                                IsInAssociatedPersonSet = IsInAssociatedPersonSet(issue.Assignee?.Login, personSet),
-                            }))
-                .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
-                .ToList();
+                try
+                {
+                    Task.WaitAll(allPullRequestsByRepo.Select(x => x.Value.Task).ToArray());
+                }
+                catch (AggregateException)
+                {
+                    // Just hide the exceptions here - faulted tasks will be aggregated later
+                    failuresOccurred = true;
+                }
 
-            var workingIssues = allIssues
-                .Where(issue =>
-                    issue.Issue.Labels
-                        .Any(label => workingLabels.Contains(label.Name, StringComparer.OrdinalIgnoreCase)))
-                .ToList();
-
-            var untriagedIssues = allIssues
-                .Where(issue => issue.Issue.Milestone == null).ToList();
-
-            var unassignedIssues = allIssues
-                .Where(issue => issue.Issue.Assignee == null).ToList();
-
-            var allPullRequests = allPullRequestsByRepo
-                .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
-                .SelectMany(pullRequestList =>
-                    pullRequestList.Value.Task.Result
-                        .Where(
-                            pullRequest => !IsExcludedMilestone(pullRequest.Milestone?.Title) &&
-                            (ItemIncludedByInclusionLevel(pullRequest.Assignee?.Login, pullRequestList.Key, peopleInPersonSet) ||
-                            ItemIncludedByInclusionLevel(pullRequest.User.Login, pullRequestList.Key, peopleInPersonSet)))
-                        .Select(pullRequest =>
-                            new PullRequestWithRepo
-                            {
-                                PullRequest = pullRequest,
-                                Repo = pullRequestList.Key,
-                                IsInAssociatedPersonSet = IsInAssociatedPersonSet(pullRequest.User?.Login, personSet),
-                            }))
-                .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
-                .ToList();
-
-
-            var allIssuesInMainRepos = allIssues.Where(issue => distinctMainRepos.Contains(issue.Repo)).ToList();
-            var allIssuesInExtraRepos = allIssues.Where(issue => distinctExtraRepos.Contains(issue.Repo)).ToList();
-
-
-            var mainMilestoneData = distinctMainRepos
-                .OrderBy(repo => repo.Owner + "/" + repo.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(repo =>
-                    new MilestoneSummary()
+                using (_metricsService.Time($"{metricsPrefix}:PostQueryProcessingTime"))
+                {
+                    // Log failures
+                    var repoFailures = new List<RepoFailure>();
+                    if (failuresOccurred)
                     {
-                        Repo = repo,
-                        MilestoneData = allIssuesInMainRepos
-                            .Where(issue => issue.Repo == repo)
-                            .GroupBy(issue => issue.Issue.Milestone?.Title)
-                            .Select(issueMilestoneGroup => new MilestoneData
-                            {
-                                Milestone = issueMilestoneGroup.Key,
-                                OpenIssues = issueMilestoneGroup.Count(),
-                            })
-                            .ToList(),
-                    });
-            var fullSortedMainMilestoneList = mainMilestoneData
-                .SelectMany(milestone => milestone.MilestoneData)
-                .Select(milestone => milestone.Milestone)
-                .Distinct()
-                .OrderBy(milestone => new PossibleSemanticVersion(milestone));
+                        repoFailures.AddRange(
+                            allIssuesByRepo
+                                .Where(repoTask => repoTask.Value.Task.IsFaulted || repoTask.Value.Task.IsCanceled)
+                                .Select(repoTask =>
+                                    new RepoFailure
+                                    {
+                                        Repo = repoTask.Key,
+                                        IssueType = IssueType.Issue,
+                                        FailureMessage = string.Format("Issues couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
+                                        Exception = repoTask.Value.Task.Exception,
+                                    }));
+                        repoFailures.AddRange(
+                            allPullRequestsByRepo
+                                .Where(repoTask => repoTask.Value.Task.IsFaulted || repoTask.Value.Task.IsCanceled)
+                                .Select(repoTask =>
+                                    new RepoFailure
+                                    {
+                                        Repo = repoTask.Key,
+                                        IssueType = IssueType.PullRequest,
+                                        FailureMessage = string.Format("Pull requests couldn't be retrieved for the {0}/{1} repo", repoTask.Key.Owner, repoTask.Key.Name),
+                                        Exception = repoTask.Value.Task.Exception,
+                                    }));
 
-            var extraMilestoneData = distinctExtraRepos
-                .OrderBy(repo => repo.Owner + "/" + repo.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(repo =>
-                    new MilestoneSummary()
+                        foreach (var failure in repoFailures)
+                        {
+                            _logger.LogError(
+                                failure.Exception,
+                                "Error retrieving {IssueType} data for {RepositoryOwner}/{RepositoryName}",
+                                failure.IssueType,
+                                failure.Repo.Owner,
+                                failure.Repo.Name);
+                        }
+                    }
+
+                    var allIssues = allIssuesByRepo
+                        .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
+                        .SelectMany(issueList =>
+                            issueList.Value.Task.Result
+                                .Where(
+                                    issue =>
+                                        !IsExcludedMilestone(issue.Milestone?.Title) &&
+                                        issue.PullRequest == null &&
+                                        IsFilteredIssue(issue, repos) &&
+                                        ItemIncludedByInclusionLevel(issue.Assignee?.Login, issueList.Key, peopleInPersonSet))
+                                .Select(
+                                    issue => new IssueWithRepo
+                                    {
+                                        Issue = issue,
+                                        Repo = issueList.Key,
+                                        IsInAssociatedPersonSet = IsInAssociatedPersonSet(issue.Assignee?.Login, personSet),
+                                    }))
+                        .OrderBy(issueWithRepo => issueWithRepo.WorkingStartTime)
+                        .ToList();
+
+                    var workingIssues = allIssues
+                        .Where(issue =>
+                            issue.Issue.Labels
+                                .Any(label => workingLabels.Contains(label.Name, StringComparer.OrdinalIgnoreCase)))
+                        .ToList();
+
+                    var untriagedIssues = allIssues
+                        .Where(issue => issue.Issue.Milestone == null).ToList();
+
+                    var unassignedIssues = allIssues
+                        .Where(issue => issue.Issue.Assignee == null).ToList();
+
+                    var allPullRequests = allPullRequestsByRepo
+                        .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
+                        .SelectMany(pullRequestList =>
+                            pullRequestList.Value.Task.Result
+                                .Where(
+                                    pullRequest => !IsExcludedMilestone(pullRequest.Milestone?.Title) &&
+                                    (ItemIncludedByInclusionLevel(pullRequest.Assignee?.Login, pullRequestList.Key, peopleInPersonSet) ||
+                                    ItemIncludedByInclusionLevel(pullRequest.User.Login, pullRequestList.Key, peopleInPersonSet)))
+                                .Select(pullRequest =>
+                                    new PullRequestWithRepo
+                                    {
+                                        PullRequest = pullRequest,
+                                        Repo = pullRequestList.Key,
+                                        IsInAssociatedPersonSet = IsInAssociatedPersonSet(pullRequest.User?.Login, personSet),
+                                    }))
+                        .OrderBy(pullRequestWithRepo => pullRequestWithRepo.PullRequest.CreatedAt)
+                        .ToList();
+
+
+                    var allIssuesInMainRepos = allIssues.Where(issue => distinctMainRepos.Contains(issue.Repo)).ToList();
+                    var allIssuesInExtraRepos = allIssues.Where(issue => distinctExtraRepos.Contains(issue.Repo)).ToList();
+
+
+                    var mainMilestoneData = distinctMainRepos
+                        .OrderBy(repo => repo.Owner + "/" + repo.Name, StringComparer.OrdinalIgnoreCase)
+                        .Select(repo =>
+                            new MilestoneSummary()
+                            {
+                                Repo = repo,
+                                MilestoneData = allIssuesInMainRepos
+                                    .Where(issue => issue.Repo == repo)
+                                    .GroupBy(issue => issue.Issue.Milestone?.Title)
+                                    .Select(issueMilestoneGroup => new MilestoneData
+                                    {
+                                        Milestone = issueMilestoneGroup.Key,
+                                        OpenIssues = issueMilestoneGroup.Count(),
+                                    })
+                                    .ToList(),
+                            });
+                    var fullSortedMainMilestoneList = mainMilestoneData
+                        .SelectMany(milestone => milestone.MilestoneData)
+                        .Select(milestone => milestone.Milestone)
+                        .Distinct()
+                        .OrderBy(milestone => new PossibleSemanticVersion(milestone));
+
+                    var extraMilestoneData = distinctExtraRepos
+                        .OrderBy(repo => repo.Owner + "/" + repo.Name, StringComparer.OrdinalIgnoreCase)
+                        .Select(repo =>
+                            new MilestoneSummary()
+                            {
+                                Repo = repo,
+                                MilestoneData = allIssuesInExtraRepos
+                                    .Where(issue => issue.Repo == repo)
+                                    .GroupBy(issue => issue.Issue.Milestone?.Title)
+                                    .Select(issueMilestoneGroup => new MilestoneData
+                                    {
+                                        Milestone = issueMilestoneGroup.Key,
+                                        OpenIssues = issueMilestoneGroup.Count(),
+                                    })
+                                    .ToList(),
+                            });
+                    var fullSortedExtraMilestoneList = extraMilestoneData
+                        .SelectMany(milestone => milestone.MilestoneData)
+                        .Select(milestone => milestone.Milestone)
+                        .Distinct()
+                        .OrderBy(milestone => new PossibleSemanticVersion(milestone));
+
+                    var lastApiInfo = gitHubClient.GetLastApiInfo();
+                    _metricsService.Record("TriageController:RateLimitRemaining", lastApiInfo.RateLimit.Remaining);
+
+                    var issueListViewModel = new IssueListViewModel
                     {
-                        Repo = repo,
-                        MilestoneData = allIssuesInExtraRepos
-                            .Where(issue => issue.Repo == repo)
-                            .GroupBy(issue => issue.Issue.Milestone?.Title)
-                            .Select(issueMilestoneGroup => new MilestoneData
-                            {
-                                Milestone = issueMilestoneGroup.Key,
-                                OpenIssues = issueMilestoneGroup.Count(),
-                            })
-                            .ToList(),
-                    });
-            var fullSortedExtraMilestoneList = extraMilestoneData
-                .SelectMany(milestone => milestone.MilestoneData)
-                .Select(milestone => milestone.Milestone)
-                .Distinct()
-                .OrderBy(milestone => new PossibleSemanticVersion(milestone));
+                        LastApiInfo = lastApiInfo,
 
-            var lastApiInfo = gitHubClient.GetLastApiInfo();
+                        RepoFailures = repoFailures,
 
-            var issueListViewModel = new IssueListViewModel
-            {
-                LastApiInfo = lastApiInfo,
+                        GitHubUserName = gitHubName,
+                        LastUpdated = DateTimeOffset.Now.ToPacificTime().ToString(),
 
-                RepoFailures = repoFailures,
+                        ExtraLinks = repos.RepoExtraLinks,
 
-                GitHubUserName = gitHubName,
-                LastUpdated = DateTimeOffset.Now.ToPacificTime().ToString(),
+                        RepoSetName = repoSet,
+                        RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
 
-                ExtraLinks = repos.RepoExtraLinks,
+                        TotalIssues = allIssues.Where(issue => issue.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
+                        WorkingIssues = workingIssues.Count,
+                        UntriagedIssues = untriagedIssues.Where(issue => issue.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
+                        UnassignedIssues = unassignedIssues.Count,
+                        OpenPullRequests = allPullRequests.Where(pr => pr.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
+                        StalePullRequests = allPullRequests.Where(pr => pr.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems && pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
 
-                RepoSetName = repoSet,
-                RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
+                        MainReposIncluded = distinctMainRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
+                        ExtraReposIncluded = distinctExtraRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
+                        MissingRepos = missingOrgRepos,
 
-                TotalIssues = allIssues.Where(issue => issue.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
-                WorkingIssues = workingIssues.Count,
-                UntriagedIssues = untriagedIssues.Where(issue => issue.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
-                UnassignedIssues = unassignedIssues.Count,
-                OpenPullRequests = allPullRequests.Where(pr => pr.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems).Count(),
-                StalePullRequests = allPullRequests.Where(pr => pr.Repo.RepoInclusionLevel == RepoInclusionLevel.AllItems && pr.PullRequest.CreatedAt < DateTimeOffset.Now.AddDays(-14)).Count(),
+                        MainMilestoneSummary = new MilestoneSummaryData
+                        {
+                            MilestoneData = mainMilestoneData.ToList(),
+                            MilestonesAvailable = fullSortedMainMilestoneList.ToList(),
+                        },
+                        ExtraMilestoneSummary = new MilestoneSummaryData
+                        {
+                            MilestoneData = extraMilestoneData.ToList(),
+                            MilestonesAvailable = fullSortedExtraMilestoneList.ToList(),
+                        },
 
-                MainReposIncluded = distinctMainRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
-                ExtraReposIncluded = distinctExtraRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
-                MissingRepos = missingOrgRepos,
+                        OpenIssuesQuery = openIssuesQuery,
+                        WorkingIssuesQuery = workingIssuesQuery,
+                        UntriagedIssuesQuery = untriagedIssuesQuery,
+                        UnassignedIssuesQuery = unassignedIssuesQuery,
+                        OpenPRsQuery = openPRsQuery,
+                        StalePRsQuery = stalePRsQuery,
 
-                MainMilestoneSummary = new MilestoneSummaryData
-                {
-                    MilestoneData = mainMilestoneData.ToList(),
-                    MilestonesAvailable = fullSortedMainMilestoneList.ToList(),
-                },
-                ExtraMilestoneSummary = new MilestoneSummaryData
-                {
-                    MilestoneData = extraMilestoneData.ToList(),
-                    MilestonesAvailable = fullSortedExtraMilestoneList.ToList(),
-                },
-
-                OpenIssuesQuery = openIssuesQuery,
-                WorkingIssuesQuery = workingIssuesQuery,
-                UntriagedIssuesQuery = untriagedIssuesQuery,
-                UnassignedIssuesQuery = unassignedIssuesQuery,
-                OpenPRsQuery = openPRsQuery,
-                StalePRsQuery = stalePRsQuery,
-
-                GroupByAssignee = new GroupByAssigneeViewModel
-                {
-                    Assignees =
-                            new[]
-                            {
+                        GroupByAssignee = new GroupByAssigneeViewModel
+                        {
+                            Assignees =
+                                    new[]
+                                    {
                                 new GroupByAssigneeAssignee
                                 {
                                     Assignee = "<assigned outside this person set>",
@@ -422,26 +465,20 @@ namespace Hubbup.Web.Controllers
                                         .ThenBy(issueWithRepo => issueWithRepo.Issue.Number)
                                         .ToList(),
                                 },
-                            }
-                            .ToList()
-                            .AsReadOnly(),
-                },
-            };
+                                    }
+                                    .ToList()
+                                    .AsReadOnly(),
+                        },
+                    };
 
-            requestStopwatch.Stop();
-            issueListViewModel.PageRequestTime = requestStopwatch.Elapsed;
+                    requestStopwatch.Stop();
+                    issueListViewModel.PageRequestTime = requestStopwatch.Elapsed;
 
-            var pageViewTelemetry = new PageViewTelemetry("RepoSet")
-            {
-                Duration = requestStopwatch.Elapsed,
-                Url = new Uri(Request.GetDisplayUrl()),
-            };
-            pageViewTelemetry.Properties.Add("GitHubUser", gitHubName);
-            pageViewTelemetry.Properties.Add("repoSet", repoSet);
-            pageViewTelemetry.Properties.Add("repoSetValid", "true");
-            TelemetryClient.TrackPageView(pageViewTelemetry);
+                    HttpContext.AddTelemetryProperty("RepoSetValid", true);
 
-            return View(issueListViewModel);
+                    return View(issueListViewModel);
+                }
+            }
         }
 
         private bool ItemIncludedByInclusionLevel(string itemAssignee, RepoDefinition repo, IReadOnlyList<string> peopleInPersonSet)
@@ -514,7 +551,7 @@ namespace Hubbup.Web.Controllers
         {
             const string GitHubQueryPrefix = "https://github.com/search?q=";
 
-            return GitHubQueryPrefix + UrlEncoder.Encode(string.Join(" ", rawQueryParts)) + "&s=updated";
+            return GitHubQueryPrefix + _urlEncoder.Encode(string.Join(" ", rawQueryParts)) + "&s=updated";
         }
 
         public string GetOpenIssuesQuery(string excludedMilestonesQuery, string labelQuery, params RepoDefinition[] repos)

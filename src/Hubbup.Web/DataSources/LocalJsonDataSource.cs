@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,9 +14,8 @@ namespace Hubbup.Web.DataSources
             IOptions<LocalJsonDataSourceOptions> localJsonRepoSetProviderOptions,
             IHostingEnvironment hostingEnvironment,
             IApplicationLifetime applicationLifetime,
-            ILogger<LocalJsonDataSource> logger,
-            TelemetryClient telemetryClient)
-            : base(hostingEnvironment, applicationLifetime, logger, telemetryClient)
+            ILogger<LocalJsonDataSource> logger)
+            : base(hostingEnvironment, applicationLifetime, logger)
         {
             BasePath = Path.Combine(hostingEnvironment.ContentRootPath, localJsonRepoSetProviderOptions.Value.Path);
         }

@@ -263,7 +263,7 @@ namespace Hubbup.Web.Controllers
                     }
 
                     var allIssues = allIssuesByRepo
-                        .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled && repoTask.Value.Task.Result.Any())
+                        .Where(repoTask => !repoTask.Value.Task.IsFaulted && !repoTask.Value.Task.IsCanceled)
                         .SelectMany(issueList =>
                             issueList.Value.Task.Result
                                 .Where(

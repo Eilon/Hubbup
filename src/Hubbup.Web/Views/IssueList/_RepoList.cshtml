@@ -13,34 +13,36 @@
         </tr>
     </thead>
     <tbody>
-        @{var rowsRendered = 0; }
-        @for (var i = 0; i < Model.Count; i++)
-        {
-            if (rowsRendered > 0 && rowsRendered % ViewConstants.ExtraHeaderRowCount == 0)
+        @{
+            var rowsRendered = 0;
+            for (var i = 0; i < Model.Count; i++)
             {
-                <tr style="opacity: 0.5">
-                    <th></th>
-                    <th># open</th>
-                    <th># untriaged</th>
-                    <th># unassigned</th>
-                    <th># working</th>
-                    <th>Open PRs</th>
-                    <th>Stale PRs</th>
-                </tr>
-            }
-            var repo = Model[i];
-            if (repo.OpenIssues > 0 || repo.UntriagedIssues > 0 || repo.UnassignedIssues > 0 || repo.WorkingIssues > 0 || repo.OpenPRs > 0 || repo.StalePRs > 0)
-            {
-                rowsRendered++;
-                <tr>
-                    <td><a href="https://github.com/@repo.Repo.Owner/@repo.Repo.Name/issues">@repo.Repo.Owner/@repo.Repo.Name</a></td>
-                    <td class="@(repo.OpenIssues > 0 ? "info" : "")"><a href="@repo.OpenIssuesQueryUrl">@repo.OpenIssues</a></td>
-                    <td class="@(repo.UntriagedIssues > 0 ? "warning" : "")"><a href="@repo.UntriagedIssuesQueryUrl">@repo.UntriagedIssues</a></td>
-                    <td class="@(repo.UnassignedIssues > 0 ? "warning" : "")"><a href="@repo.UnassignedIssuesQueryUrl">@repo.UnassignedIssues</a></td>
-                    <td class="@(repo.WorkingIssues > 0 ? "success" : "")"><a href="@repo.WorkingIssuesQueryUrl">@repo.WorkingIssues</a></td>
-                    <td class="@(repo.OpenPRs > 0 ? "success" : "")"><a href="@repo.OpenPRsQueryUrl">@repo.OpenPRs</a></td>
-                    <td class="@(repo.StalePRs > 0 ? "danger" : "")"><a href="@repo.StalePRsQueryUrl">@repo.StalePRs</a></td>
-                </tr>
+                if (rowsRendered > 0 && rowsRendered % ViewConstants.ExtraHeaderRowCount == 0)
+                {
+                    <tr style="opacity: 0.5">
+                        <th></th>
+                        <th># open</th>
+                        <th># untriaged</th>
+                        <th># unassigned</th>
+                        <th># working</th>
+                        <th>Open PRs</th>
+                        <th>Stale PRs</th>
+                    </tr>
+                }
+                var repo = Model[i];
+                if (repo.OpenIssues > 0 || repo.UntriagedIssues > 0 || repo.UnassignedIssues > 0 || repo.WorkingIssues > 0 || repo.OpenPRs > 0 || repo.StalePRs > 0)
+                {
+                    rowsRendered++;
+                    <tr>
+                        <td><a href="https://github.com/@repo.Repo.Owner/@repo.Repo.Name/issues">@repo.Repo.Owner/@repo.Repo.Name</a></td>
+                        <td class="@(repo.OpenIssues > 0 ? "info" : "")"><a href="@repo.OpenIssuesQueryUrl">@repo.OpenIssues</a></td>
+                        <td class="@(repo.UntriagedIssues > 0 ? "warning" : "")"><a href="@repo.UntriagedIssuesQueryUrl">@repo.UntriagedIssues</a></td>
+                        <td class="@(repo.UnassignedIssues > 0 ? "warning" : "")"><a href="@repo.UnassignedIssuesQueryUrl">@repo.UnassignedIssues</a></td>
+                        <td class="@(repo.WorkingIssues > 0 ? "success" : "")"><a href="@repo.WorkingIssuesQueryUrl">@repo.WorkingIssues</a></td>
+                        <td class="@(repo.OpenPRs > 0 ? "success" : "")"><a href="@repo.OpenPRsQueryUrl">@repo.OpenPRs</a></td>
+                        <td class="@(repo.StalePRs > 0 ? "danger" : "")"><a href="@repo.StalePRsQueryUrl">@repo.StalePRs</a></td>
+                    </tr>
+                }
             }
         }
     </tbody>

@@ -1,6 +1,6 @@
 {
-  "kcore": {
-    "AssociatedPersonSetName": "Murat",
+  "testreposet": {
+    "AssociatedPersonSetName": "TestPersonSet",
     "WorkingLabels": [ "2 - Working", "1 - Working", "2 - In Progress", "3 - Working" ],
     "RepoExtraLinks": [
       {
@@ -21,26 +21,6 @@
       }
     ],
     "Repos": [
-      {
-        "org": "aspnet",
-        "repo": "aspnet-docker",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "AspNetKatana",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "aspnet-win-docker",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "AzureIntegration",
-        "inclusionLevel": "AllItems"
-      },
       {
         "org": "aspnet",
         "repo": "BasicMiddleware",
@@ -325,16 +305,6 @@
       {
         "org": "aspnet",
         "repo": "Infrastructure",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "jquery-ajax-unobtrusive",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "jquery-validation-unobtrusive",
         "inclusionLevel": "ItemsAssignedToPersonSet"
       },
       {

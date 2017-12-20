@@ -7,7 +7,7 @@
     <UserSecretsId>hubbup</UserSecretsId>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked> 
     <LangVersion>latest</LangVersion> 
-    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.5</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>

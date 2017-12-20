@@ -25,10 +25,11 @@ class ErrorPanel extends React.Component<{ message: string }, undefined> {
     }
 };
 
-class UserIcon extends React.Component<{ user: Data.User }, undefined> {
+class UserIcon extends React.Component<{ user: Data.User, small?: Boolean }, undefined> {
     render() {
+        const size = this.props.small ? 16 : 32;
         return <a href={this.props.user.url}>
-            <img style={{ margin: '0.1em' }} height="32" width="32" src={this.props.user.avatarUrl} title={this.props.user.login} alt={this.props.user.login} />
+            <img style={{ margin: '0.1em' }} height={size} width={size} src={this.props.user.avatarUrl} title={this.props.user.login} alt={this.props.user.login} />
         </a>;
     }
 }
@@ -43,11 +44,11 @@ class IssueUserView extends React.Component<{ issue: Data.Issue }, undefined> {
         </span>;
 
         const style = { whiteSpace: 'nowrap' };
-        if (issue.assignees && issue.assignees[0] && issue.assignees[0].id !== issue.author.id) {
+        if (issue.assignees && issue.assignees.length > 0) {
             return <div className="col-md-3" style={style}>
                 <UserIcon user={issue.author} />
                 <span className="glyphicon glyphicon-arrow-right" />
-                <UserIcon user={issue.assignees[0]} />
+                {issue.assignees.map((assignee, i) => <UserIcon user={assignee} small={i > 0} />)}
                 {issueLink}
             </div>
         } else {

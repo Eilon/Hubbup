@@ -196,7 +196,7 @@ namespace Hubbup.Web.DataSources
 
             public void Dispose()
             {
-                Content.Dispose();
+                Content?.Dispose();
             }
         }
 

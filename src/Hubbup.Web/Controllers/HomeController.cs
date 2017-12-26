@@ -30,56 +30,5 @@ namespace Hubbup.Web.Controllers
                 RepoSetLists = repoDataSet.GetRepoSetLists(),
             });
         }
-
-        [Route("missingrepos")]
-        [Authorize]
-        public async Task<IActionResult> MissingRepos()
-        {
-            var gitHubName = HttpContext.User.Identity.Name;
-            var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
-            var gitHubClient = GitHubUtils.GetGitHubClient(gitHubAccessToken);
-
-            var repoDataSet = _dataSource.GetRepoDataSet();
-
-            var repoSetLists = repoDataSet.GetRepoSetLists();
-            var distinctOrgs =
-                repoSetLists
-                    .SelectMany(
-                        repoSet => repoSet.Value.Repos.Select(repoDefinition => repoDefinition.Owner))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(org => org).ToList();
-
-            var allOrgRepos = new ConcurrentDictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-
-            var result = AsyncParallelUtils.ForEachAsync(distinctOrgs, 5, async org =>
-            {
-                var reposInOrg = await gitHubClient.Repository.GetAllForOrg(org);
-                allOrgRepos[org] = reposInOrg.Where(repo => !repo.Fork).Select(repo => repo.Name).ToArray();
-            });
-            await result;
-
-            var missingOrgRepos = allOrgRepos.Select(org =>
-                new MissingRepoSet
-                {
-                    Org = org.Key,
-                    MissingRepos =
-                        org.Value
-                            .Except(
-                                repoSetLists
-                                    .SelectMany(repoSetList => repoSetList.Value.Repos)
-                                    .Select(repoDefinition => repoDefinition.Name), StringComparer.OrdinalIgnoreCase)
-                            .OrderBy(repo => repo, StringComparer.OrdinalIgnoreCase)
-                            .ToList(),
-                })
-                .OrderBy(missingRepoSet => missingRepoSet.Org, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            return View(new MissingReposViewModel
-            {
-                GitHubUserName = gitHubName,
-                RepoSetNames = repoDataSet.GetRepoSetLists().Select(repoSetList => repoSetList.Key).ToArray(),
-                MissingRepos = missingOrgRepos,
-            });
-        }
     }
 }

@@ -128,7 +128,9 @@ namespace Hubbup.Web.Controllers
                 var distinctRepos =
                     repos.Repos
                         .Distinct()
-                        .Where(repo => repo.RepoInclusionLevel != RepoInclusionLevel.None)
+                        .Where(repo =>
+                            repo.RepoInclusionLevel != RepoInclusionLevel.NotInRepoSet &&
+                            repo.RepoInclusionLevel != RepoInclusionLevel.Ignored)
                         .ToArray();
                 var personSetName = repos.AssociatedPersonSetName;
                 var personSet = _dataSource.GetPersonSet(personSetName);
@@ -172,7 +174,10 @@ namespace Hubbup.Web.Controllers
                         MissingRepos =
                             org.Value
                                 .Except(
-                                    distinctRepos
+                                    repos.Repos
+                                        .Distinct()
+                                        .Where(repo =>
+                                            repo.RepoInclusionLevel != RepoInclusionLevel.NotInRepoSet)
                                         .Select(repoDefinition => repoDefinition.Name), StringComparer.OrdinalIgnoreCase)
                                 .OrderBy(repo => repo, StringComparer.OrdinalIgnoreCase)
                                 .ToList(),
@@ -388,6 +393,19 @@ namespace Hubbup.Web.Controllers
                         MainReposIncluded = distinctMainRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
                         ExtraReposIncluded = distinctExtraRepos.GetRepoSummary(allIssues, workingIssues, allPullRequests, labelQuery, workingLabels, this),
                         MissingRepos = missingOrgRepos,
+                        IgnoredRepos = repos.Repos
+                            .Where(repo => repo.RepoInclusionLevel == RepoInclusionLevel.Ignored)
+                            .GroupBy(repo => repo.Owner, StringComparer.OrdinalIgnoreCase)
+                            .Select(ignoredRepoGroup => new MissingRepoSet
+                            {
+                                Org = ignoredRepoGroup.Key,
+                                MissingRepos = ignoredRepoGroup
+                                    .Select(repo => repo.Name)
+                                    .OrderBy(repoName => repoName, StringComparer.OrdinalIgnoreCase)
+                                    .ToArray()
+                            })
+                            .OrderBy(missingRepoSet => missingRepoSet.Org, StringComparer.OrdinalIgnoreCase)
+                            .ToArray(),
 
                         MainMilestoneSummary = new MilestoneSummaryData
                         {

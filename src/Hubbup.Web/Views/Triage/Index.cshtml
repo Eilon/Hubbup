@@ -170,7 +170,7 @@
                 {
                     <hr />
 
-                    <h2>Repos not included</h2>
+                    <h2>Repos not listed in the repo set</h2>
 
                     @foreach (var missingRepoSet in Model.MissingRepos)
                     {
@@ -191,6 +191,37 @@
                                 else
                                 {
                                     <h3>No missing repos in this org</h3>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+
+                @if (Model.IgnoredRepos.Any())
+                {
+                    <hr />
+
+                    <h2>Repos ignored in the repo set</h2>
+
+                    @foreach (var ignoredRepoSet in Model.IgnoredRepos)
+                    {
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><strong>@ignoredRepoSet.Org</strong> <span class="badge">@ignoredRepoSet.MissingRepos.Count</span></h3>
+                            </div>
+                            <div class="panel-body">
+                                @if (ignoredRepoSet.MissingRepos.Count > 0)
+                                {
+                                    @foreach (var repo in ignoredRepoSet.MissingRepos)
+                                    {
+                                        <span class="bg-info" style="padding:5px; margin: 5px; line-height: 2.5em; border: 1px solid #ccc;">
+                                            <a style="white-space:nowrap;" href="https://github.com/@ignoredRepoSet.Org/@repo/issues">@ignoredRepoSet.Org/@repo</a>
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <h3>No ignored repos in this org</h3>
                                 }
                             </div>
                         </div>

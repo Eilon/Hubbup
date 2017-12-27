@@ -175,8 +175,12 @@ namespace Hubbup.Web.DataSources
                         })
                         .ToList()
                     : new List<RepoExtraLink>(),
-                Repos = repoInfo.Repos
-                    .Select(repoDef => new RepoDefinition(repoDef.Org, repoDef.Repo, (RepoInclusionLevel)Enum.Parse(typeof(RepoInclusionLevel), repoDef.InclusionLevel, ignoreCase: true)))
+                Repos = repoInfo.RepoSetInclusions
+                    .AllItems.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.AllItems))
+                    .Concat(repoInfo.RepoSetInclusions
+                        .AssignedToPersonSet.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.ItemsAssignedToPersonSet)))
+                    .Concat(repoInfo.RepoSetInclusions
+                        .Ignore.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.Ignored)))
                     .ToArray(),
             };
         }
@@ -220,6 +224,14 @@ namespace Hubbup.Web.DataSources
             public string LabelFilter { get; set; }
             public RepoExtraLinkDto[] RepoExtraLinks { get; set; }
             public RepoInfoDto[] Repos { get; set; }
+            public RepoSetInclusionDto RepoSetInclusions { get; set; }
+        }
+
+        private class RepoSetInclusionDto
+        {
+            public string[] AllItems { get; set; }
+            public string[] AssignedToPersonSet { get; set; }
+            public string[] Ignore { get; set; }
         }
 
         private class RepoInfoDto

@@ -27,6 +27,7 @@ namespace Hubbup.Web.ViewModels
         public MilestoneSummaryData MainMilestoneSummary { get; set; }
         public MilestoneSummaryData ExtraMilestoneSummary { get; set; }
         public IList<MissingRepoSet> MissingRepos { get; set; }
+        public IList<MissingRepoSet> IgnoredRepos { get; set; }
 
         public string OpenIssuesQuery { get; set; }
         public string UntriagedIssuesQuery { get; set; }

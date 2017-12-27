@@ -161,6 +161,18 @@ namespace Hubbup.Web.DataSources
 
         private static RepoSetDefinition CreateRepoSetDefinition(RepoSetDto repoInfo)
         {
+            var repos = repoInfo.RepoSetInclusions != null
+                ? repoInfo.RepoSetInclusions
+                    .AllItems.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.AllItems))
+                    .Concat(repoInfo.RepoSetInclusions
+                        .AssignedToPersonSet.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.ItemsAssignedToPersonSet)))
+                    .Concat(repoInfo.RepoSetInclusions
+                        .Ignore.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.Ignored)))
+                    .ToArray()
+                : repoInfo.Repos
+                    .Select(repoDef => new RepoDefinition(repoDef.Org, repoDef.Repo, (RepoInclusionLevel)Enum.Parse(typeof(RepoInclusionLevel), repoDef.InclusionLevel, ignoreCase: true)))
+                    .ToArray();
+
             return new RepoSetDefinition
             {
                 AssociatedPersonSetName = repoInfo.AssociatedPersonSetName,
@@ -175,13 +187,7 @@ namespace Hubbup.Web.DataSources
                         })
                         .ToList()
                     : new List<RepoExtraLink>(),
-                Repos = repoInfo.RepoSetInclusions
-                    .AllItems.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.AllItems))
-                    .Concat(repoInfo.RepoSetInclusions
-                        .AssignedToPersonSet.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.ItemsAssignedToPersonSet)))
-                    .Concat(repoInfo.RepoSetInclusions
-                        .Ignore.Select(r => new RepoDefinition(r.Split('/')[0], r.Split('/')[1], RepoInclusionLevel.Ignored)))
-                    .ToArray(),
+                Repos = repos,
             };
         }
 

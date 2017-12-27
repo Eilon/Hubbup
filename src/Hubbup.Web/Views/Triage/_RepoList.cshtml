@@ -17,21 +17,21 @@
             var rowsRendered = 0;
             for (var i = 0; i < Model.Count; i++)
             {
-                if (rowsRendered > 0 && rowsRendered % ViewConstants.ExtraHeaderRowCount == 0)
-                {
-                    <tr style="opacity: 0.5">
-                        <th></th>
-                        <th># open</th>
-                        <th># untriaged</th>
-                        <th># unassigned</th>
-                        <th># working</th>
-                        <th>Open PRs</th>
-                        <th>Stale PRs</th>
-                    </tr>
-                }
                 var repo = Model[i];
                 if (repo.OpenIssues > 0 || repo.UntriagedIssues > 0 || repo.UnassignedIssues > 0 || repo.WorkingIssues > 0 || repo.OpenPRs > 0 || repo.StalePRs > 0)
                 {
+                    if (rowsRendered > 0 && rowsRendered % ViewConstants.ExtraHeaderRowCount == 0)
+                    {
+                        <tr style="opacity: 0.5">
+                            <th></th>
+                            <th># open</th>
+                            <th># untriaged</th>
+                            <th># unassigned</th>
+                            <th># working</th>
+                            <th>Open PRs</th>
+                            <th>Stale PRs</th>
+                        </tr>
+                    }
                     rowsRendered++;
                     <tr>
                         <td><a href="https://github.com/@repo.Repo.Owner/@repo.Repo.Name/issues">@repo.Repo.Owner/@repo.Repo.Name</a></td>

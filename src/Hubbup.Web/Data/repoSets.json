@@ -20,6 +20,112 @@
         "Url": "https://msit.powerbi.com/groups/b5743765-ec44-4dfc-91df-e32401023530/reports/54ab8db5-5f70-409a-b522-1eb107ce52ee/ReportSection"
       }
     ],
+    "RepoSetInclusions": {
+      "AllItems": [
+        "aspnet/BasicMiddleware",
+        "aspnet/DataProtection"
+      ],
+      "AssignedToPersonSet": [
+        "aspnet/EntityFramework",
+        "aspnet/EventNotification"
+      ],
+      "Ignore": [
+        "aspnet/Release",
+        "aspnet/Routing",
+        "aspnet/Templates",
+        "aspnet/Docs.cs-cz",
+        "aspnet/Docs.de-de",
+        "aspnet/Docs.es-es",
+        "aspnet/Docs.fr-fr",
+        "aspnet/Docs.it-it",
+        "aspnet/Docs.ja-jp",
+        "aspnet/Docs.ko-kr",
+        "aspnet/Docs.pl-pl",
+        "aspnet/Docs.pt-br",
+        "aspnet/Docs.ru-ru",
+        "aspnet/Docs.tr-tr",
+        "aspnet/Docs.zh-cn",
+        "aspnet/Docs.zh-tw",
+        "aspnet/EntityFramework.Docs",
+        "aspnet/EntityFramework.Docs.cs-cz",
+        "aspnet/EntityFramework.Docs.de-de",
+        "aspnet/EntityFramework.Docs.es-es",
+        "aspnet/EntityFramework.Docs.fr-fr",
+        "aspnet/EntityFramework.Docs.it-it",
+        "aspnet/EntityFramework.Docs.ja-jp",
+        "aspnet/EntityFramework.Docs.ko-kr",
+        "aspnet/EntityFramework.Docs.pl-pl",
+        "aspnet/EntityFramework.Docs.pt-br",
+        "aspnet/EntityFramework.Docs.ru-ru",
+        "aspnet/EntityFramework.Docs.tr-tr",
+        "aspnet/EntityFramework.Docs.zh-cn",
+        "aspnet/EntityFramework.Docs.zh-tw"
+      ]
+    }
+  },
+  "testreposet2": {
+    "AssociatedPersonSetName": "TestPersonSet",
+    "WorkingLabels": [ "2 - Working", "1 - Working", "2 - In Progress", "3 - Working" ],
+    "RepoExtraLinks": [
+      {
+        "Title": "ASP.NET CI",
+        "Url": "http://aspnetci/"
+      },
+      {
+        "Title": "Travis CI",
+        "Url": "https://travis-ci.org/aspnet"
+      },
+      {
+        "Title": "Team OneNote",
+        "Url": "https://microsoft.sharepoint.com/teams/dotnetserver/SiteAssets/DotNetServer%20Notebook/"
+      },
+      {
+        "Title": "ASP.NET Perf",
+        "Url": "https://msit.powerbi.com/groups/b5743765-ec44-4dfc-91df-e32401023530/reports/54ab8db5-5f70-409a-b522-1eb107ce52ee/ReportSection"
+      }
+    ],
+    "RepoSetInclusions": {
+      "AllItems": [
+        "aspnet/BasicMiddleware",
+        "aspnet/DataProtection"
+      ],
+      "AssignedToPersonSet": [
+        "aspnet/EntityFramework",
+        "aspnet/EventNotification"
+      ],
+      "Ignore": [
+        "aspnet/Release",
+        "aspnet/Routing",
+        "aspnet/Templates",
+        "aspnet/Docs.cs-cz",
+        "aspnet/Docs.de-de",
+        "aspnet/Docs.es-es",
+        "aspnet/Docs.fr-fr",
+        "aspnet/Docs.it-it",
+        "aspnet/Docs.ja-jp",
+        "aspnet/Docs.ko-kr",
+        "aspnet/Docs.pl-pl",
+        "aspnet/Docs.pt-br",
+        "aspnet/Docs.ru-ru",
+        "aspnet/Docs.tr-tr",
+        "aspnet/Docs.zh-cn",
+        "aspnet/Docs.zh-tw",
+        "aspnet/EntityFramework.Docs",
+        "aspnet/EntityFramework.Docs.cs-cz",
+        "aspnet/EntityFramework.Docs.de-de",
+        "aspnet/EntityFramework.Docs.es-es",
+        "aspnet/EntityFramework.Docs.fr-fr",
+        "aspnet/EntityFramework.Docs.it-it",
+        "aspnet/EntityFramework.Docs.ja-jp",
+        "aspnet/EntityFramework.Docs.ko-kr",
+        "aspnet/EntityFramework.Docs.pl-pl",
+        "aspnet/EntityFramework.Docs.pt-br",
+        "aspnet/EntityFramework.Docs.ru-ru",
+        "aspnet/EntityFramework.Docs.tr-tr",
+        "aspnet/EntityFramework.Docs.zh-cn",
+        "aspnet/EntityFramework.Docs.zh-tw"
+      ]
+    },
     "Repos": [
       {
         "org": "aspnet",
@@ -30,11 +136,6 @@
         "org": "aspnet",
         "repo": "BuildTrain",
         "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "Caching",
-        "inclusionLevel": "AllItems"
       },
       {
         "org": "aspnet",
@@ -75,76 +176,6 @@
         "org": "aspnet",
         "repo": "dnx",
         "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "dotnet-do",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "DotNetTools",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "Entropy",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "FileSystem",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "Helios",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "homebrew-dnx",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "Hosting",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "HttpAbstractions",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "IISIntegration",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "KestrelHttpServer",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "KoreBuild",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "libuv-build",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "libuv-package",
-        "inclusionLevel": "AllItems"
-      },
-      {
-        "org": "aspnet",
-        "repo": "Logging",
-        "inclusionLevel": "AllItems"
       },
       {
         "org": "aspnet",
@@ -389,41 +420,6 @@
       },
       {
         "org": "aspnet",
-        "repo": "SignalR-Client-Java",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "SignalR-Client-JS",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "SignalR-Client-Net",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "SignalR-Redis",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "SignalR-Server",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "SignalR-ServiceBus",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
-        "repo": "SignalR-SqlServer",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "aspnet",
         "repo": "Stress",
         "inclusionLevel": "ItemsAssignedToPersonSet"
       },
@@ -446,16 +442,6 @@
       {
         "org": "dotnet",
         "repo": "corefx",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "omnisharp",
-        "repo": "omnisharp-roslyn",
-        "inclusionLevel": "ItemsAssignedToPersonSet"
-      },
-      {
-        "org": "SignalR",
-        "repo": "SignalR",
         "inclusionLevel": "ItemsAssignedToPersonSet"
       }
     ]

@@ -88,9 +88,9 @@ namespace Hubbup.Web.Controllers
             };
         }
 
-        private static bool IsExcludedMilestone(string repoName)
+        private static bool IsExcludedMilestone(string milestoneName)
         {
-            return ExcludedMilestones.Contains(repoName, StringComparer.OrdinalIgnoreCase);
+            return ExcludedMilestones.Contains(milestoneName, StringComparer.OrdinalIgnoreCase);
         }
 
         [Route("/triage/{repoSet}")]

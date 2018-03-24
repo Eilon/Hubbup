@@ -18,7 +18,7 @@ namespace Hubbup.Web.Models
         public UserReference Author { get; set; }
         public Milestone Milestone { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
-        public DateTimeOffset UpdatedAt { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
         public DateTimeOffset? WorkingStartedAt { get; set; }
         public int CommentCount { get; set; }
 

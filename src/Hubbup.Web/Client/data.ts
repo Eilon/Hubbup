@@ -67,3 +67,8 @@ export interface RepoSetIssueResult {
     restRateLimit: RestRateLimit;
     pages: number;
 }
+
+export interface DispatchPageData {
+    issuesWithoutRepoLabels: Issue[];
+    repoLabels: string[]
+}

@@ -18,7 +18,11 @@ namespace Hubbup.Web.Models
         public string GenerateQuery(params string[] additionalFields)
         {
             return string.Join(" ", Enumerable.Concat(
-                Repos.Select(r => $"repo:{r.Owner}/{r.Name}"),
+                Repos
+                    .Where(r =>
+                        r.RepoInclusionLevel == RepoInclusionLevel.AllItems ||
+                        r.RepoInclusionLevel == RepoInclusionLevel.ItemsAssignedToPersonSet)
+                    .Select(r => $"repo:{r.Owner}/{r.Name}"),
                 additionalFields));
         }
     }

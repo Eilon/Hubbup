@@ -31,6 +31,13 @@ namespace Hubbup.Web
             HostingEnvironment = hostingEnvironment;
         }
 
+        public static readonly string[] GitHubScopes = new[]
+        {
+            "repo",
+            "read:org",
+        };
+        public static readonly string GitHubScopeString = string.Join(", ", GitHubScopes);
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
@@ -61,6 +68,7 @@ namespace Hubbup.Web
                 .AddCookie(options =>
                 {
                     options.LoginPath = new PathString("/signin");
+                    options.Cookie.Name = "HubbupAuthCookie";
                 })
                 .AddOAuth("GitHub", options =>
                 {
@@ -72,7 +80,10 @@ namespace Hubbup.Web
 
                     options.ClientId = Configuration["GitHubClientId"];
                     options.ClientSecret = Configuration["GitHubClientSecret"];
-                    options.Scope.Add("repo");
+                    foreach (var ghScope in GitHubScopes)
+                    {
+                        options.Scope.Add(ghScope);
+                    }
                     options.SaveTokens = true;
 
                     options.Events.OnCreatingTicket = async context =>
@@ -92,6 +103,8 @@ namespace Hubbup.Web
                         //context.Identity.AddClaim(new Claim(ClaimTypes.Email, payload.Value<string>("email"), context.Options.ClaimsIssuer));
                         //context.Identity.AddClaim(new Claim("urn:github:name", payload.Value<string>("name"), context.Options.ClaimsIssuer));
                         context.Identity.AddClaim(new Claim("urn:github:url", payload.Value<string>("url"), context.Options.ClaimsIssuer));
+
+                        context.Identity.AddClaim(new Claim("gh-scopes", GitHubScopeString));
                     };
                 });
 

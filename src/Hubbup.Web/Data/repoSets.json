@@ -23,6 +23,7 @@
     "RepoSetInclusions": {
       "AllItems": [
         "aspnet/BasicMiddleware",
+        "aspnet/Hosting",
         "aspnet/DataProtection"
       ],
       "AssignedToPersonSet": [

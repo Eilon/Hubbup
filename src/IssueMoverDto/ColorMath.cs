@@ -1,4 +1,6 @@
-﻿namespace Hubbup.Web.Utils
+﻿using System.Globalization;
+
+namespace Hubbup.Web.Utils
 {
     public static class ColorMath
     {
@@ -12,7 +14,7 @@
         /// <returns></returns>
         public static string GetHexForeColorForBackColor(string hexBackColor)
         {
-            var backColorInt = int.Parse(hexBackColor, System.Globalization.NumberStyles.HexNumber);
+            var backColorInt = int.Parse(hexBackColor, NumberStyles.HexNumber);
 
             var r = ((backColorInt & 0xff0000) >> 16) / 255f;
             var g = ((backColorInt & 0x00ff00) >> 8) / 255f;

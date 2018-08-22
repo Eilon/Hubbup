@@ -1,18 +1,21 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Reflection;
 using System.Security.Claims;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -54,7 +57,7 @@ namespace Hubbup.Web
             }
 
             services.AddSingleton<IGitHubDataSource, GitHubDataSource>();
-            services.AddSingleton<IHostedService, DataLoadingService>();
+            services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, DataLoadingService>();
 
             services.AddMemoryCache();
 
@@ -123,6 +126,15 @@ namespace Hubbup.Web
                 })
                 .AddApplicationInsights();
             services.AddSingleton<IRequestTelemetryListener, ApplicationInsightsRequestTelemetryListener>();
+
+            services.AddResponseCompression(options =>
+            {
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+                {
+                    MediaTypeNames.Application.Octet,
+                    WasmMediaTypeNames.Application.Wasm,
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory, IDataSource dataSource, IApplicationLifetime lifetime)
@@ -150,6 +162,8 @@ namespace Hubbup.Web
             app.UseAuthentication();
 
             app.UseMvc();
+
+            app.UseBlazor<IssueMoverClient.Program>();
         }
     }
 }

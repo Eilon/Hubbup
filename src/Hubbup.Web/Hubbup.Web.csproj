@@ -20,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="0.5.0" />
     <PackageReference Include="NuGet.Versioning" Version="4.0.0" />
     <PackageReference Include="Octokit" Version="0.28.0" />
   </ItemGroup>
@@ -29,7 +31,6 @@
     <Exec Command="npm run build" />
   </Target>
 
-  </ItemGroup>
   <ItemGroup>
     <Content Update="Data\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -37,7 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Hubbup.IssueMoverClient\Hubbup.IssueMoverClient.csproj" />
     <ProjectReference Include="..\Hubbup.Web.Diagnostics\Hubbup.Web.Diagnostics.csproj" />
+    <ProjectReference Include="..\IssueMoverDto\IssueMoverDto.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +50,12 @@
     <TypeScriptCompile Include="Client\global.ts" />
     <TypeScriptCompile Include="Client\Standup\components.tsx" />
     <TypeScriptCompile Include="Client\Standup\page.tsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Pages\Mover.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,29 @@
+﻿<div class="progress" style="width: 100%; visibility:@(Style == ProgressBarStyle.None ? "hidden" : "visible")">
+    <div class="progress-bar @GetProgressBarClass(Style)" role="progressbar" style="width: 100%">
+        <span>@Text</span>
+    </div>
+</div>
+
+@functions {
+    [Parameter]
+    private ProgressBarStyle Style { get; set; }
+
+    [Parameter]
+    private string Text { get; set; }
+
+    private static string GetProgressBarClass(ProgressBarStyle style)
+    {
+        switch (style)
+        {
+            case ProgressBarStyle.InProgress:
+                return "progress-bar-striped active";
+            case ProgressBarStyle.Success:
+                return "progress-bar-success";
+            case ProgressBarStyle.Error:
+                return "progress-bar-danger";
+            case ProgressBarStyle.None:
+            default:
+                return string.Empty;
+        }
+    }
+}

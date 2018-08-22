@@ -1,3 +1,4 @@
+using System;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ namespace Hubbup.Web.Diagnostics.Telemetry
             }
             else
             {
-                telemetry.Properties.Add(name, value.ToString());
+                telemetry.Properties.Add(name, Convert.ToString(value));
             }
         }
     }

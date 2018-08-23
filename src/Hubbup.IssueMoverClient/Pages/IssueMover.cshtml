@@ -26,7 +26,7 @@
             </div>
             <div class="col-md-1">
                 <div class="input-group">
-                    <input type="button" class="form-control-static @(state.ShouldMoveButtonBeEnabled() ? "" : "disabled")" disabled="@(!state.ShouldMoveButtonBeEnabled())" value="Go" onclick="@state.OnMoveButtonClick" />
+                    <input type="button" class="btn btn-info @(state.ShouldMoveButtonBeEnabled() ? "" : "disabled")" disabled="@(!state.ShouldMoveButtonBeEnabled())" value="Go" onclick="@state.OnMoveButtonClick" />
                 </div>
             </div>
         </div>

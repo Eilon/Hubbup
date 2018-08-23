@@ -52,10 +52,4 @@
     <TypeScriptCompile Include="Client\Standup\page.tsx" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="Pages\Mover.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-  </ItemGroup>
-
 </Project>

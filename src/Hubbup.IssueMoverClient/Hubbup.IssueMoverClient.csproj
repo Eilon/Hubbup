@@ -8,16 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="App.cshtml2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="App.cshtml2" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Browser" Version="0.5.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.5.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,4 @@
 @page
-@using Microsoft.AspNetCore.Http
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
 @{
     ViewData["PageTitlePrefix"] = $"Issue Mover";
@@ -8,10 +7,3 @@
 <app>Loading issue mover...</app>
 
 <script src="_framework/blazor.webassembly.js"></script>
-
-<div data-base-url="@Url.Content("~/")">
-</div>
-
-
-@section scripts {
-}

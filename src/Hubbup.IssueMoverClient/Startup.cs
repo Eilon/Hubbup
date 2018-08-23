@@ -7,6 +7,7 @@ namespace Hubbup.IssueMoverClient
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<AppState>();
         }
 
         public void Configure(IBlazorApplicationBuilder app)

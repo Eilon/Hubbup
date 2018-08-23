@@ -116,7 +116,9 @@ namespace Hubbup.IssueMoverClient
                 !IssueQueryInProgress &&
                 !ToRepoQueryInProgress &&
                 IsValidIssueFormat(FromValue) &&
-                IsValidRepoFormat(ToValue);
+                IsValidRepoFormat(ToValue) &&
+                OriginalIssueMoveData != null &&
+                DestinationRepoMoveData != null;
         }
 
         public async Task OnFromInputBlur()
@@ -152,7 +154,25 @@ namespace Hubbup.IssueMoverClient
             IssueQueryInProgress = true;
             NotifyStateChanged();
 
-            OriginalIssueMoveData = await Http.GetJsonAsync<IssueMoveData>($"/api/getmovedata/{fromOwner}/{fromRepo}/{fromIssueNumber}");
+            try
+            {
+                OriginalIssueMoveData = await Http.GetJsonAsync<IssueMoveData>($"/api/getmovedata/{fromOwner}/{fromRepo}/{fromIssueNumber}");
+            }
+            catch (Exception ex)
+            {
+                OriginalIssueMoveData = null;
+                AddJsonLog(new ErrorLogEntry
+                {
+                    Description = "Error calling 'getmovedata'",
+                    Exception = ex,
+                });
+                IssueQueryInProgress = false;
+
+                FromProgressBarText = $"Error!";
+                FromProgressBarStyle = ProgressBarStyle.Error;
+                return;
+            }
+
             AddJsonLog(OriginalIssueMoveData);
             IssueQueryInProgress = false;
 
@@ -192,7 +212,25 @@ namespace Hubbup.IssueMoverClient
             ToRepoQueryInProgress = true;
             NotifyStateChanged();
 
-            DestinationRepoMoveData = await Http.GetJsonAsync<RepoMoveData>($"/api/getrepodata/{toOwner}/{toRepo}");
+            try
+            {
+                DestinationRepoMoveData = await Http.GetJsonAsync<RepoMoveData>($"/api/getrepodata/{toOwner}/{toRepo}");
+            }
+            catch (Exception ex)
+            {
+                DestinationRepoMoveData = null;
+                AddJsonLog(new ErrorLogEntry
+                {
+                    Description = "Error calling 'getrepodata'",
+                    Exception = ex,
+                });
+                ToRepoQueryInProgress = false;
+
+                ToProgressBarText = $"Error!";
+                ToProgressBarStyle = ProgressBarStyle.Error;
+                return;
+            }
+
             AddJsonLog(DestinationRepoMoveData);
             ToRepoQueryInProgress = false;
 
@@ -226,8 +264,23 @@ namespace Hubbup.IssueMoverClient
 
                     if (OriginalIssueMoveData.Labels.Any())
                     {
-                        var labelCreateResult = await Http.PostJsonAsync<LabelCreateResult>($"/api/createlabels/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}", new LabelCreateRequest { Labels = OriginalIssueMoveData.Labels, });
-                        AddJsonLog(labelCreateResult);
+                        try
+                        {
+                            var labelCreateResult = await Http.PostJsonAsync<LabelCreateResult>($"/api/createlabels/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}", new LabelCreateRequest { Labels = OriginalIssueMoveData.Labels, });
+                            AddJsonLog(labelCreateResult);
+                        }
+                        catch (Exception ex)
+                        {
+                            AddJsonLog(new ErrorLogEntry
+                            {
+                                Description = "Error calling 'createlabels'",
+                                Exception = ex,
+                            });
+
+                            createLabelState.Result = "Error!";
+                            createLabelState.Success = false;
+                            return;
+                        }
 
                         createLabelState.Result = "Done!";
                         createLabelState.Success = true;
@@ -250,8 +303,23 @@ namespace Hubbup.IssueMoverClient
 
                     if (!string.IsNullOrEmpty(OriginalIssueMoveData.Milestone))
                     {
-                        var milestoneCreateResult = await Http.PostJsonAsync<MilestoneCreateResult>($"/api/createmilestone/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}", new MilestoneCreateRequest { Milestone = OriginalIssueMoveData.Milestone, });
-                        AddJsonLog(milestoneCreateResult);
+                        try
+                        {
+                            var milestoneCreateResult = await Http.PostJsonAsync<MilestoneCreateResult>($"/api/createmilestone/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}", new MilestoneCreateRequest { Milestone = OriginalIssueMoveData.Milestone, });
+                            AddJsonLog(milestoneCreateResult);
+                        }
+                        catch (Exception ex)
+                        {
+                            AddJsonLog(new ErrorLogEntry
+                            {
+                                Description = "Error calling 'createmilestone'",
+                                Exception = ex,
+                            });
+
+                            createMilestoneState.Result = "Error!";
+                            createMilestoneState.Success = false;
+                            return;
+                        }
 
                         createMilestoneState.Result = "Done!";
                         createMilestoneState.Success = true;
@@ -270,16 +338,35 @@ namespace Hubbup.IssueMoverClient
                 IssueMoveStates.Add(moveIssueState);
                 NotifyStateChanged();
 
-                var issueMoveResult = await Http.PostJsonAsync<IssueMoveResult>($"/api/moveissue/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}",
-                    new IssueMoveRequest
+                var destinationIssueNumber = -1;
+
+                try
+                {
+                    var issueMoveResult = await Http.PostJsonAsync<IssueMoveResult>($"/api/moveissue/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}",
+                        new IssueMoveRequest
+                        {
+                            Title = OriginalIssueMoveData.Title,
+                            Body = GetDestinationBody(OriginalIssueMoveData),
+                            Assignees = OriginalIssueMoveData.Assignees,
+                            Milestone = ShouldCreateDestinationMilestone ? OriginalIssueMoveData.Milestone : null,
+                            Labels = ShouldCreateDestinationLabels ? OriginalIssueMoveData.Labels.Select(l => l.Text).ToArray() : null,
+                        });
+                    AddJsonLog(issueMoveResult);
+
+                    destinationIssueNumber = issueMoveResult.IssueNumber;
+                }
+                catch (Exception ex)
+                {
+                    AddJsonLog(new ErrorLogEntry
                     {
-                        Title = OriginalIssueMoveData.Title,
-                        Body = GetDestinationBody(OriginalIssueMoveData),
-                        Assignees = OriginalIssueMoveData.Assignees,
-                        Milestone = ShouldCreateDestinationMilestone ? OriginalIssueMoveData.Milestone : null,
-                        Labels = ShouldCreateDestinationLabels ? OriginalIssueMoveData.Labels.Select(l => l.Text).ToArray() : null,
+                        Description = "Error calling 'moveissue'",
+                        Exception = ex,
                     });
-                AddJsonLog(issueMoveResult);
+
+                    moveIssueState.Result = "Error!";
+                    moveIssueState.Success = false;
+                    return;
+                }
 
                 moveIssueState.Result = "Done!";
                 moveIssueState.Success = true;
@@ -296,14 +383,30 @@ namespace Hubbup.IssueMoverClient
                     {
                         var commentData = OriginalIssueMoveData.Comments[i];
 
-                        var commentMoveResult = await Http.PostJsonAsync<CommentMoveResult>($"/api/movecomment/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}",
-                            new CommentMoveRequest
+                        try
+                        {
+                            var commentMoveResult = await Http.PostJsonAsync<CommentMoveResult>($"/api/movecomment/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}",
+                                new CommentMoveRequest
+                                {
+                                    IssueNumber = destinationIssueNumber,
+                                    Text = GetDestinationComment(commentData.Author, commentData.Text, commentData.Date),
+                                });
+                            moveCommentState.Description = $"Moving comment {i + 1}/{OriginalIssueMoveData.Comments.Count}";
+                            AddJsonLog(commentMoveResult);
+                        }
+                        catch (Exception ex)
+                        {
+                            AddJsonLog(new ErrorLogEntry
                             {
-                                IssueNumber = issueMoveResult.IssueNumber,
-                                Text = GetDestinationComment(commentData.Author, commentData.Text, commentData.Date),
+                                Description = $"Error calling 'movecomment' for comment #{i + 1}",
+                                Exception = ex,
                             });
-                        moveCommentState.Description = $"Moving comment {i + 1}/{OriginalIssueMoveData.Comments.Count}";
-                        AddJsonLog(commentMoveResult);
+
+                            moveCommentState.Result = "Error!";
+                            moveCommentState.Success = false;
+                            return;
+                        }
+
                         NotifyStateChanged();
                     }
 
@@ -322,13 +425,28 @@ namespace Hubbup.IssueMoverClient
                 IssueMoveStates.Add(addCloseCommentState);
                 NotifyStateChanged();
 
-                var issueCloseCommentResult = await Http.PostJsonAsync<IssueCloseCommentResult>($"/api/closeissuecomment/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
-                    new IssueCloseCommentRequest
+                try
+                {
+                    var issueCloseCommentResult = await Http.PostJsonAsync<IssueCloseCommentResult>($"/api/closeissuecomment/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
+                        new IssueCloseCommentRequest
+                        {
+                            IssueNumber = OriginalIssueMoveData.Number,
+                            Comment = $"This issue was moved to {DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}#{destinationIssueNumber}",
+                        });
+                    AddJsonLog(issueCloseCommentResult);
+                }
+                catch (Exception ex)
+                {
+                    AddJsonLog(new ErrorLogEntry
                     {
-                        IssueNumber = OriginalIssueMoveData.Number,
-                        Comment = $"This issue was moved to {DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}#{issueMoveResult.IssueNumber}",
+                        Description = $"Error calling 'closeissuecomment'",
+                        Exception = ex,
                     });
-                AddJsonLog(issueCloseCommentResult);
+
+                    addCloseCommentState.Result = "Error!";
+                    addCloseCommentState.Success = false;
+                    return;
+                }
 
                 addCloseCommentState.Result = "Done!";
                 addCloseCommentState.Success = true;
@@ -340,12 +458,27 @@ namespace Hubbup.IssueMoverClient
                     IssueMoveStates.Add(lockIssueState);
                     NotifyStateChanged();
 
-                    var issueLockResult = await Http.PostJsonAsync<IssueLockResult>($"/api/lockissue/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
-                        new IssueLockRequest
+                    try
+                    {
+                        var issueLockResult = await Http.PostJsonAsync<IssueLockResult>($"/api/lockissue/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
+                            new IssueLockRequest
+                            {
+                                IssueNumber = OriginalIssueMoveData.Number,
+                            });
+                        AddJsonLog(issueLockResult);
+                    }
+                    catch (Exception ex)
+                    {
+                        AddJsonLog(new ErrorLogEntry
                         {
-                            IssueNumber = OriginalIssueMoveData.Number,
+                            Description = $"Error calling 'lockissue'",
+                            Exception = ex,
                         });
-                    AddJsonLog(issueLockResult);
+
+                        lockIssueState.Result = "Error!";
+                        lockIssueState.Success = false;
+                        return;
+                    }
 
                     lockIssueState.Result = "Done!";
                     lockIssueState.Success = true;
@@ -356,12 +489,27 @@ namespace Hubbup.IssueMoverClient
                 IssueMoveStates.Add(closeIssueState);
                 NotifyStateChanged();
 
-                var issueCloseResult = await Http.PostJsonAsync<IssueCloseResult>($"/api/closeissue/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
-                    new IssueCloseRequest
+                try
+                {
+                    var issueCloseResult = await Http.PostJsonAsync<IssueCloseResult>($"/api/closeissue/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
+                        new IssueCloseRequest
+                        {
+                            IssueNumber = OriginalIssueMoveData.Number,
+                        });
+                    AddJsonLog(issueCloseResult);
+                }
+                catch (Exception ex)
+                {
+                    AddJsonLog(new ErrorLogEntry
                     {
-                        IssueNumber = OriginalIssueMoveData.Number,
+                        Description = $"Error calling 'closeissue'",
+                        Exception = ex,
                     });
-                AddJsonLog(issueCloseResult);
+
+                    closeIssueState.Result = "Error!";
+                    closeIssueState.Success = false;
+                    return;
+                }
 
                 closeIssueState.Result = "Done!";
                 closeIssueState.Success = true;
@@ -372,9 +520,9 @@ namespace Hubbup.IssueMoverClient
             }
             catch (Exception ex)
             {
-                AddJsonLog(new
+                AddJsonLog(new ErrorLogEntry
                 {
-                    Message = "Exception occurred",
+                    Description = "Unknown error during move operation",
                     Exception = ex,
                 });
             }
@@ -410,4 +558,9 @@ _Copied from original issue: {issueToMove.RepoOwner}/{issueToMove.RepoName}#{iss
         public bool Success { get; set; }
     }
 
+    public class ErrorLogEntry
+    {
+        public string Description { get; set; }
+        public Exception Exception { get; set; }
+    }
 }

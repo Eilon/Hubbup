@@ -125,7 +125,8 @@ namespace Hubbup.IssueMoverClient
         private bool IsValidIssue()
         {
             return OriginalIssueMoveData != null &&
-                OriginalIssueMoveData.State == IssueState.Open;
+                OriginalIssueMoveData.State == IssueState.Open &&
+                !OriginalIssueMoveData.IsPullRequest;
         }
 
         public async Task OnFromInputBlur()
@@ -183,9 +184,14 @@ namespace Hubbup.IssueMoverClient
             AddJsonLog(OriginalIssueMoveData);
             IssueQueryInProgress = false;
 
-            if (OriginalIssueMoveData.State == IssueState.Closed)
+            if (OriginalIssueMoveData.IsPullRequest)
             {
-                FromProgressBarText = $"Found issue #{OriginalIssueMoveData.Number}, but it's closed";
+                FromProgressBarText = $"Found #{OriginalIssueMoveData.Number}, but it's a pull request";
+                FromProgressBarStyle = ProgressBarStyle.Error;
+            }
+            else if (OriginalIssueMoveData.State == IssueState.Closed)
+            {
+                FromProgressBarText = $"Found #{OriginalIssueMoveData.Number}, but it's closed";
                 FromProgressBarStyle = ProgressBarStyle.Error;
             }
             else

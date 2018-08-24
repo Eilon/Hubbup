@@ -18,6 +18,7 @@ namespace Hubbup.IssueMover.Dto
         public List<LabelData> Labels { get; set; }
         public string Milestone { get; set; }
         public List<CommentData> Comments { get; set; }
+        public bool IsPullRequest { get; set; }
     }
 
     public class LabelData

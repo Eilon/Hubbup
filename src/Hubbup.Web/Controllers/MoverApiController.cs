@@ -61,6 +61,7 @@ namespace Hubbup.Web.Controllers
                         RepoName = fromRepoName,
                         State = GetIssueState(fromIssue.State.Value),
                         HtmlUrl = fromIssue.HtmlUrl,
+                        IsPullRequest = fromIssue.PullRequest != null,
                         Title = fromIssue.Title,
                         Number = fromIssue.Number,
                         Author = fromIssue.User.Login,

@@ -7,6 +7,8 @@ namespace Hubbup.IssueMover.Dto
     {
         public string RepoOwner { get; set; }
         public string RepoName { get; set; }
+        public IssueState State { get; set; }
+        public string HtmlUrl { get; set; }
         public string Title { get; set; }
         public int Number { get; set; }
         public string Body { get; set; }

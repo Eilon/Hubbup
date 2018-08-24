@@ -1,8 +1,9 @@
 ﻿@page "/issuemover"
 @using System.Globalization
 @using Hubbup.Web.Utils
+@using System.Text
 
-@inject AppState state
+@inject AppState State
 
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -13,20 +14,20 @@
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-addon" id="from-label">Move from</span>
-                    <input type="text" id="move-from-input" class="form-control" placeholder="GitHub issue URL or owner/repo#123" aria-describedby="from-label" onblur="@state.OnFromInputBlur" bind="@state.FromValue" />
+                    <input type="text" id="move-from-input" class="form-control" placeholder="GitHub issue URL or owner/repo#123" aria-describedby="from-label" onblur="@State.OnFromInputBlur" bind="@State.FromValue" />
                 </div>
-                <ProgressBar Style="@state.FromProgressBarStyle" Text="@state.FromProgressBarText" />
+                <ProgressBar Style="@State.FromProgressBarStyle" Text="@State.FromProgressBarText" />
             </div>
             <div class="col-md-5">
                 <div class="input-group">
                     <span class="input-group-addon" id="to-label">To</span>
-                    <input type="text" id="move-to-input" class="form-control" placeholder="GitHub repo URL or owner/repo" aria-describedby="to-label" onblur="@state.OnToInputBlur" bind="@state.ToValue" />
+                    <input type="text" id="move-to-input" class="form-control" placeholder="GitHub repo URL or owner/repo" aria-describedby="to-label" onblur="@State.OnToInputBlur" bind="@State.ToValue" />
                 </div>
-                <ProgressBar Style="@state.ToProgressBarStyle" Text="@state.ToProgressBarText" />
+                <ProgressBar Style="@State.ToProgressBarStyle" Text="@State.ToProgressBarText" />
             </div>
             <div class="col-md-1">
                 <div class="input-group">
-                    <input type="button" class="btn btn-info @(state.ShouldMoveButtonBeEnabled() ? "" : "disabled")" disabled="@(!state.ShouldMoveButtonBeEnabled())" value="Go" onclick="@state.OnMoveButtonClick" />
+                    <input type="button" class="btn btn-info @(State.ShouldMoveButtonBeEnabled() ? "" : "disabled")" disabled="@(!State.ShouldMoveButtonBeEnabled())" value="Go" onclick="@State.OnMoveButtonClick" />
                 </div>
             </div>
         </div>
@@ -37,14 +38,17 @@
                 <ul>
                     <li>
                         <input type="checkbox" id="moveIssueCheckBox" checked="checked" disabled="disabled" /> <label for="moveIssueCheckBox">Move issue</label>
-                        <div>@state.OriginalIssueMoveData?.Title</div>
+                        @if (State.OriginalIssueMoveData != null)
+                        {
+                            <div><a href="@State.OriginalIssueMoveData.HtmlUrl">#@State.OriginalIssueMoveData.Number @State.OriginalIssueMoveData.Title</a></div>
+                        }
                     </li>
                     <li>
-                        <input type="checkbox" id="createLabelsCheckBox" bind="@state.ShouldCreateDestinationLabels" /> <label for="createLabelsCheckBox">Create destination labels (if needed)</label>
+                        <input type="checkbox" id="createLabelsCheckBox" bind="@State.ShouldCreateDestinationLabels" /> <label for="createLabelsCheckBox">Create destination labels (if needed)</label>
                         <div>
-                            @if (state.OriginalIssueMoveData?.Labels.Any() == true)
+                            @if (State.OriginalIssueMoveData?.Labels.Any() == true)
                             {
-                                foreach (var label in state.OriginalIssueMoveData.Labels)
+                                foreach (var label in State.OriginalIssueMoveData.Labels)
                                 {
                                     <span class="label" style="background-color: #@label.Color; color: #@ColorMath.GetHexForeColorForBackColor(label.Color)">@label.Text</span>
 
@@ -53,15 +57,15 @@
                         </div>
                     </li>
                     <li>
-                        <input type="checkbox" id="createMilestoneCheckBox" bind="@state.ShouldCreateDestinationMilestone" /> <label for="createMilestoneCheckBox">Create destination milestone (if needed)</label>
-                        <div>@state.OriginalIssueMoveData?.Milestone</div>
+                        <input type="checkbox" id="createMilestoneCheckBox" bind="@State.ShouldCreateDestinationMilestone" /> <label for="createMilestoneCheckBox">Create destination milestone (if needed)</label>
+                        <div>@State.OriginalIssueMoveData?.Milestone</div>
                     </li>
                     <li>
                         <input type="checkbox" id="moveCommentsCheckBox" checked="checked" disabled="disabled" /> <label for="moveCommentsCheckBox">Move comments</label>
-                        <div><span class="glyphicon glyphicon-comment" aria-hidden="true"></span> @state.OriginalIssueMoveData?.Comments.Count.ToString(CultureInfo.InvariantCulture) comment(s)</div>
+                        <div><span class="glyphicon glyphicon-comment" aria-hidden="true"></span> @State.OriginalIssueMoveData?.Comments.Count.ToString(CultureInfo.InvariantCulture) comment(s)</div>
                     </li>
                     <li><input type="checkbox" id="addCloseMessageCheckBox" checked="checked" disabled="disabled" /> <label for="addCloseMessageCheckBox">Add close message to original issue</label></li>
-                    <li><input type="checkbox" id="lockOriginalIssueCheckBox" bind="@state.ShouldLockOriginalIssue" /> <label for="lockOriginalIssueCheckBox">Lock original issue</label></li>
+                    <li><input type="checkbox" id="lockOriginalIssueCheckBox" bind="@State.ShouldLockOriginalIssue" /> <label for="lockOriginalIssueCheckBox">Lock original issue</label></li>
                     <li><input type="checkbox" id="closeOriginalIssueCheckBox" checked="checked" disabled="disabled" /> <label for="closeOriginalIssueCheckBox">Close original issue</label></li>
                 </ul>
             </div>
@@ -69,24 +73,23 @@
             <div class="col-md-6">
                 Status:
                 <ul>
-                    @if (state.IssueMoveStates != null)
+                    @if (State.IssueMoveStates != null)
                     {
-                        @foreach (var ims in state.IssueMoveStates)
+                        @foreach (var ims in State.IssueMoveStates)
                         {
                             <li>
-                                @(ims.Description)...
-                                @if (!string.IsNullOrEmpty(ims.Result))
+                                @switch (ims.StateType)
                                 {
-                                    @ims.Result
-
-                                    if (ims.Success)
-                                    {
-                                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                                    }
-                                    else
-                                    {
-                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                    }
+                                    case IssueMoveStateType.StatusEntry:
+                                    default:
+                                        <StatusEntry Description="@ims.Description" Result="@ims.Result" Success="@ims.Success" />
+                                        break;
+                                    case IssueMoveStateType.LinkResult:
+                                        <LinkResultEntry Description="@ims.Description" Link="@ims.Link" />
+                                        break;
+                                    case IssueMoveStateType.FatalError:
+                                        <FatalErrorEntry Description="@ims.Description" Exception="@ims.Exception" />
+                                        break;
                                 }
                             </li>
                         }
@@ -97,12 +100,12 @@
     </div>
 </div>
 
-<textarea rows="40" cols="80">@state.JsonData</textarea>
+<textarea rows="20" cols="80" style="resize: both; overflow: auto">@State.JsonData</textarea>
 
 @functions
 {
     protected override void OnInit()
     {
-        state.OnChange += StateHasChanged;
+        State.OnChange += StateHasChanged;
     }
 }

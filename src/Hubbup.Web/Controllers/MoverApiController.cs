@@ -59,6 +59,8 @@ namespace Hubbup.Web.Controllers
                     {
                         RepoOwner = fromOwnerName,
                         RepoName = fromRepoName,
+                        State = GetIssueState(fromIssue.State.Value),
+                        HtmlUrl = fromIssue.HtmlUrl,
                         Title = fromIssue.Title,
                         Number = fromIssue.Number,
                         Author = fromIssue.User.Login,
@@ -74,6 +76,15 @@ namespace Hubbup.Web.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        private static IssueState GetIssueState(ItemState itemState)
+        {
+            if (itemState == ItemState.Open)
+            {
+                return IssueState.Open;
+            }
+            return IssueState.Closed;
         }
 
         [Route("getrepodata/{toOwnerName}/{toRepoName}")]
@@ -217,6 +228,7 @@ namespace Hubbup.Web.Controllers
                     new IssueMoveResult
                     {
                         IssueNumber = newIssueCreated.Number,
+                        HtmlUrl = newIssueCreated.HtmlUrl,
                     });
             }
             catch (Exception ex)

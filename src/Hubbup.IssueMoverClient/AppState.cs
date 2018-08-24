@@ -117,8 +117,15 @@ namespace Hubbup.IssueMoverClient
                 !ToRepoQueryInProgress &&
                 IsValidIssueFormat(FromValue) &&
                 IsValidRepoFormat(ToValue) &&
+                IsValidIssue() &&
                 OriginalIssueMoveData != null &&
                 DestinationRepoMoveData != null;
+        }
+
+        private bool IsValidIssue()
+        {
+            return OriginalIssueMoveData != null &&
+                OriginalIssueMoveData.State == IssueState.Open;
         }
 
         public async Task OnFromInputBlur()
@@ -176,8 +183,16 @@ namespace Hubbup.IssueMoverClient
             AddJsonLog(OriginalIssueMoveData);
             IssueQueryInProgress = false;
 
-            FromProgressBarText = $"Found issue #{OriginalIssueMoveData.Number}";
-            FromProgressBarStyle = ProgressBarStyle.Success;
+            if (OriginalIssueMoveData.State == IssueState.Closed)
+            {
+                FromProgressBarText = $"Found issue #{OriginalIssueMoveData.Number}, but it's closed";
+                FromProgressBarStyle = ProgressBarStyle.Error;
+            }
+            else
+            {
+                FromProgressBarText = $"Found issue #{OriginalIssueMoveData.Number}";
+                FromProgressBarStyle = ProgressBarStyle.Success;
+            }
         }
 
         public async Task OnToInputBlur()
@@ -246,11 +261,11 @@ namespace Hubbup.IssueMoverClient
 
         public async Task OnMoveButtonClick(UIMouseEventArgs e)
         {
+            IssueMoveStates = new List<IssueMoveState>();
+
             try
             {
                 MoveInProgress = true;
-
-                IssueMoveStates = new List<IssueMoveState>();
 
                 // Check From/To are valid
                 // TODO: Is this needed? Would we be here if it wasn't valid?
@@ -279,6 +294,13 @@ namespace Hubbup.IssueMoverClient
 
                             createLabelState.Result = "Error!";
                             createLabelState.Success = false;
+
+                            IssueMoveStates.Add(new IssueMoveState
+                            {
+                                StateType = IssueMoveStateType.FatalError,
+                                Exception = ex,
+                                Description = "Fatal error",
+                            });
                             return;
                         }
 
@@ -318,6 +340,13 @@ namespace Hubbup.IssueMoverClient
 
                             createMilestoneState.Result = "Error!";
                             createMilestoneState.Success = false;
+
+                            IssueMoveStates.Add(new IssueMoveState
+                            {
+                                StateType = IssueMoveStateType.FatalError,
+                                Exception = ex,
+                                Description = "Fatal error",
+                            });
                             return;
                         }
 
@@ -339,6 +368,7 @@ namespace Hubbup.IssueMoverClient
                 NotifyStateChanged();
 
                 var destinationIssueNumber = -1;
+                var destinationIssueHtmlUrl = string.Empty;
 
                 try
                 {
@@ -354,6 +384,7 @@ namespace Hubbup.IssueMoverClient
                     AddJsonLog(issueMoveResult);
 
                     destinationIssueNumber = issueMoveResult.IssueNumber;
+                    destinationIssueHtmlUrl = issueMoveResult.HtmlUrl;
                 }
                 catch (Exception ex)
                 {
@@ -365,6 +396,13 @@ namespace Hubbup.IssueMoverClient
 
                     moveIssueState.Result = "Error!";
                     moveIssueState.Success = false;
+
+                    IssueMoveStates.Add(new IssueMoveState
+                    {
+                        StateType = IssueMoveStateType.FatalError,
+                        Exception = ex,
+                        Description = "Fatal error",
+                    });
                     return;
                 }
 
@@ -404,6 +442,13 @@ namespace Hubbup.IssueMoverClient
 
                             moveCommentState.Result = "Error!";
                             moveCommentState.Success = false;
+
+                            IssueMoveStates.Add(new IssueMoveState
+                            {
+                                StateType = IssueMoveStateType.FatalError,
+                                Exception = ex,
+                                Description = "Fatal error",
+                            });
                             return;
                         }
 
@@ -445,6 +490,13 @@ namespace Hubbup.IssueMoverClient
 
                     addCloseCommentState.Result = "Error!";
                     addCloseCommentState.Success = false;
+
+                    IssueMoveStates.Add(new IssueMoveState
+                    {
+                        StateType = IssueMoveStateType.FatalError,
+                        Exception = ex,
+                        Description = "Fatal error",
+                    });
                     return;
                 }
 
@@ -477,6 +529,13 @@ namespace Hubbup.IssueMoverClient
 
                         lockIssueState.Result = "Error!";
                         lockIssueState.Success = false;
+
+                        IssueMoveStates.Add(new IssueMoveState
+                        {
+                            StateType = IssueMoveStateType.FatalError,
+                            Exception = ex,
+                            Description = "Fatal error",
+                        });
                         return;
                     }
 
@@ -508,11 +567,27 @@ namespace Hubbup.IssueMoverClient
 
                     closeIssueState.Result = "Error!";
                     closeIssueState.Success = false;
+
+                    IssueMoveStates.Add(new IssueMoveState
+                    {
+                        StateType = IssueMoveStateType.FatalError,
+                        Exception = ex,
+                        Description = "Fatal error",
+                    });
                     return;
                 }
 
                 closeIssueState.Result = "Done!";
                 closeIssueState.Success = true;
+                NotifyStateChanged();
+
+
+                IssueMoveStates.Add(new IssueMoveState
+                {
+                    StateType = IssueMoveStateType.LinkResult,
+                    Description = $"Moved to new issue #{destinationIssueNumber}",
+                    Link = destinationIssueHtmlUrl,
+                });
 
 
                 // Reset states
@@ -524,6 +599,18 @@ namespace Hubbup.IssueMoverClient
                 {
                     Description = "Unknown error during move operation",
                     Exception = ex,
+                });
+
+                var outerState = new IssueMoveState { Description = "Error" };
+                outerState.Result = "Unknown error during move operation";
+                outerState.Success = false;
+                IssueMoveStates.Add(outerState);
+
+                IssueMoveStates.Add(new IssueMoveState
+                {
+                    StateType = IssueMoveStateType.FatalError,
+                    Exception = ex,
+                    Description = "Fatal error",
                 });
             }
         }
@@ -551,10 +638,20 @@ _Copied from original issue: {issueToMove.RepoOwner}/{issueToMove.RepoName}#{iss
         private void NotifyStateChanged() => OnChange?.Invoke();
     }
 
+    public enum IssueMoveStateType
+    {
+        StatusEntry,
+        LinkResult,
+        FatalError,
+    }
+
     public class IssueMoveState
     {
+        public IssueMoveStateType StateType { get; set; }
+        public string Link { get; set; }
         public string Description { get; set; }
         public string Result { get; set; }
+        public Exception Exception { get; set; }
         public bool Success { get; set; }
     }
 

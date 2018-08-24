@@ -21,6 +21,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Pages\FatalErrorEntry.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Pages\LinkResultEntry.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Pages\StatusEntry.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Pages\ProgressBar.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

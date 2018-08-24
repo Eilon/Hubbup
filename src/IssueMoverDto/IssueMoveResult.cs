@@ -6,6 +6,7 @@ namespace Hubbup.IssueMover.Dto
     public class IssueMoveResult
     {
         public int IssueNumber { get; set; }
+        public string HtmlUrl { get; set; }
     }
 
     public class IssueMoveRequest

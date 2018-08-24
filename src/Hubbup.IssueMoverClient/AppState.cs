@@ -131,6 +131,14 @@ namespace Hubbup.IssueMoverClient
 
         public async Task OnFromInputBlur()
         {
+            if (string.IsNullOrEmpty(FromValue))
+            {
+                FromProgressBarText = "";
+                FromProgressBarStyle = ProgressBarStyle.None;
+                OriginalIssueMoveData = null;
+                return;
+            }
+
             FromProgressBarText = "Looking for issue...";
             FromProgressBarStyle = ProgressBarStyle.InProgress;
             NotifyStateChanged();
@@ -203,6 +211,14 @@ namespace Hubbup.IssueMoverClient
 
         public async Task OnToInputBlur()
         {
+            if (string.IsNullOrEmpty(ToValue))
+            {
+                ToProgressBarText = "";
+                ToProgressBarStyle = ProgressBarStyle.None;
+                DestinationRepoMoveData = null;
+                return;
+            }
+
             ToProgressBarText = "Looking for repo...";
             ToProgressBarStyle = ProgressBarStyle.InProgress;
             NotifyStateChanged();

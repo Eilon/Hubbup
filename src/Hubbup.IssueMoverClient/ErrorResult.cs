@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using Hubbup.IssueMover.Dto;
 
-namespace Hubbup.IssueMover.Dto
+namespace Hubbup.IssueMoverClient
 {
-    public class IssueCloseCommentResult : IErrorResult
+    public class ErrorResult : IErrorResult
     {
         public string ErrorMessage { get; set; }
         public Exception Exception { get; set; }

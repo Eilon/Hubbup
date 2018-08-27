@@ -3,12 +3,9 @@ using System.Collections.Generic;
 
 namespace Hubbup.IssueMover.Dto
 {
-    public class IssueLockResult
+    public class IssueLockResult : IErrorResult
     {
-    }
-
-    public class IssueLockRequest
-    {
-        public int IssueNumber { get; set; }
+        public string ErrorMessage { get; set; }
+        public Exception Exception { get; set; }
     }
 }

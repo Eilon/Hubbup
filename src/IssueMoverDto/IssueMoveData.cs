@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Hubbup.IssueMover.Dto
 {
-    public class IssueMoveData
+    public class IssueMoveData : IErrorResult
     {
         public string RepoOwner { get; set; }
         public string RepoName { get; set; }
@@ -19,25 +19,8 @@ namespace Hubbup.IssueMover.Dto
         public string Milestone { get; set; }
         public List<CommentData> Comments { get; set; }
         public bool IsPullRequest { get; set; }
-    }
 
-    public class LabelData
-    {
-        public string Text { get; set; }
-        public string Color { get; set; }
-    }
-
-    public class CommentData
-    {
-        public string Author { get; set; }
-        public string Text { get; set; }
-        public DateTimeOffset Date { get; set; }
-
-    }
-    public class RepoMoveData
-    {
-        public string Owner { get; set; }
-        public string Repo { get; set; }
-        public int OpenIssueCount { get; set; }
+        public string ErrorMessage { get; set; }
+        public Exception Exception { get; set; }
     }
 }

@@ -1,7 +1,9 @@
-﻿<span data-toggle="tooltip" data-placement="left" title="@Exception.Message">@Description</span>
+﻿@using Hubbup.IssueMover.Dto
+
+<span data-toggle="tooltip" data-placement="left" title="@ErrorMessage">@Description</span>
 <span class="glyphicon glyphicon-remove" style="color: red" aria-hidden="true"></span>
 
-@{ 
+@{
     ((IJSInProcessRuntime)JSRuntime.Current).Invoke<object>("updateTooltips");
 }
 
@@ -10,5 +12,21 @@
     private string Description { get; set; }
 
     [Parameter]
-    private Exception Exception { get; set; }
+    private IErrorResult ErrorResult { get; set; }
+
+    public string ErrorMessage
+    {
+        get
+        {
+            if (ErrorResult == null)
+            {
+                return "Unknown error";
+            }
+            if (ErrorResult.ErrorMessage != null)
+            {
+                return ErrorResult.ErrorMessage;
+            }
+            return ErrorResult.Exception?.Message;
+        }
+    }
 }

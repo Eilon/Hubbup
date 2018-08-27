@@ -36,7 +36,11 @@ namespace Hubbup.Web.Controllers
 
             if (!int.TryParse(fromIssueNumber, out var fromIssueNumberInt))
             {
-                return BadRequest();
+                return BadRequest(
+                    new IssueMoveData
+                    {
+                        ErrorMessage = $"Issue number is invalid: {fromIssueNumber}",
+                    });
             }
 
             var fromIssue = await gitHub.Issue.Get(fromOwnerName, fromRepoName, fromIssueNumberInt);
@@ -75,7 +79,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new IssueMoveData
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -108,7 +116,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new RepoMoveData
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -147,7 +159,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new LabelCreateResult
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -181,7 +197,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new MilestoneCreateResult
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -234,7 +254,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new IssueMoveResult
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -257,7 +281,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new CommentMoveResult
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -280,7 +308,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new IssueCloseCommentResult
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -298,13 +330,17 @@ namespace Hubbup.Web.Controllers
                          fromRepoName,
                          issueLockRequest.IssueNumber);
                 return Ok(
-                    new IssueCloseResult
+                    new IssueLockResult
                     {
                     });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new IssueLockResult
+                    {
+                        Exception = ex,
+                    });
             }
         }
 
@@ -332,7 +368,11 @@ namespace Hubbup.Web.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    new IssueCloseResult
+                    {
+                        Exception = ex,
+                    });
             }
         }
     }

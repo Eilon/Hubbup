@@ -117,6 +117,10 @@ namespace Hubbup.Web
                 {
                     options.SslPort = 44347;
                 }
+            })
+            .AddRazorPagesOptions(r =>
+            {
+                r.Conventions.AuthorizeFolder("/");
             });
 
             services

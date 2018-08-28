@@ -16,10 +16,10 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                <li class="@(Model.CurrentGroup == "" ? "active" : "")"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li class="@(Model.CurrentGroup == "" ? "active" : "")"><a href="@Url.Action("Index", "Home")">Home</a></li>
                 @foreach (var repoSetName in Model.GroupNames.Take(10))
                 {
-                    <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a asp-page="/Index" asp-route-repoSetName="@repoSetName">@repoSetName</a></li>
+                    <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a href="@Url.Page("/Index", new { repoSetName = repoSetName })">@repoSetName</a></li>
                 }
                 @if (Model.GroupNames.Count > 10)
                 {
@@ -28,7 +28,7 @@
                         <ul class="dropdown-menu">
                             @foreach (var repoSetName in Model.GroupNames.Skip(10))
                             {
-                                <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a asp-page="/Groups/Index" asp-route-groupName="@repoSetName">@repoSetName</a></li>
+                                <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a href="@Url.Page("/Index", new { repoSetName = repoSetName })">@repoSetName</a></li>
                             }
                         </ul>
                     </li>

@@ -30,7 +30,7 @@
 
 <div class="row">
     <div class="col-md-2 col-md-push-10">
-        <a asp-page="/Index" asp-route-repoSetName="@Model.RepoSetName">Go to standup view</a>
+        <a href="@Url.Page("/Index", new { repoSetName = Model.RepoSetName })">Go to standup view</a>
         <h3>Issues</h3>
         <div class="alert alert-info" data-toggle="tooltip" data-placement="left" title="Open issues not in Backlog milestone">
             <a href="@Model.OpenIssuesQuery">Open</a> <span class="badge">@Model.TotalIssues</span>

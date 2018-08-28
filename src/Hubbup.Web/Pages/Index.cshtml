@@ -16,7 +16,7 @@
 <div class="row issue-list-row">
 
     <div class="col-md-2 col-md-push-10">
-        <a asp-controller="Triage" asp-action="Index" asp-route-repoSet="@repoSet">Go to triage view</a>
+        <a href="@Url.Action("Index", "Triage", new { repoSet = repoSet })">Go to triage view</a>
     </div>
 
     <div class="col-md-10 col-md-pull-2">

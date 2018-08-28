@@ -12,9 +12,10 @@
 </head>
 <body>
 
-    <environment exclude="Production">
+    @if (!string.Equals(HostingEnvironment.EnvironmentName, "Production", StringComparison.OrdinalIgnoreCase))
+    {
         <div class="alert alert-info" style="text-align:center;"><h2>Current environment is: @HostingEnvironment.EnvironmentName</h2></div>
-    </environment>
+    }
 
     <vc:navigation-bar current-group="@ViewData["CurrentGroup"]" />
 

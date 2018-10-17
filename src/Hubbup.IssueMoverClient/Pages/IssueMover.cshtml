@@ -37,14 +37,14 @@
                 Options:
                 <ul>
                     <li>
-                        <input type="checkbox" id="moveIssueCheckBox" checked="checked" disabled="disabled" /> <label for="moveIssueCheckBox">Move issue</label>
+                        <label><input type="checkbox" checked="checked" disabled="disabled" /> Move issue</label>
                         @if (State.OriginalIssueMoveData != null)
                         {
                             <div><a href="@State.OriginalIssueMoveData.HtmlUrl">#@State.OriginalIssueMoveData.Number @State.OriginalIssueMoveData.Title</a></div>
                         }
                     </li>
                     <li>
-                        <input type="checkbox" id="createLabelsCheckBox" bind="@State.ShouldCreateDestinationLabels" /> <label for="createLabelsCheckBox">Create destination labels (if needed)</label>
+                        <label><input type="checkbox" bind="@State.ShouldCreateDestinationLabels" /> Create destination labels (if needed)</label>
                         <div>
                             @if (State.OriginalIssueMoveData?.Labels.Any() == true)
                             {
@@ -57,16 +57,16 @@
                         </div>
                     </li>
                     <li>
-                        <input type="checkbox" id="createMilestoneCheckBox" bind="@State.ShouldCreateDestinationMilestone" /> <label for="createMilestoneCheckBox">Create destination milestone (if needed)</label>
+                        <label><input type="checkbox" bind="@State.ShouldCreateDestinationMilestone" /> Create destination milestone (if needed)</label>
                         <div>@State.OriginalIssueMoveData?.Milestone</div>
                     </li>
                     <li>
-                        <input type="checkbox" id="moveCommentsCheckBox" checked="checked" disabled="disabled" /> <label for="moveCommentsCheckBox">Move comments</label>
+                        <label><input type="checkbox" checked="checked" disabled="disabled" /> Move comments</label>
                         <div><span class="glyphicon glyphicon-comment" aria-hidden="true"></span> @State.OriginalIssueMoveData?.Comments.Count.ToString(CultureInfo.InvariantCulture) comment(s)</div>
                     </li>
-                    <li><input type="checkbox" id="addCloseMessageCheckBox" checked="checked" disabled="disabled" /> <label for="addCloseMessageCheckBox">Add close message to original issue</label></li>
-                    <li><input type="checkbox" id="lockOriginalIssueCheckBox" bind="@State.ShouldLockOriginalIssue" /> <label for="lockOriginalIssueCheckBox">Lock original issue</label></li>
-                    <li><input type="checkbox" id="closeOriginalIssueCheckBox" checked="checked" disabled="disabled" /> <label for="closeOriginalIssueCheckBox">Close original issue</label></li>
+                    <li><label><input type="checkbox" checked="checked" disabled="disabled" /> Add close message to original issue</label></li>
+                    <li><label><input type="checkbox" bind="@State.ShouldLockOriginalIssue" /> Lock original issue</label></li>
+                    <li><label><input type="checkbox" checked="checked" disabled="disabled" /> Close original issue</label></li>
                 </ul>
             </div>
 

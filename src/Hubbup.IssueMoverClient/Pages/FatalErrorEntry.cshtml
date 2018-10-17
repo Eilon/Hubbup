@@ -1,13 +1,11 @@
 ﻿@using Hubbup.IssueMover.Dto
 
-<span data-toggle="tooltip" data-placement="left" title="@ErrorMessage">@Description</span>
+<span ref="tooltipElem" data-toggle="tooltip" data-placement="left" title="@ErrorMessage">@Description</span>
 <span class="glyphicon glyphicon-remove" style="color: red" aria-hidden="true"></span>
 
-@{
-    ((IJSInProcessRuntime)JSRuntime.Current).Invoke<object>("updateTooltips");
-}
-
 @functions {
+    ElementRef tooltipElem;
+
     [Parameter]
     private string Description { get; set; }
 
@@ -28,5 +26,10 @@
             }
             return ErrorResult.Exception?.Message;
         }
+    }
+
+    protected override async Task OnAfterRenderAsync()
+    {
+        await JSRuntime.Current.InvokeAsync<object>("updateTooltips", tooltipElem);
     }
 }

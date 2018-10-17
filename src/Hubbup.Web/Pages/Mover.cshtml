@@ -9,7 +9,7 @@
 <script src="_framework/blazor.webassembly.js"></script>
 
 <script>
-    window.updateTooltips = function () {
-        $('[data-toggle="tooltip"]').tooltip();
+    window.updateTooltips = function (elem) {
+        $(elem).tooltip();
     };
 </script>

@@ -1,7 +1,6 @@
 ﻿@page "/issuemover"
 @using System.Globalization
 @using Hubbup.Web.Utils
-@using System.Text
 
 @inject AppState State
 
@@ -27,7 +26,7 @@
             </div>
             <div class="col-md-1">
                 <div class="input-group">
-                    <input type="button" class="btn btn-info @(State.ShouldMoveButtonBeEnabled() ? "" : "disabled")" disabled="@(!State.ShouldMoveButtonBeEnabled())" value="Go" onclick="@State.OnMoveButtonClick" />
+                    <input type="button" class="btn btn-info" disabled="@(!State.ShouldMoveButtonBeEnabled())" value="Go" onclick="@State.OnMoveButtonClick" />
                 </div>
             </div>
         </div>

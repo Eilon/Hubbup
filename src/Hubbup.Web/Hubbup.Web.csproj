@@ -11,12 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Client\data.ts" />
-    <None Remove="Client\DispatchIssues\components.tsx" />
-    <None Remove="Client\DispatchIssues\page.tsx" />
-    <None Remove="Client\global.ts" />
-    <None Remove="Client\Standup\components.tsx" />
-    <None Remove="Client\Standup\page.tsx" />
+    <WebpackInputs Include="Client\**" />
+    <WebpackOutputs Include="wwwroot\dist\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,7 +22,7 @@
     <PackageReference Include="Octokit" Version="0.28.0" />
   </ItemGroup>
 
-  <Target Name="ClientBuild" BeforeTargets="Build">
+  <Target Name="ClientBuild" Inputs="@(WebpackInputs)" Outputs="@(WebpackOutputs)" BeforeTargets="Build">
     <Exec Command="npm install" />
     <Exec Command="npm run build" />
   </Target>

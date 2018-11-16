@@ -16,6 +16,7 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
+                <li><a href="/Mover">Issue Mover</a></li>
                 <li class="@(Model.CurrentGroup == "" ? "active" : "")"><a href="@Url.Action("Index", "Home")">Home</a></li>
                 @foreach (var repoSetName in Model.GroupNames.Take(10))
                 {

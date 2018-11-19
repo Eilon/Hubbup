@@ -8,6 +8,7 @@ using System.Security.Claims;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Builder;
@@ -24,6 +25,7 @@ namespace Hubbup.Web
     public class Startup
     {
         public static readonly string Version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        private const string GitHubAuth = "GitHub";
 
         public IConfiguration Configuration { get; }
         public IHostingEnvironment HostingEnvironment { get; }
@@ -66,16 +68,16 @@ namespace Hubbup.Web
                 {
                     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = "GitHub";
+                    options.DefaultChallengeScheme = GitHubAuth;
                 })
                 .AddCookie(options =>
                 {
-                    options.LoginPath = new PathString("/signin");
+                    options.LoginPath = "/signin";
                     options.Cookie.Name = "HubbupAuthCookie";
                 })
-                .AddOAuth("GitHub", options =>
+                .AddOAuth(GitHubAuth, options =>
                 {
-                    options.CallbackPath = new PathString("/signin-github");
+                    options.CallbackPath = "/signin-github";
                     options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
                     options.TokenEndpoint = "https://github.com/login/oauth/access_token";
                     options.UserInformationEndpoint = "https://api.github.com/user";
@@ -88,6 +90,9 @@ namespace Hubbup.Web
                         options.Scope.Add(ghScope);
                     }
                     options.SaveTokens = true;
+                    options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+                    options.ClaimActions.MapJsonKey(ClaimTypes.Name, "login");
+                    options.ClaimActions.MapJsonKey("urn:github:url", "url");
 
                     options.Events.OnCreatingTicket = async context =>
                     {
@@ -95,33 +100,21 @@ namespace Hubbup.Web
                         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
 
-                        var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                        var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
                         response.EnsureSuccessStatusCode();
 
-                        var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
-
-                        // Add GitHub claims
-                        context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, payload.Value<string>("id"), context.Options.ClaimsIssuer));
-                        context.Identity.AddClaim(new Claim(ClaimTypes.Name, payload.Value<string>("login"), context.Options.ClaimsIssuer));
-                        //context.Identity.AddClaim(new Claim(ClaimTypes.Email, payload.Value<string>("email"), context.Options.ClaimsIssuer));
-                        //context.Identity.AddClaim(new Claim("urn:github:name", payload.Value<string>("name"), context.Options.ClaimsIssuer));
-                        context.Identity.AddClaim(new Claim("urn:github:url", payload.Value<string>("url"), context.Options.ClaimsIssuer));
-
                         context.Identity.AddClaim(new Claim("gh-scopes", GitHubScopeString));
+
+                        var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+                        context.RunClaimActions(payload);
                     };
                 });
 
-            services.AddMvc(options =>
-            {
-                if (HostingEnvironment.IsDevelopment())
+            services.AddMvc()
+                .AddRazorPagesOptions(r =>
                 {
-                    options.SslPort = 44347;
-                }
-            })
-            .AddRazorPagesOptions(r =>
-            {
-                r.Conventions.AuthorizeFolder("/");
-            });
+                    r.Conventions.AuthorizeFolder("/");
+                });
 
             services
                 .AddMetrics(options =>
@@ -160,6 +153,8 @@ namespace Hubbup.Web
             {
                 app.UseExceptionHandler("/Error");
             }
+
+            app.UseHttpsRedirection();
 
             app.UseStaticFiles();
 

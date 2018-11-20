@@ -129,20 +129,13 @@ namespace Hubbup.Web
                 options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
                 {
                     MediaTypeNames.Application.Octet,
-                    WasmMediaTypeNames.Application.Wasm,
+                    WasmMediaTypeNames.Application.Wasm, // This can be removed after upgrading to 2.2.
                 });
             });
         }
 
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory, IDataSource dataSource, IApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app)
         {
-            // Load data before we start things up.
-            // Until https://github.com/aspnet/Hosting/issues/1088 is resolved, this has to synchronously block.
-            var logger = loggerFactory.CreateLogger<Startup>();
-            logger.LogDebug("Loading repo set and person set data...");
-            dataSource.ReloadAsync(lifetime.ApplicationStopping).Wait();
-            logger.LogDebug("Loaded repo set and person set data");
-
             app.UseDiagnostics();
 
             if (HostingEnvironment.IsDevelopment())

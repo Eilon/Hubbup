@@ -72,7 +72,6 @@ namespace Hubbup.Web
                 })
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "/signin";
                     options.Cookie.Name = "HubbupAuthCookie";
                 })
                 .AddOAuth(GitHubAuth, options =>

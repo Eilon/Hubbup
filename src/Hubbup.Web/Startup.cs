@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Reflection;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
@@ -26,6 +27,7 @@ namespace Hubbup.Web
     {
         public static readonly string Version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         private const string GitHubAuth = "GitHub";
+        private const string GitHubScopesClaim = "gh-scopes";
 
         public IConfiguration Configuration { get; }
         public IHostingEnvironment HostingEnvironment { get; }
@@ -73,6 +75,20 @@ namespace Hubbup.Web
                 .AddCookie(options =>
                 {
                     options.Cookie.Name = "HubbupAuthCookie";
+                    options.Events = new CookieAuthenticationEvents()
+                    {
+                        OnValidatePrincipal = context =>
+                        {
+                            // If scope requirements change then make everyone log back in
+                            var scopeClaim = context.Principal.FindFirst(GitHubScopesClaim);
+                            if (!string.Equals(scopeClaim?.Value, GitHubScopeString, StringComparison.Ordinal))
+                            {
+                                context.RejectPrincipal();
+                            }
+
+                            return Task.CompletedTask;
+                        }
+                    };
                 })
                 .AddOAuth(GitHubAuth, options =>
                 {
@@ -102,7 +118,7 @@ namespace Hubbup.Web
                         var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
                         response.EnsureSuccessStatusCode();
 
-                        context.Identity.AddClaim(new Claim("gh-scopes", GitHubScopeString));
+                        context.Identity.AddClaim(new Claim(GitHubScopesClaim, GitHubScopeString));
 
                         var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
                         context.RunClaimActions(payload);

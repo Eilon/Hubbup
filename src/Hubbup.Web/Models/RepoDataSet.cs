@@ -20,7 +20,7 @@ namespace Hubbup.Web.Models
 
         public RepoSetDefinition GetRepoSet(string repoSet)
         {
-            return _repoSetList[repoSet];
+            return _repoSetList.TryGetValue(repoSet, out var result) ? result : null;
         }
 
         public bool RepoSetExists(string repoSet)

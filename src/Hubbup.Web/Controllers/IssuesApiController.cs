@@ -31,7 +31,11 @@ namespace Hubbup.Web.Controllers
         [Route("repoSets/{repoSetName}/people")]
         public IActionResult GetPeopleInRepoSet(string repoSetName)
         {
-            var personSetName = _dataSource.GetRepoDataSet().GetRepoSet(repoSetName).AssociatedPersonSetName;
+            var personSetName = _dataSource.GetRepoDataSet().GetRepoSet(repoSetName)?.AssociatedPersonSetName;
+            if (personSetName == null)
+            {
+                return NotFound();
+            }
             var personSet = _dataSource.GetPersonSet(personSetName);
             if (personSet == null)
             {

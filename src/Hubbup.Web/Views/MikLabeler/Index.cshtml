@@ -1,0 +1,14 @@
+@model IReadOnlyList<Issue>
+
+@{
+    ViewData["PageTitlePrefix"] = $"MikLabeler";
+}
+
+<h1>Let's dispatch some issues!</h1>
+
+<ul>
+    @foreach (var issue in Model)
+    {
+        <li>@issue.Title</li>
+    }
+</ul>

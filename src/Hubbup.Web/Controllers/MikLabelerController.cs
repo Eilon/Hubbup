@@ -1,17 +1,15 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
-using Hubbup.Web.Utils;
 using Hubbup.Web.ML;
+using Hubbup.Web.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Octokit;
-using Microsoft.AspNetCore.Hosting;
-using System.IO;
-using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web.Controllers
 {
@@ -86,8 +84,6 @@ namespace Hubbup.Web.Controllers
             issueUpdate.AddLabel(label);
 
             client.Issue.Update("aspnet", "aspnetcore", issue.Number, issueUpdate);
-
-            Console.WriteLine($"Issue {issue.Number} : \"{issue.Title}\" \t was labeled as: {label}");
         }
 
         private static Label findAreaLabel(Issue issue)

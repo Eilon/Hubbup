@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using System.IO;
 using System;
 
@@ -24,9 +23,7 @@ namespace Hubbup.Web.Controllers
         private readonly ILogger<MikLabelerController> _logger;
         private static string AppPath => Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
         private static string ModelPath = "/ML/GitHubLabelerModel.zip";
-        private static string ModelFilePathName = $"GitHubLabelerModel.zip";
         public enum MyTrainerStrategy : int { SdcaMultiClassTrainer = 1, OVAAveragedPerceptronTrainer = 2 };
-        public static IConfiguration Configuration { get; set; }
         private readonly IHostingEnvironment _hostingEnvironment;
 
         public MikLabelerController(
@@ -46,11 +43,9 @@ namespace Hubbup.Web.Controllers
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
             //This line re-trains the ML Model
-            //MLHelper.BuildAndTrainModel(_hostingEnvironment.ContentRootPath + "/ML/issueData.tsv", _hostingEnvironment.ContentRootPath + ModelFilePathName, MyTrainerStrategy.OVAAveragedPerceptronTrainer);
+            //MLHelper.BuildAndTrainModel(_hostingEnvironment.ContentRootPath + "/ML/issueData.tsv", _hostingEnvironment.ContentRootPath + ModelPath, MyTrainerStrategy.OVAAveragedPerceptronTrainer);
 
-            //2. Try/test to predict a label for a single hard-coded Issue
             var labeler = new Labeler(_hostingEnvironment.ContentRootPath + ModelPath);
-
             var issues = await gitHub.Issue.GetAllForRepository("aspnet", "AspNetCore", new ApiOptions { PageSize = 100, PageCount = 1 });
 
             var issueList = new List<Issue>();

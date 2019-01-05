@@ -21,7 +21,6 @@ namespace Hubbup.Web.Controllers
     {
         private readonly IDataSource _dataSource;
         private readonly ILogger<MikLabelerController> _logger;
-        private static string AppPath => Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
         private static string ModelPath = "/ML/GitHubLabelerModel.zip";
         public enum MyTrainerStrategy : int { SdcaMultiClassTrainer = 1, OVAAveragedPerceptronTrainer = 2 };
         private readonly IHostingEnvironment _hostingEnvironment;

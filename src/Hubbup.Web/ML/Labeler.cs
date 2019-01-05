@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.ML;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML;
-using Octokit;
-using System.IO;
 using Microsoft.ML.Runtime.Data;
+using System.IO;
 
 namespace Hubbup.Web.ML
 {
@@ -24,7 +19,6 @@ namespace Hubbup.Web.ML
             _mlContext = new MLContext(seed:1);
 
             //Load model from file
-            
             using (var stream = new FileStream(_modelPath, System.IO.FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 _trainedModel = _mlContext.Model.Load(stream);

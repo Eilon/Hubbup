@@ -1,14 +1,33 @@
 @model IReadOnlyList<Issue>
+@using Hubbup.Web.ML;
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 
 @{
     ViewData["PageTitlePrefix"] = $"MikLabeler";
+    var predictions = ViewData["Predictions"] as List<GitHubIssuePrediction>;
+
 }
 
-<h1>Let's dispatch some issues!</h1>
+@if (Model.Count == 0)
+{
+    <div class="text-center">
+        <h3>No unlabeled issues!</h3>
 
-<ul>
-    @foreach (var issue in Model)
-    {
-        <li>@issue.Title</li>
-    }
-</ul>
+    </div>
+}
+@for (int i = 0; i < Model.Count; i++)
+{
+    <div>
+        @using (Html.BeginForm("ApplyLabel", "MikLabeler", FormMethod.Post))
+        {
+            <text> <a href="@Model[i].HtmlUrl" target="_blank">@Model[i].Title</a> -Predicted Label: <strong>@predictions[i].Area</strong> Score: <strong>@predictions[i].Score.Max()</strong></text>
+            <input hidden type="text" name="issueNumber" class="form-control" value="@Model[i].Number">
+            <input hidden type="text" name="prediction" class="form-control" value="@predictions[i].Area">
+            <button type="submit" class="btn btn-sm btn-primary">Apply</button><br /><br />
+        }
+    </div>
+    <br>
+}
+
+

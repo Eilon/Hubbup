@@ -54,7 +54,7 @@ namespace Hubbup.Web.Controllers
                     " ",
                     existingAreaLabels.Select(label => $"-label:\"{label.Name}\""));
 
-            var getIssuesRequest = new SearchIssuesRequest(excludeAllAreaLabelsQuery)
+            var getIssuesRequest = new SearchIssuesRequest($"{excludeAllAreaLabelsQuery} -milestone:Discussions")
             {
                 Is = new[] { IssueIsQualifier.Issue, IssueIsQualifier.Open },
                 Repos = new RepositoryCollection
@@ -92,18 +92,12 @@ namespace Hubbup.Web.Controllers
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
-            var issue = await gitHub.Issue.Get("aspnet", "aspnetcore", issueNumber);
 
-            await ApplyPredictedLabel(issue, prediction, gitHub);
-            return RedirectToAction("Index");
-        }
-
-        private async Task ApplyPredictedLabel(Issue issue, string label, IGitHubClient client)
-        {
             var issueUpdate = new IssueUpdate();
-            issueUpdate.AddLabel(label);
+            issueUpdate.AddLabel(prediction);
+            await gitHub.Issue.Update("aspnet", "aspnetcore", issueNumber, issueUpdate);
 
-            await client.Issue.Update("aspnet", "aspnetcore", issue.Number, issueUpdate);
+            return RedirectToAction("Index");
         }
     }
 }

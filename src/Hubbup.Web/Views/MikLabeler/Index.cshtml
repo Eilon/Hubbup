@@ -1,5 +1,4 @@
 @model MikLabelViewModel
-@using Hubbup.Web.ML;
 
 @{
     ViewData["PageTitlePrefix"] = $"MikLabeler";
@@ -47,8 +46,8 @@ else
                     <div class="col-md-1">
                         @using (Html.BeginForm("ApplyLabel", "MikLabeler", FormMethod.Post))
                         {
-                            <input type="hidden" name="issueNumber" class="form-control" value="@labelPrediction.Issue.Number">
-                            <input type="hidden" name="prediction" class="form-control" value="@labelPrediction.Prediction.Area">
+                            <input type="hidden" name="issueNumber" value="@labelPrediction.Issue.Number">
+                            <input type="hidden" name="prediction" value="@labelPrediction.Prediction.Area">
                             <button type="submit" class="btn btn-sm btn-primary">Apply</button>
                         }
                     </div>

@@ -1,45 +1,54 @@
-@model IReadOnlyList<Issue>
+@model MikLabelViewModel
 @using Hubbup.Web.ML;
 
 @{
     ViewData["PageTitlePrefix"] = $"MikLabeler";
-    var predictions = ViewData["Predictions"] as List<GitHubIssuePrediction>;
-
 }
 
-@if (Model.Count == 0)
+@if (Model.PredictionList.Count == 0)
 {
     <div class="text-center">
-        <h3>No unlabeled issues!</h3>
+        <h3>No undispatched issues!</h3>
     </div>
 }
 else
 {
+    <h2>Showing @Model.PredictionList.Count of @Model.TotalIssuesFound undispatched issues</h2>
     <ul class="list-group">
-        @for (int i = 0; i < Model.Count; i++)
+        @for (int i = 0; i < Model.PredictionList.Count; i++)
         {
-            var hexColor = "5319e7";
-            var confidencePercent = (int)Math.Floor(100f * predictions[i].Score.Max());
-            var confidenceHappinessStyle = confidencePercent > 80 ? "bg-success" : "bg-warning";
+            var labelPrediction = Model.PredictionList[i];
+            var hexColor = labelPrediction.AreaLabel.Color;
+            var confidencePercent = (int)Math.Floor(100f * labelPrediction.Prediction.Score.Max());
+            var confidenceHappinessStyle = confidencePercent > 80 ? "progress-bar-success" : "progress-bar-warning";
 
             <li class="list-group-item">
                 <div class="row">
                     <div class="col-md-8">
-                        <a href="@Model[i].HtmlUrl" target="_blank">@Model[i].Title</a>
+                        <a href="@labelPrediction.Issue.HtmlUrl" target="_blank">@labelPrediction.Issue.Title</a>
+                        <br />
+                        Opened @labelPrediction.Issue.CreatedAt.ToPacificTime().ToString()
                     </div>
                     <div class="col-md-2">
                         <div class="progress">
-                            <div class="progress-bar @confidenceHappinessStyle" title="Confidence score: @predictions[i].Score.Max()" style="width: @(confidencePercent)%;">@(confidencePercent)%</div>
+                            <div class="progress-bar @confidenceHappinessStyle"
+                                 title="Confidence score: @labelPrediction.Prediction.Score.Max()"
+                                 style="width: @(confidencePercent)%;">
+                                @(confidencePercent)%
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-1">
-                        <span class="label" style="background-color: #@hexColor; color: #@ColorMath.GetHexForeColorForBackColor(hexColor)">@predictions[i].Area</span>
+                        <span class="label"
+                              style="background-color: #@hexColor; color: #@ColorMath.GetHexForeColorForBackColor(hexColor)">
+                            @labelPrediction.Prediction.Area
+                        </span>
                     </div>
                     <div class="col-md-1">
                         @using (Html.BeginForm("ApplyLabel", "MikLabeler", FormMethod.Post))
                         {
-                            <input type="hidden" name="issueNumber" class="form-control" value="@Model[i].Number">
-                            <input type="hidden" name="prediction" class="form-control" value="@predictions[i].Area">
+                            <input type="hidden" name="issueNumber" class="form-control" value="@labelPrediction.Issue.Number">
+                            <input type="hidden" name="prediction" class="form-control" value="@labelPrediction.Prediction.Area">
                             <button type="submit" class="btn btn-sm btn-primary">Apply</button>
                         }
                     </div>

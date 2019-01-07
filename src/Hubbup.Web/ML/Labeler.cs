@@ -1,7 +1,7 @@
-﻿using Microsoft.ML;
+﻿using System.IO;
+using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
-using System.IO;
 
 namespace Hubbup.Web.ML
 {

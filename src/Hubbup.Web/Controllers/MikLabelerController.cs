@@ -1,6 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.ML;
 using Hubbup.Web.Utils;
+using Hubbup.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -8,8 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Octokit;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Hubbup.Web.Controllers
 {
@@ -19,8 +22,7 @@ namespace Hubbup.Web.Controllers
     {
         private readonly IDataSource _dataSource;
         private readonly ILogger<MikLabelerController> _logger;
-        private static string ModelPath = "/ML/GitHubLabelerModel.zip";
-        public enum MyTrainerStrategy : int { SdcaMultiClassTrainer = 1, OVAAveragedPerceptronTrainer = 2 };
+        private static readonly string ModelPath = "/ML/GitHubLabelerModel.zip";
         private readonly IHostingEnvironment _hostingEnvironment;
 
         public MikLabelerController(
@@ -42,29 +44,46 @@ namespace Hubbup.Web.Controllers
             //This line re-trains the ML Model
             //MLHelper.BuildAndTrainModel(_hostingEnvironment.ContentRootPath + "/ML/issueData.tsv", _hostingEnvironment.ContentRootPath + ModelPath, MyTrainerStrategy.OVAAveragedPerceptronTrainer);
 
-            var labeler = new Labeler(_hostingEnvironment.ContentRootPath + ModelPath);
-            var issues = await gitHub.Issue.GetAllForRepository("aspnet", "AspNetCore", new ApiOptions { PageSize = 100, PageCount = 1 });
+            var existingAreaLabels =
+                (await gitHub.Issue.Labels.GetAllForRepository("aspnet", "AspNetCore"))
+                .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            var issueList = new List<Issue>();
-            var predictionLabels = new List<GitHubIssuePrediction>();
-            foreach (Issue issue in issues)
+            var excludeAllAreaLabelsQuery =
+                string.Join(
+                    " ",
+                    existingAreaLabels.Select(label => $"-label:\"{label.Name}\""));
+
+            var getIssuesRequest = new SearchIssuesRequest(excludeAllAreaLabelsQuery)
             {
-                if (issue.PullRequest != null)
+                Is = new[] { IssueIsQualifier.Issue, IssueIsQualifier.Open },
+                Repos = new RepositoryCollection
                 {
-                    continue;
-                }
+                    { "aspnet", "AspNetCore" }
+                },
+            };
 
-                var areaLabel = findAreaLabel(issue);
-                if (areaLabel == null)
+            var issueSearchResult = await gitHub.Search.SearchIssues(getIssuesRequest);
+
+            var labeler = new Labeler(_hostingEnvironment.ContentRootPath + ModelPath);
+            var predictionList = new List<LabelSuggestion>();
+
+            foreach (var issue in issueSearchResult.Items)
+            {
+                var prediction = labeler.PredictLabel(issue);
+                predictionList.Add(new LabelSuggestion
                 {
-                    issueList.Add(issue);
-                    var predictedLabel = labeler.PredictLabel(issue);
-                    predictionLabels.Add(predictedLabel);
-                }
+                    Issue = issue,
+                    Prediction = prediction,
+                    AreaLabel = existingAreaLabels.Single(label => string.Equals(label.Name, prediction.Area, StringComparison.OrdinalIgnoreCase)),
+                });
             }
 
-            ViewData["Predictions"] = predictionLabels;
-            return View(issueList);
+            return View(new MikLabelViewModel
+            {
+                PredictionList = predictionList,
+                TotalIssuesFound = issueSearchResult.TotalCount,
+            });
         }
 
         [HttpPost]
@@ -74,31 +93,17 @@ namespace Hubbup.Web.Controllers
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
             var issue = await gitHub.Issue.Get("aspnet", "aspnetcore", issueNumber);
-            ApplyPredictedLabel(issue, prediction, gitHub);
+
+            await ApplyPredictedLabel(issue, prediction, gitHub);
             return RedirectToAction("Index");
         }
 
-        private void ApplyPredictedLabel(Issue issue, string label, IGitHubClient client)
+        private async Task ApplyPredictedLabel(Issue issue, string label, IGitHubClient client)
         {
             var issueUpdate = new IssueUpdate();
             issueUpdate.AddLabel(label);
 
-            client.Issue.Update("aspnet", "aspnetcore", issue.Number, issueUpdate);
-        }
-
-        private static Label findAreaLabel(Issue issue)
-        {
-            var labels = issue.Labels;
-            foreach (Label label in labels)
-            {
-                if (label.Name.StartsWith("area-"))
-                {
-                    return label;
-                }
-            }
-
-            //No area label
-            return null;
+            await client.Issue.Update("aspnet", "aspnetcore", issue.Number, issueUpdate);
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿using Microsoft.ML;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Data;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
-using static Hubbup.Web.Controllers.MikLabelerController;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.Data;
 
 namespace Hubbup.Web.ML
 {
@@ -17,17 +16,17 @@ namespace Hubbup.Web.ML
             var mlContext = new MLContext(seed: 0);
 
             // STEP 1: Common data loading configuration
-            TextLoader textLoader = mlContext.Data.TextReader(new TextLoader.Arguments()
+            var textLoader = mlContext.Data.TextReader(new TextLoader.Arguments()
             {
                 Separator = "tab",
                 HasHeader = true,
                 Column = new[]
-                                {
-                                    new TextLoader.Column("ID", DataKind.Text, 0),
-                                    new TextLoader.Column("Area", DataKind.Text, 1),
-                                    new TextLoader.Column("Title", DataKind.Text, 2),
-                                    new TextLoader.Column("Description", DataKind.Text, 3),
-                                }
+                {
+                    new TextLoader.Column("ID", DataKind.Text, 0),
+                    new TextLoader.Column("Area", DataKind.Text, 1),
+                    new TextLoader.Column("Title", DataKind.Text, 2),
+                    new TextLoader.Column("Description", DataKind.Text, 3),
+                }
             });
 
             var trainingDataView = textLoader.Read(DataSetLocation);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
@@ -22,7 +23,7 @@ namespace Hubbup.Web.Controllers
     {
         private readonly IDataSource _dataSource;
         private readonly ILogger<MikLabelerController> _logger;
-        private static readonly string ModelPath = "/ML/GitHubLabelerModel.zip";
+        private static readonly string ModelPath = Path.Combine("ML", "GitHubLabelerModel.zip");
         private readonly IHostingEnvironment _hostingEnvironment;
 
         public MikLabelerController(
@@ -65,7 +66,7 @@ namespace Hubbup.Web.Controllers
 
             var issueSearchResult = await gitHub.Search.SearchIssues(getIssuesRequest);
 
-            var labeler = new Labeler(_hostingEnvironment.ContentRootPath + ModelPath);
+            var labeler = new Labeler(Path.Combine(_hostingEnvironment.ContentRootPath, ModelPath));
             var predictionList = new List<LabelSuggestion>();
 
             foreach (var issue in issueSearchResult.Items)

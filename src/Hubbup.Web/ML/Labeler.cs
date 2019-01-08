@@ -16,10 +16,10 @@ namespace Hubbup.Web.ML
         public Labeler(string modelPath)
         {
             _modelPath = modelPath;
-            _mlContext = new MLContext(seed:1);
+            _mlContext = new MLContext(seed: 1);
 
             //Load model from file
-            using (var stream = new FileStream(_modelPath, System.IO.FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var stream = new FileStream(_modelPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 _trainedModel = _mlContext.Model.Load(stream);
             }
@@ -43,7 +43,7 @@ namespace Hubbup.Web.ML
         }
 
         public GitHubIssuePrediction Predict(GitHubIssue issue)
-        {          
+        {
             return _predFunction.Predict(issue);
         }
     }

@@ -1,4 +1,4 @@
-﻿using Hubbup.Web.ML;
+﻿using Hubbup.MikLabelModel;
 using Octokit;
 
 namespace Hubbup.Web.ViewModels

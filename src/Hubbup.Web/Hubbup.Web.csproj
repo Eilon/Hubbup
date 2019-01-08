@@ -28,9 +28,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="0.7.0" />
-    <PackageReference Include="Microsoft.ML" Version="0.8.0" />
     <PackageReference Include="NuGet.Versioning" Version="4.0.0" />
-    <PackageReference Include="Octokit" Version="0.28.0" />
   </ItemGroup>
 
   <Target Name="ClientBuild" Inputs="@(WebpackInputs)" Outputs="@(WebpackOutputs)" BeforeTargets="Build">
@@ -46,6 +44,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hubbup.IssueMoverClient\Hubbup.IssueMoverClient.csproj" />
+    <ProjectReference Include="..\Hubbup.MikLabelModel\Hubbup.MikLabelModel.csproj" />
     <ProjectReference Include="..\Hubbup.Web.Diagnostics\Hubbup.Web.Diagnostics.csproj" />
     <ProjectReference Include="..\IssueMoverDto\IssueMoverDto.csproj" />
   </ItemGroup>

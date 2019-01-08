@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Hubbup.MikLabelModel;
 using Hubbup.Web.DataSources;
-using Hubbup.Web.ML;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
@@ -41,9 +41,6 @@ namespace Hubbup.Web.Controllers
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
-
-            //This line re-trains the ML Model
-            //MLHelper.BuildAndTrainModel(_hostingEnvironment.ContentRootPath + "/ML/issueData.tsv", _hostingEnvironment.ContentRootPath + ModelPath, MyTrainerStrategy.OVAAveragedPerceptronTrainer);
 
             var existingAreaLabels =
                 (await gitHub.Issue.Labels.GetAllForRepository("aspnet", "AspNetCore"))

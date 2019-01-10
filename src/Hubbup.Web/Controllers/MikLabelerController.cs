@@ -91,8 +91,19 @@ namespace Hubbup.Web.Controllers
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
-            var issueUpdate = new IssueUpdate();
+            var issue = await gitHub.Issue.Get("aspnet", "aspnetcore", issueNumber);
+
+            var issueUpdate = new IssueUpdate
+            {
+                Milestone = issue.Milestone?.Number // Have to re-set milestone because otherwise it gets cleared out. See https://github.com/octokit/octokit.net/issues/1927
+            };
             issueUpdate.AddLabel(prediction);
+            // Add all existing labels to the update so that they don't get removed
+            foreach (var label in issue.Labels)
+            {
+                issueUpdate.AddLabel(label.Name);
+            }
+
             await gitHub.Issue.Update("aspnet", "aspnetcore", issueNumber, issueUpdate);
 
             return RedirectToAction("Index");

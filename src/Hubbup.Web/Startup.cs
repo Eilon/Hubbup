@@ -170,7 +170,10 @@ namespace Hubbup.Web
 
             app.UseMvc();
 
-            app.UseBlazor<IssueMoverClient.Program>();
+            app.Map("/Mover", subApp =>
+            {
+                subApp.UseBlazor<IssueMoverClient.Program>();
+            });
         }
     }
 }

@@ -54,7 +54,7 @@ namespace Hubbup.Web.Controllers
 
             var getIssuesRequest = new SearchIssuesRequest($"{excludeAllAreaLabelsQuery} -milestone:Discussions")
             {
-                Is = new[] { IssueIsQualifier.Issue, IssueIsQualifier.Open },
+                Is = new[] { IssueIsQualifier.Open },
                 Repos = new RepositoryCollection
                 {
                     { "aspnet", "AspNetCore" }

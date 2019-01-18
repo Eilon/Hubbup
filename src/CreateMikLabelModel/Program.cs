@@ -31,6 +31,8 @@ namespace CreateMikLabelModel
 
         private static async Task GetGitHubIssueData(string outputPath)
         {
+            Console.WriteLine($"Getting all issues...");
+
             var stopWatch = Stopwatch.StartNew();
 
             // Get credentials

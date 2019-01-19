@@ -2,6 +2,33 @@
 
 @{
     ViewData["PageTitlePrefix"] = $"MikLabeler";
+
+    var daySegments = new[] { 1, 7, 14, 31 };
+
+    int? ShouldShowGroupHeader(IList<LabelSuggestion> items, int index)
+    {
+        if (index == 0)
+        {
+            // Always show header for first element
+            return daySegments[0];
+        }
+
+        var currentElement = items[index];
+        var previousElement = items[index - 1];
+        var currentDaysOld = (int)Math.Floor((DateTimeOffset.Now - currentElement.Issue.CreatedAt).TotalDays);
+        var previousDaysOld = (int)Math.Floor((DateTimeOffset.Now - previousElement.Issue.CreatedAt).TotalDays);
+
+        var currentDaySegment = daySegments.LastOrDefault(days => currentDaysOld >= days);
+        var previousDaySegment = daySegments.LastOrDefault(days => previousDaysOld >= days);
+        if (currentDaySegment != previousDaySegment)
+        {
+            return daySegments.FirstOrDefault(days => currentDaySegment < days);
+        }
+        else
+        {
+            return null;
+        }
+    }
 }
 
 @if (Model.PredictionList.Count == 0)
@@ -20,6 +47,24 @@ else
             var hexColor = labelPrediction.AreaLabel.Color;
             var confidencePercent = (int)Math.Floor(100f * labelPrediction.Prediction.Score.Max());
             var confidenceHappinessStyle = confidencePercent > 80 ? "progress-bar-success" : "progress-bar-warning";
+
+            var dayGroupHeaderToShow = ShouldShowGroupHeader(Model.PredictionList, i);
+            if (dayGroupHeaderToShow != null)
+            {
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-12">
+                            @{ 
+                                var daysText =
+                                    dayGroupHeaderToShow == 0 ? $"Older than {daySegments.Max()} days" :
+                                    dayGroupHeaderToShow == 1 ? "Last day" :
+                                    $"Last {dayGroupHeaderToShow} days";
+                            }
+                            <h2>@daysText</h2>
+                        </div>
+                    </div>
+                </li>
+            }
 
             <li class="list-group-item">
                 <div class="row">

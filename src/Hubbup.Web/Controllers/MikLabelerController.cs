@@ -18,7 +18,7 @@ using Octokit;
 namespace Hubbup.Web.Controllers
 {
     [Route("miklabel")]
-    [Authorize(AuthenticationSchemes = "Cookies")]
+    [Authorize]
     public class MikLabelerController : Controller
     {
         private readonly IDataSource _dataSource;

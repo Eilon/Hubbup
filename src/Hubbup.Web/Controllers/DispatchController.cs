@@ -15,7 +15,7 @@ using Octokit;
 namespace Hubbup.Web.Controllers
 {
     [Route("api")]
-    [Authorize(AuthenticationSchemes = "Cookies")]
+    [Authorize]
     public class DispatchApiController : Controller
     {
         private static readonly string[] ExcludedMilestones = new[] {

@@ -14,7 +14,7 @@ using Octokit;
 namespace Hubbup.Web.Controllers
 {
     [Route("api")]
-    [Authorize(AuthenticationSchemes = "Cookies")]
+    [Authorize]
     public class IssuesApiController : Controller
     {
         private readonly IDataSource _dataSource;

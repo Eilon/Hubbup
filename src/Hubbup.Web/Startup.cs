@@ -5,21 +5,21 @@ using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Reflection;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace Hubbup.Web
 {
@@ -30,9 +30,9 @@ namespace Hubbup.Web
         private const string GitHubScopesClaim = "gh-scopes";
 
         public IConfiguration Configuration { get; }
-        public IHostingEnvironment HostingEnvironment { get; }
+        public IWebHostEnvironment HostingEnvironment { get; }
 
-        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
+        public Startup(IConfiguration configuration, IWebHostEnvironment hostingEnvironment)
         {
             Configuration = configuration;
             HostingEnvironment = hostingEnvironment;
@@ -61,7 +61,7 @@ namespace Hubbup.Web
             }
 
             services.AddSingleton<IGitHubDataSource, GitHubDataSource>();
-            services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, DataLoadingService>();
+            services.AddSingleton<IHostedService, DataLoadingService>();
 
             services.AddMemoryCache();
 
@@ -120,7 +120,7 @@ namespace Hubbup.Web
 
                         context.Identity.AddClaim(new Claim(GitHubScopesClaim, GitHubScopeString));
 
-                        var payload = JObject.Parse(await response.Content.ReadAsStringAsync());
+                        var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
                         context.RunClaimActions(payload);
                     };
                 });
@@ -129,7 +129,8 @@ namespace Hubbup.Web
                 .AddRazorPagesOptions(r =>
                 {
                     r.Conventions.AuthorizeFolder("/");
-                });
+                })
+                .AddNewtonsoftJson();
 
             services
                 .AddMetrics(options =>
@@ -166,9 +167,17 @@ namespace Hubbup.Web
 
             app.UseStaticFiles();
 
-            app.UseAuthentication();
+            app.UseRouting();
 
-            app.UseMvc();
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(routes =>
+            {
+                routes.MapControllers();
+                routes.MapRazorPages();
+                //routes.MapFallbackToPage();
+            });
 
             app.Map("/Mover", subApp =>
             {

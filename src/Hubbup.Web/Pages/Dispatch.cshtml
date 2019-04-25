@@ -1,6 +1,6 @@
 @page "{orgName}/{repoName}"
 @using Microsoft.AspNetCore.Http
-@inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostingEnvironment
 @{
     var repoName = RouteData.Values["repoName"];
     var orgName = RouteData.Values["orgName"];

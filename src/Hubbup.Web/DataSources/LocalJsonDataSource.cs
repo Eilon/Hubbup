@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,8 +13,8 @@ namespace Hubbup.Web.DataSources
     {
         public LocalJsonDataSource(
             IOptions<LocalJsonDataSourceOptions> localJsonRepoSetProviderOptions,
-            IHostingEnvironment hostingEnvironment,
-            IApplicationLifetime applicationLifetime,
+            IWebHostEnvironment hostingEnvironment,
+            IHostApplicationLifetime applicationLifetime,
             ILogger<LocalJsonDataSource> logger)
             : base(hostingEnvironment, applicationLifetime, logger)
         {

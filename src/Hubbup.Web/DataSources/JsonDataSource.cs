@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hubbup.Web.Models;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -19,17 +20,16 @@ namespace Hubbup.Web.DataSources
         private volatile RepoDataSet _repoDataSet = RepoDataSet.Empty;
         private volatile Dictionary<string, PersonSet> _personSets = new Dictionary<string, PersonSet>();
 
-        private string _repoEtag;
         private string _personSetEtag;
 
-        private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly IApplicationLifetime _applicationLifetime;
+        private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IHostApplicationLifetime _applicationLifetime;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _reloadLock = new SemaphoreSlim(1, 1);
 
         public JsonDataSource(
-            IHostingEnvironment hostingEnvironment,
-            IApplicationLifetime applicationLifetime,
+            IWebHostEnvironment hostingEnvironment,
+            IHostApplicationLifetime applicationLifetime,
             ILogger<JsonDataSource> logger)
         {
             _hostingEnvironment = hostingEnvironment;
@@ -131,7 +131,6 @@ namespace Hubbup.Web.DataSources
                             await _reloadLock.WaitAsync();
                             try
                             {
-                                _repoEtag = result.Etag;
                                 _repoDataSet = newDataSet;
                             }
                             finally

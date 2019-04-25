@@ -1,4 +1,5 @@
 ﻿@using Hubbup.IssueMover.Dto
+@inject IJSRuntime JSRuntime
 
 <span ref="tooltipElem" data-toggle="tooltip" data-placement="left" title="@ErrorMessage">@Description</span>
 <span class="glyphicon glyphicon-remove" style="color: red" aria-hidden="true"></span>
@@ -30,6 +31,6 @@
 
     protected override async Task OnAfterRenderAsync()
     {
-        await JSRuntime.Current.InvokeAsync<object>("updateTooltips", tooltipElem);
+        await JSRuntime.InvokeAsync<object>("updateTooltips", tooltipElem);
     }
 }

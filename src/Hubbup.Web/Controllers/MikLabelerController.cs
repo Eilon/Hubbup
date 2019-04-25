@@ -24,12 +24,12 @@ namespace Hubbup.Web.Controllers
         private readonly IDataSource _dataSource;
         private readonly ILogger<MikLabelerController> _logger;
         private static readonly string ModelPath = Path.Combine("ML", "GitHubLabelerModel.zip");
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
         public MikLabelerController(
             IDataSource dataSource,
             ILogger<MikLabelerController> logger,
-            IHostingEnvironment hostingEnvironment)
+            IWebHostEnvironment hostingEnvironment)
         {
             _dataSource = dataSource;
             _logger = logger;

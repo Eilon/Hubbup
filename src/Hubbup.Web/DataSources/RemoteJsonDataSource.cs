@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -13,8 +14,8 @@ namespace Hubbup.Web.DataSources
     {
         public RemoteJsonDataSource(
             IOptions<RemoteJsonDataSourceOptions> remoteJsonRepoSetProviderOptions,
-            IHostingEnvironment hostingEnvironment,
-            IApplicationLifetime applicationLifetime,
+            IWebHostEnvironment hostingEnvironment,
+            IHostApplicationLifetime applicationLifetime,
             ILogger<RemoteJsonDataSource> logger)
             : base(hostingEnvironment, applicationLifetime, logger)
         {

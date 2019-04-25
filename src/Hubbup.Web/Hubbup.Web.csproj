@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <!--<RuntimeIdentifier>win7-x64</RuntimeIdentifier>-->
     <UserSecretsId>hubbup</UserSecretsId>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked> 
-    <LangVersion>latest</LangVersion> 
+    <LangVersion>preview</LangVersion> 
     <TypeScriptToolsVersion>2.5</TypeScriptToolsVersion>
   </PropertyGroup>
 
@@ -26,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="0.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="3.0.0-preview4-19216-03" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0-preview4-19216-03" />
     <PackageReference Include="NuGet.Versioning" Version="4.0.0" />
   </ItemGroup>
 

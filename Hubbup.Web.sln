@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27205.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28902.138
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D534DD7-7F6F-45D7-A62B-3E7DCF9FAB8F}"
 EndProject
@@ -25,9 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hubbup.IssueMoverClient", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IssueMoverDto", "src\IssueMoverDto\IssueMoverDto.csproj", "{1102D67B-4B38-4D78-8CDA-467AE0E5852E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateMikLabelModel", "src\CreateMikLabelModel\CreateMikLabelModel.csproj", "{5966A77B-5114-4608-92AD-524F181FA0FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateMikLabelModel", "src\CreateMikLabelModel\CreateMikLabelModel.csproj", "{5966A77B-5114-4608-92AD-524F181FA0FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hubbup.MikLabelModel", "src\Hubbup.MikLabelModel\Hubbup.MikLabelModel.csproj", "{CA47F6FC-382F-4034-9F12-517CC14E5CB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hubbup.MikLabelModel", "src\Hubbup.MikLabelModel\Hubbup.MikLabelModel.csproj", "{CA47F6FC-382F-4034-9F12-517CC14E5CB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hubbup.IssueMoverApi", "src\Hubbup.IssueMoverApi\Hubbup.IssueMoverApi.csproj", "{D0479E4A-530C-48A6-A6E2-ED115727CEB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +61,10 @@ Global
 		{CA47F6FC-382F-4034-9F12-517CC14E5CB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA47F6FC-382F-4034-9F12-517CC14E5CB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA47F6FC-382F-4034-9F12-517CC14E5CB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0479E4A-530C-48A6-A6E2-ED115727CEB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0479E4A-530C-48A6-A6E2-ED115727CEB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0479E4A-530C-48A6-A6E2-ED115727CEB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0479E4A-530C-48A6-A6E2-ED115727CEB5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +76,7 @@ Global
 		{1102D67B-4B38-4D78-8CDA-467AE0E5852E} = {3D534DD7-7F6F-45D7-A62B-3E7DCF9FAB8F}
 		{5966A77B-5114-4608-92AD-524F181FA0FC} = {3D534DD7-7F6F-45D7-A62B-3E7DCF9FAB8F}
 		{CA47F6FC-382F-4034-9F12-517CC14E5CB0} = {3D534DD7-7F6F-45D7-A62B-3E7DCF9FAB8F}
+		{D0479E4A-530C-48A6-A6E2-ED115727CEB5} = {3D534DD7-7F6F-45D7-A62B-3E7DCF9FAB8F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {60D53155-0C10-41E9-B797-FC68F4EDFF8A}

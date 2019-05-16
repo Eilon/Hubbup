@@ -5,11 +5,11 @@
     ViewData["CurrentGroup"] = "Mover";
 }
 
-<base href="/Mover/" />
+@*<base href="/Mover/" />*@
 
-<app>Loading issue mover...</app>
+<app>@(await Html.RenderComponentAsync<IssueMoverClient.Pages.IssueMover>())</app>
 
-<script src="_framework/blazor.webassembly.js"></script>
+<script src="_framework/blazor.server.js"></script>
 
 <script>
     window.updateTooltips = function (elem) {

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Hubbup.IssueMover.Dto;
+using Hubbup.IssueMoverApi;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -15,11 +16,12 @@ namespace Hubbup.IssueMoverClient
         // Could have whatever granularity you want (more events, hierarchy...)
         public event Action OnChange;
 
-        private HttpClient Http { get; }
+        public IIssueMoverService IssueMoverService { get; }
 
-        public AppState(HttpClient http)
+
+        public AppState(IIssueMoverService issueMoverService)
         {
-            Http = http;
+            IssueMoverService = issueMoverService;
         }
 
         public string JsonData { get; set; }
@@ -50,7 +52,7 @@ namespace Hubbup.IssueMoverClient
             var shortNameParts = val.Split('/', '#');
             if (shortNameParts.Length == 3)
             {
-                if (int.TryParse(shortNameParts[2], out var issueNumber))
+                if (int.TryParse(shortNameParts[2], out _))
                 {
                     return true;
                 }
@@ -165,7 +167,7 @@ namespace Hubbup.IssueMoverClient
             var shortNameParts = val.Split('/', '#');
             var fromOwner = shortNameParts[0];
             var fromRepo = shortNameParts[1];
-            var fromIssueNumber = shortNameParts[2];
+            var fromIssueNumber = int.Parse(shortNameParts[2], CultureInfo.InvariantCulture);
 
             IssueQueryInProgress = true;
             NotifyStateChanged();
@@ -173,7 +175,7 @@ namespace Hubbup.IssueMoverClient
             IErrorResult getMoveDataError = null;
             try
             {
-                OriginalIssueMoveData = await Http.GetJsonAsync<IssueMoveData>($"https://localhost:44347/api/getmovedata/{fromOwner}/{fromRepo}/{fromIssueNumber}");
+                OriginalIssueMoveData = await IssueMoverService.GetIssueMoveData(fromOwner, fromRepo, fromIssueNumber);
                 if (OriginalIssueMoveData.HasErrors())
                 {
                     getMoveDataError = OriginalIssueMoveData;
@@ -262,7 +264,7 @@ namespace Hubbup.IssueMoverClient
             IErrorResult getRepoDataError = null;
             try
             {
-                DestinationRepoMoveData = await Http.GetJsonAsync<RepoMoveData>($"https://localhost:44347/api/getrepodata/{toOwner}/{toRepo}");
+                DestinationRepoMoveData = await IssueMoverService.GetRepoData(toOwner, toRepo);
                 if (DestinationRepoMoveData.HasErrors())
                 {
                     getRepoDataError = DestinationRepoMoveData;
@@ -297,7 +299,15 @@ namespace Hubbup.IssueMoverClient
 
         private void AddJsonLog(object data)
         {
-            var newJsonData = Json.Serialize(data);
+            string newJsonData;
+            try
+            {
+                newJsonData = Json.Serialize(data);
+            }
+            catch (Exception e)
+            {
+                newJsonData = $"Couldn't serialize data type '{data?.GetType().FullName ?? "<null>"}': {e.Message}";
+            }
             JsonData = $"@ {DateTimeOffset.Now}\r\n\r\n{newJsonData}\r\n\r\n{new string('-', 40)}\r\n\r\n{JsonData}";
         }
 
@@ -324,7 +334,7 @@ namespace Hubbup.IssueMoverClient
                         IErrorResult labelCreateResultError = null;
                         try
                         {
-                            var labelCreateResult = await Http.PostJsonAsync<LabelCreateResult>($"https://localhost:44347/api/createlabels/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}", new LabelCreateRequest { Labels = OriginalIssueMoveData.Labels, });
+                            var labelCreateResult = await IssueMoverService.CreateLabels(DestinationRepoMoveData.Owner, DestinationRepoMoveData.Repo, new LabelCreateRequest { Labels = OriginalIssueMoveData.Labels, });
                             if (labelCreateResult.HasErrors())
                             {
                                 labelCreateResultError = labelCreateResult;
@@ -377,7 +387,7 @@ namespace Hubbup.IssueMoverClient
                         IErrorResult milestoneCreateResultError = null;
                         try
                         {
-                            var milestoneCreateResult = await Http.PostJsonAsync<MilestoneCreateResult>($"https://localhost:44347/api/createmilestone/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}", new MilestoneCreateRequest { Milestone = OriginalIssueMoveData.Milestone, });
+                            var milestoneCreateResult = await IssueMoverService.CreateMilestone(DestinationRepoMoveData.Owner, DestinationRepoMoveData.Repo, new MilestoneCreateRequest { Milestone = OriginalIssueMoveData.Milestone, });
                             if (milestoneCreateResult.HasErrors())
                             {
                                 milestoneCreateResultError = milestoneCreateResult;
@@ -429,7 +439,7 @@ namespace Hubbup.IssueMoverClient
                 IErrorResult issueMoveResultError = null;
                 try
                 {
-                    var issueMoveResult = await Http.PostJsonAsync<IssueMoveResult>($"https://localhost:44347/api/moveissue/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}",
+                    var issueMoveResult = await IssueMoverService.MoveIssue(DestinationRepoMoveData.Owner, DestinationRepoMoveData.Repo,
                         new IssueMoveRequest
                         {
                             Title = OriginalIssueMoveData.Title,
@@ -490,7 +500,7 @@ namespace Hubbup.IssueMoverClient
                         IErrorResult commentMoveResultError = null;
                         try
                         {
-                            var commentMoveResult = await Http.PostJsonAsync<CommentMoveResult>($"https://localhost:44347/api/movecomment/{DestinationRepoMoveData.Owner}/{DestinationRepoMoveData.Repo}",
+                            var commentMoveResult = await IssueMoverService.MoveComment(DestinationRepoMoveData.Owner, DestinationRepoMoveData.Repo,
                                 new CommentMoveRequest
                                 {
                                     IssueNumber = destinationIssueNumber,
@@ -549,7 +559,7 @@ namespace Hubbup.IssueMoverClient
                 IErrorResult closeCommentResultError = null;
                 try
                 {
-                    var issueCloseCommentResult = await Http.PostJsonAsync<IssueCloseCommentResult>($"https://localhost:44347/api/closeissuecomment/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
+                    var issueCloseCommentResult = await IssueMoverService.CloseIssueComment(OriginalIssueMoveData.RepoOwner, OriginalIssueMoveData.RepoName,
                         new IssueCloseCommentRequest
                         {
                             IssueNumber = OriginalIssueMoveData.Number,
@@ -599,7 +609,7 @@ namespace Hubbup.IssueMoverClient
                     IErrorResult lockIssueResultError = null;
                     try
                     {
-                        var issueLockResult = await Http.PostJsonAsync<IssueLockResult>($"https://localhost:44347/api/lockissue/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
+                        var issueLockResult = await IssueMoverService.LockIssue(OriginalIssueMoveData.RepoOwner, OriginalIssueMoveData.RepoName,
                             new IssueLockRequest
                             {
                                 IssueNumber = OriginalIssueMoveData.Number,
@@ -645,7 +655,7 @@ namespace Hubbup.IssueMoverClient
                 IErrorResult closeIssueResultError = null;
                 try
                 {
-                    var issueCloseResult = await Http.PostJsonAsync<IssueCloseResult>($"https://localhost:44347/api/closeissue/{OriginalIssueMoveData.RepoOwner}/{OriginalIssueMoveData.RepoName}",
+                    var issueCloseResult = await IssueMoverService.CloseIssue(OriginalIssueMoveData.RepoOwner, OriginalIssueMoveData.RepoName,
                         new IssueCloseRequest
                         {
                             IssueNumber = OriginalIssueMoveData.Number,
@@ -720,7 +730,7 @@ namespace Hubbup.IssueMoverClient
             }
         }
 
-        private static string GetDestinationBody(IssueMoveData issueToMove)
+        internal static string GetDestinationBody(IssueMoveData issueToMove)
         {
             var dateTime = issueToMove.CreatedDate.ToLocalTime().DateTime;
             return $@"_From @{issueToMove.Author} on {dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}_
@@ -730,7 +740,7 @@ namespace Hubbup.IssueMoverClient
 _Copied from original issue: {issueToMove.RepoOwner}/{issueToMove.RepoName}#{issueToMove.Number}_";
         }
 
-        private static string GetDestinationComment(string author, string text, DateTimeOffset date)
+        internal static string GetDestinationComment(string author, string text, DateTimeOffset date)
         {
             var dateTime = date.ToLocalTime().DateTime;
             return $@"_From @{author} on {dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}_

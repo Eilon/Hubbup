@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Hubbup.IssueMoverApi;
+using Hubbup.IssueMoverClient;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
@@ -47,6 +49,15 @@ namespace Hubbup.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Blazor start
+            services.AddScoped<AppState>();
+            services.AddScoped<IIssueMoverService, IssueMoverLocalService>();
+            services.AddScoped<IGitHubAccessor, AspNetGitHubAccessor>();
+            services.AddServerSideBlazor();
+            // Blazor end
+
+            services.AddHttpContextAccessor();
+
             services.AddOptions();
 
             if (HostingEnvironment.IsDevelopment())
@@ -176,13 +187,20 @@ namespace Hubbup.Web
             {
                 routes.MapControllers();
                 routes.MapRazorPages();
+                routes.MapBlazorHub();
+
                 //routes.MapFallbackToPage();
             });
 
-            app.Map("/Mover", subApp =>
-            {
-                subApp.UseBlazor<IssueMoverClient.Program>();
-            });
+            //app.Map("/Mover", subApp =>
+            //{
+            //    subApp.UseBlazor<IssueMoverClient.Pages.IssueMover>();
+
+
+            //    //// From client app
+            //    //app..AddComponent<Pages.IssueMover>("app");
+
+            //});
         }
     }
 }

@@ -8,6 +8,7 @@
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked> 
     <LangVersion>preview</LangVersion> 
     <TypeScriptToolsVersion>2.5</TypeScriptToolsVersion>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Mime;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json;
@@ -15,9 +13,7 @@ using Hubbup.Web.Diagnostics.Telemetry;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -148,15 +144,6 @@ namespace Hubbup.Web
                 })
                 .AddApplicationInsights();
             services.AddSingleton<IRequestTelemetryListener, ApplicationInsightsRequestTelemetryListener>();
-
-            services.AddResponseCompression(options =>
-            {
-                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
-                {
-                    MediaTypeNames.Application.Octet,
-                    WasmMediaTypeNames.Application.Wasm, // This can be removed after upgrading to 2.2.
-                });
-            });
         }
 
         public void Configure(IApplicationBuilder app)
@@ -186,19 +173,7 @@ namespace Hubbup.Web
                 routes.MapControllers();
                 routes.MapRazorPages();
                 routes.MapBlazorHub();
-
-                //routes.MapFallbackToPage();
             });
-
-            //app.Map("/Mover", subApp =>
-            //{
-            //    subApp.UseBlazor<IssueMoverClient.Pages.IssueMover>();
-
-
-            //    //// From client app
-            //    //app..AddComponent<Pages.IssueMover>("app");
-
-            //});
         }
     }
 }

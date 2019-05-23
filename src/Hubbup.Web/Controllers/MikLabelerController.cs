@@ -37,7 +37,7 @@ namespace Hubbup.Web.Controllers
         }
 
         [Route("")]
-        public async Task<IActionResult> Index(string repoSet)
+        public async Task<IActionResult> Index()
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);

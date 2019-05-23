@@ -7,7 +7,9 @@ namespace Hubbup.IssueMover.Dto
     {
         public int IssueNumber { get; set; }
         public string HtmlUrl { get; set; }
+
         public string ErrorMessage { get; set; }
-        public Exception Exception { get; set; }
+        public string ExceptionMessage { get; set; }
+        public string ExceptionStackTrace { get; set; }
     }
 }

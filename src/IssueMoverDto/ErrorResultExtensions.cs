@@ -10,7 +10,7 @@ namespace Hubbup.IssueMover.Dto
             {
                 throw new ArgumentNullException(nameof(errorResult));
             }
-            return errorResult.ErrorMessage != null || errorResult.Exception != null;
+            return errorResult.ErrorMessage != null || errorResult.ExceptionMessage != null;
         }
     }
 }

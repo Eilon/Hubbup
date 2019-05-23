@@ -7,6 +7,7 @@ namespace Hubbup.IssueMover.Dto
     {
         public List<LabelData> LabelsCreated { get; set; }
         public string ErrorMessage { get; set; }
-        public Exception Exception { get; set; }
+        public string ExceptionMessage { get; set; }
+        public string ExceptionStackTrace { get; set; }
     }
 }

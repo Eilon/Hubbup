@@ -6,6 +6,7 @@ namespace Hubbup.IssueMoverClient
     public class ErrorResult : IErrorResult
     {
         public string ErrorMessage { get; set; }
-        public Exception Exception { get; set; }
+        public string ExceptionMessage { get; set; }
+        public string ExceptionStackTrace { get; set; }
     }
 }

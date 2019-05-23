@@ -48,7 +48,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new IssueMoveData
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -67,7 +68,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new RepoMoveData
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -88,7 +90,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new LabelCreateResult
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -109,7 +112,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new MilestoneCreateResult
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -130,7 +134,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new IssueMoveResult
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -151,7 +156,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new CommentMoveResult
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -172,7 +178,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new IssueCloseCommentResult
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -193,7 +200,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new IssueLockResult
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }
@@ -214,7 +222,8 @@ namespace Hubbup.Web.Controllers
                 return BadRequest(
                     new IssueCloseResult
                     {
-                        Exception = ex,
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
                     });
             }
         }

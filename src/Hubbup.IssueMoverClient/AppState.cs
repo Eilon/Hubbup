@@ -183,7 +183,11 @@ namespace Hubbup.IssueMoverClient
             }
             catch (Exception ex)
             {
-                getMoveDataError = new ErrorResult { Exception = ex, };
+                getMoveDataError = new ErrorResult
+                {
+                    ExceptionMessage = ex.Message,
+                    ExceptionStackTrace = ex.StackTrace,
+                };
             }
 
             if (getMoveDataError != null)
@@ -272,7 +276,11 @@ namespace Hubbup.IssueMoverClient
             }
             catch (Exception ex)
             {
-                getRepoDataError = new ErrorResult { Exception = ex, };
+                getRepoDataError = new ErrorResult
+                {
+                    ExceptionMessage = ex.Message,
+                    ExceptionStackTrace = ex.StackTrace,
+                };
             }
 
             if (getRepoDataError != null)
@@ -306,7 +314,7 @@ namespace Hubbup.IssueMoverClient
             }
             catch (Exception e)
             {
-                newJsonData = $"Couldn't serialize data type '{data?.GetType().FullName ?? "<null>"}': {e.Message}";
+                newJsonData = $"Couldn't serialize data type '{data?.GetType().FullName ?? "<null>"}': {e.Message}\r\n{e.StackTrace}";
             }
             JsonData = $"@ {DateTimeOffset.Now}\r\n\r\n{newJsonData}\r\n\r\n{new string('-', 40)}\r\n\r\n{JsonData}";
         }
@@ -343,7 +351,11 @@ namespace Hubbup.IssueMoverClient
                         }
                         catch (Exception ex)
                         {
-                            labelCreateResultError = new ErrorResult { Exception = ex, };
+                            labelCreateResultError = new ErrorResult
+                            {
+                                ExceptionMessage = ex.Message,
+                                ExceptionStackTrace = ex.StackTrace,
+                            };
                         }
 
                         if (labelCreateResultError != null)
@@ -396,7 +408,11 @@ namespace Hubbup.IssueMoverClient
                         }
                         catch (Exception ex)
                         {
-                            milestoneCreateResultError = new ErrorResult { Exception = ex, };
+                            milestoneCreateResultError = new ErrorResult
+                            {
+                                ExceptionMessage = ex.Message,
+                                ExceptionStackTrace = ex.StackTrace,
+                            };
                         }
 
                         if (milestoneCreateResultError != null)
@@ -459,7 +475,11 @@ namespace Hubbup.IssueMoverClient
                 }
                 catch (Exception ex)
                 {
-                    issueMoveResultError = new ErrorResult { Exception = ex, };
+                    issueMoveResultError = new ErrorResult
+                    {
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
+                    };
                 }
 
                 if (issueMoveResultError != null)
@@ -515,7 +535,11 @@ namespace Hubbup.IssueMoverClient
                         }
                         catch (Exception ex)
                         {
-                            commentMoveResultError = new ErrorResult { Exception = ex, };
+                            commentMoveResultError = new ErrorResult
+                            {
+                                ExceptionMessage = ex.Message,
+                                ExceptionStackTrace = ex.StackTrace,
+                            };
                         }
 
                         if (commentMoveResultError != null)
@@ -573,7 +597,11 @@ namespace Hubbup.IssueMoverClient
                 }
                 catch (Exception ex)
                 {
-                    closeCommentResultError = new ErrorResult { Exception = ex, };
+                    closeCommentResultError = new ErrorResult
+                    {
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
+                    };
                 }
 
                 if (closeCommentResultError != null)
@@ -622,7 +650,11 @@ namespace Hubbup.IssueMoverClient
                     }
                     catch (Exception ex)
                     {
-                        lockIssueResultError = new ErrorResult { Exception = ex, };
+                        lockIssueResultError = new ErrorResult
+                        {
+                            ExceptionMessage = ex.Message,
+                            ExceptionStackTrace = ex.StackTrace,
+                        };
                     }
 
                     if (lockIssueResultError != null)
@@ -668,7 +700,11 @@ namespace Hubbup.IssueMoverClient
                 }
                 catch (Exception ex)
                 {
-                    closeIssueResultError = new ErrorResult { Exception = ex, };
+                    closeIssueResultError = new ErrorResult
+                    {
+                        ExceptionMessage = ex.Message,
+                        ExceptionStackTrace = ex.StackTrace,
+                    };
                 }
 
                 if (closeIssueResultError != null)
@@ -709,7 +745,11 @@ namespace Hubbup.IssueMoverClient
             }
             catch (Exception ex)
             {
-                var overallErrorResult = new ErrorResult { Exception = ex, };
+                var overallErrorResult = new ErrorResult
+                {
+                    ExceptionMessage = ex.Message,
+                    ExceptionStackTrace = ex.StackTrace,
+                };
                 AddJsonLog(new ErrorLogEntry
                 {
                     Description = "Unknown error during move operation",

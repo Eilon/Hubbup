@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Hubbup.IssueMover.Dto
+﻿namespace Hubbup.IssueMover.Dto
 {
     public class MilestoneCreateResult : IErrorResult
     {
         public string MilestoneCreated { get; set; }
         public string ErrorMessage { get; set; }
-        public Exception Exception { get; set; }
-    }
-
-    public class MilestoneCreateRequest
-    {
-        public string Milestone { get; set; }
+        public string ExceptionMessage { get; set; }
+        public string ExceptionStackTrace { get; set; }
     }
 }

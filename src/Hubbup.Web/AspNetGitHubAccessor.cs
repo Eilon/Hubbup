@@ -1,24 +1,23 @@
 ﻿using System.Threading.Tasks;
 using Hubbup.IssueMoverApi;
 using Hubbup.Web.Utils;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
+using Microsoft.JSInterop;
 using Octokit;
 
 namespace Hubbup.Web
 {
     public class AspNetGitHubAccessor : IGitHubAccessor
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IJSRuntime _jsRuntime;
 
-        public AspNetGitHubAccessor(IHttpContextAccessor httpContextAccessor)
+        public AspNetGitHubAccessor(IJSRuntime jsRuntime)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _jsRuntime = jsRuntime;
         }
 
         public async Task<IGitHubClient> GetGitHubClient()
         {
-            var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync("access_token");
+            var accessToken =  await _jsRuntime.InvokeAsync<string>("GitHubAccessToken");
             return GitHubUtils.GetGitHubClient(accessToken);
         }
     }

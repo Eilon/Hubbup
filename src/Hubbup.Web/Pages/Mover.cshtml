@@ -1,4 +1,5 @@
 @page
+@using Microsoft.AspNetCore.Authentication
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostingEnvironment
 @{
     ViewData["PageTitlePrefix"] = $"Issue Mover";
@@ -12,6 +13,15 @@
 <script src="_framework/blazor.server.js"></script>
 
 <script>
+
+    @{ 
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+    }
+
+    window.GitHubAccessToken = function () {
+        return @Json.Serialize(accessToken);
+    };
+
     window.updateTooltips = function (elem) {
         $(elem).tooltip();
     };

@@ -56,8 +56,6 @@ namespace Hubbup.Web
             services.AddServerSideBlazor();
             // Blazor end
 
-            services.AddHttpContextAccessor();
-
             services.AddOptions();
 
             if (HostingEnvironment.IsDevelopment())

@@ -1,9 +1,10 @@
 @page
 @using Microsoft.AspNetCore.Authentication
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostingEnvironment
 @{
     ViewData["PageTitlePrefix"] = $"Issue Mover";
     ViewData["CurrentGroup"] = "Mover";
+
+    var gitHubAccessToken = await HttpContext.GetTokenAsync("access_token");
 }
 
 @*<base href="/Mover/" />*@
@@ -14,12 +15,8 @@
 
 <script>
 
-    @{ 
-        var accessToken = await HttpContext.GetTokenAsync("access_token");
-    }
-
-    window.GitHubAccessToken = function () {
-        return @Json.Serialize(accessToken);
+    window.GetGitHubAccessToken = function () {
+        return @Json.Serialize(gitHubAccessToken);
     };
 
     window.updateTooltips = function (elem) {

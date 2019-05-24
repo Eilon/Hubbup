@@ -17,7 +17,7 @@ namespace Hubbup.Web
 
         public async Task<IGitHubClient> GetGitHubClient()
         {
-            var accessToken =  await _jsRuntime.InvokeAsync<string>("GitHubAccessToken");
+            var accessToken =  await _jsRuntime.InvokeAsync<string>("GetGitHubAccessToken");
             return GitHubUtils.GetGitHubClient(accessToken);
         }
     }

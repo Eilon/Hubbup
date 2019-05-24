@@ -770,7 +770,7 @@ namespace Hubbup.IssueMoverClient
             }
         }
 
-        internal static string GetDestinationBody(IssueMoveData issueToMove)
+        private static string GetDestinationBody(IssueMoveData issueToMove)
         {
             var dateTime = issueToMove.CreatedDate.ToLocalTime().DateTime;
             return $@"_From @{issueToMove.Author} on {dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}_
@@ -780,7 +780,7 @@ namespace Hubbup.IssueMoverClient
 _Copied from original issue: {issueToMove.RepoOwner}/{issueToMove.RepoName}#{issueToMove.Number}_";
         }
 
-        internal static string GetDestinationComment(string author, string text, DateTimeOffset date)
+        private static string GetDestinationComment(string author, string text, DateTimeOffset date)
         {
             var dateTime = date.ToLocalTime().DateTime;
             return $@"_From @{author} on {dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}_

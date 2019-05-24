@@ -1,0 +1,19 @@
+﻿<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#@PanelID">
+    @Title
+</button>
+<div class="collapse" id="@PanelID">
+    <div class="well">
+        @ChildContent
+    </div>
+</div>
+
+@functions {
+    [Parameter]
+    private string PanelID { get; set; }
+
+    [Parameter]
+    private string Title { get; set; }
+
+    [Parameter]
+    private RenderFragment ChildContent { get; set; }
+}

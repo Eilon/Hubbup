@@ -99,15 +99,9 @@
     </div>
 </div>
 
-<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#debugArea">
-    Show debug info
-</button>
-<div class="collapse" id="debugArea">
-    <div class="well">
-        <textarea rows="10" cols="120" style="resize: both; overflow: auto">@State.JsonData</textarea>
-    </div>
-</div>
-
+<CollapsePanel Title="Show debug info" PanelID="debugArea">
+    <textarea rows="10" cols="120" style="resize: both; overflow: auto">@State.JsonData</textarea>
+</CollapsePanel>
 
 @functions
 {

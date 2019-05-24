@@ -99,7 +99,15 @@
     </div>
 </div>
 
-<textarea rows="10" cols="80" style="resize: both; overflow: auto">@State.JsonData</textarea>
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#debugArea">
+    Show debug info
+</button>
+<div class="collapse" id="debugArea">
+    <div class="well">
+        <textarea rows="10" cols="120" style="resize: both; overflow: auto">@State.JsonData</textarea>
+    </div>
+</div>
+
 
 @functions
 {

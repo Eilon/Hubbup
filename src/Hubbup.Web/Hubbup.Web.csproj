@@ -52,8 +52,6 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="Client\data.ts" />
-    <TypeScriptCompile Include="Client\DispatchIssues\components.tsx" />
-    <TypeScriptCompile Include="Client\DispatchIssues\page.tsx" />
     <TypeScriptCompile Include="Client\global.ts" />
     <TypeScriptCompile Include="Client\Standup\components.tsx" />
     <TypeScriptCompile Include="Client\Standup\page.tsx" />

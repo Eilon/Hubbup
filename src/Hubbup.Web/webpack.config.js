@@ -11,8 +11,7 @@ const dist = path.join(wwwroot, 'dist');
 module.exports = {
     entry: {
         global: "./global.ts",
-        standup: "./Standup/page.tsx",
-        dispatchIssues: "./DispatchIssues/page.tsx"
+        standup: "./Standup/page.tsx"
     },
     context: context,
     devtool: 'inline-source-map',

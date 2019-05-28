@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Octokit;
 
@@ -21,19 +22,19 @@ namespace Hubbup.Web.Controllers
     [Authorize]
     public class MikLabelerController : Controller
     {
-        private readonly IDataSource _dataSource;
         private readonly ILogger<MikLabelerController> _logger;
         private static readonly string ModelPath = Path.Combine("ML", "GitHubLabelerModel.zip");
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IMemoryCache _memoryCache;
 
         public MikLabelerController(
-            IDataSource dataSource,
             ILogger<MikLabelerController> logger,
-            IWebHostEnvironment hostingEnvironment)
+            IWebHostEnvironment hostingEnvironment,
+            IMemoryCache memoryCache)
         {
-            _dataSource = dataSource;
             _logger = logger;
             _hostingEnvironment = hostingEnvironment;
+            _memoryCache = memoryCache;
         }
 
         [Route("")]
@@ -42,10 +43,15 @@ namespace Hubbup.Web.Controllers
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
-            var existingAreaLabels =
-                (await gitHub.Issue.Labels.GetAllForRepository("aspnet", "AspNetCore"))
-                .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var existingAreaLabels = await _memoryCache.GetOrCreateAsync(
+                "Labels/" + "aspnet/AspNetCore",
+                async cacheEntry =>
+                {
+                    cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
+                    return (await gitHub.Issue.Labels.GetAllForRepository("aspnet", "AspNetCore"))
+                        .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                });
 
             var excludeAllAreaLabelsQuery =
                 string.Join(

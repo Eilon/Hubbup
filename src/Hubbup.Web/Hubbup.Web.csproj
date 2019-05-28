@@ -8,6 +8,8 @@
     <LangVersion>preview</LangVersion> 
     <TypeScriptToolsVersion>2.5</TypeScriptToolsVersion>
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+    <ApplicationInsightsResourceId>/subscriptions/b0ec8d78-5966-4ded-8400-4c83c6284cc3/resourcegroups/Default-Storage-WestUS/providers/microsoft.insights/components/hubbup</ApplicationInsightsResourceId>
+    <ApplicationInsightsAnnotationResourceId>/subscriptions/b0ec8d78-5966-4ded-8400-4c83c6284cc3/resourcegroups/Default-Storage-WestUS/providers/microsoft.insights/components/hubbup</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="3.0.0-preview5-19227-01" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0-preview5-19227-01" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.1.0-preview1-10384" />

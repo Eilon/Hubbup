@@ -1,4 +1,5 @@
-﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostingEnvironment
+﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostingEnvironment
 
 <!DOCTYPE html>
 <html>
@@ -9,6 +10,7 @@
 
     <link rel="stylesheet" href="/dist/vendor.css" />
     <link rel="stylesheet" href="/dist/global.css" />
+    @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
 

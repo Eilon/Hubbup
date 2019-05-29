@@ -74,12 +74,13 @@ namespace Hubbup.Web.Controllers
 
             foreach (var issue in issueSearchResult.Items)
             {
-                var prediction = labeler.PredictLabel(issue);
+                var predictions = labeler.PredictLabel(issue);
+                var bestPrediction = new GitHubIssuePrediction { Area = predictions.First().PredictedLabel, Score = new[] { predictions.First().Score } };
                 predictionList.Add(new LabelSuggestion
                 {
                     Issue = issue,
-                    Prediction = prediction,
-                    AreaLabel = existingAreaLabels.Single(label => string.Equals(label.Name, prediction.Area, StringComparison.OrdinalIgnoreCase)),
+                    Prediction = bestPrediction,
+                    AreaLabel = existingAreaLabels.Single(label => string.Equals(label.Name, bestPrediction.Area, StringComparison.OrdinalIgnoreCase)),
                 });
             }
 

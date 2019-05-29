@@ -1,7 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Octokit;
 
 namespace Hubbup.MikLabelModel
@@ -11,8 +12,10 @@ namespace Hubbup.MikLabelModel
     {
         private readonly string _modelPath;
         private readonly MLContext _mlContext;
-        private readonly PredictionFunction<GitHubIssue, GitHubIssuePrediction> _predFunction;
+        private readonly PredictionEngine<GitHubIssue, GitHubIssuePrediction> _predEngine;
         private readonly ITransformer _trainedModel;
+
+        private FullPrediction[] _fullPredictions;
 
         public Labeler(string modelPath)
         {
@@ -20,16 +23,13 @@ namespace Hubbup.MikLabelModel
             _mlContext = new MLContext(seed: 1);
 
             //Load model from file
-            using (var stream = File.OpenRead(_modelPath))
-            {
-                _trainedModel = _mlContext.Model.Load(stream);
-            }
+            _trainedModel = _mlContext.Model.Load(_modelPath, out _);
 
             // Create prediction engine related to the loaded trained model
-            _predFunction = _trainedModel.MakePredictionFunction<GitHubIssue, GitHubIssuePrediction>(_mlContext);
+            _predEngine = _mlContext.Model.CreatePredictionEngine<GitHubIssue, GitHubIssuePrediction>(_trainedModel);
         }
 
-        public GitHubIssuePrediction PredictLabel(Issue issue)
+        public FullPrediction[] PredictLabel(Issue issue)
         {
             var aspnetIssue = new GitHubIssue
             {
@@ -38,14 +38,88 @@ namespace Hubbup.MikLabelModel
                 Description = issue.Body
             };
 
-            var predictedLabel = Predict(aspnetIssue);
+            _fullPredictions = Predict(aspnetIssue);
 
-            return predictedLabel;
+            return _fullPredictions;
         }
 
-        public GitHubIssuePrediction Predict(GitHubIssue issue)
+        public FullPrediction[] Predict(GitHubIssue issue)
         {
-            return _predFunction.Predict(issue);
+            var prediction = _predEngine.Predict(issue);
+            var fullPredictions = GetBestThreePredictions(prediction);
+            return fullPredictions;
+        }
+
+        private FullPrediction[] GetBestThreePredictions(GitHubIssuePrediction prediction)
+        {
+            var scores = prediction.Score;
+            var size = scores.Length;
+
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            _predEngine.OutputSchema[nameof(GitHubIssuePrediction.Score)].GetSlotNames(ref slotNames);
+
+            GetIndexesOfTopThreeScores(scores, size, out var index0, out var index1, out var index2);
+
+            _fullPredictions = new FullPrediction[]
+                {
+                    new FullPrediction(slotNames.GetItemOrDefault(index0).ToString(), scores[index0], index0),
+                    new FullPrediction(slotNames.GetItemOrDefault(index1).ToString(), scores[index1], index1),
+                    new FullPrediction(slotNames.GetItemOrDefault(index2).ToString(), scores[index2], index2),
+                };
+
+            return _fullPredictions;
+        }
+
+        private void GetIndexesOfTopThreeScores(float[] scores, int n, out int index0, out int index1, out int index2)
+        {
+            int i;
+            float first, second, third;
+            index0 = index1 = index2 = 0;
+            if (n < 3)
+            {
+                Console.WriteLine("Invalid Input");
+                return;
+            }
+            third = first = second = 000;
+            for (i = 0; i < n; i++)
+            {
+                // If current element is  
+                // smaller than first 
+                if (scores[i] > first)
+                {
+                    third = second;
+                    second = first;
+                    first = scores[i];
+                }
+                // If arr[i] is in between first 
+                // and second then update second 
+                else if (scores[i] > second)
+                {
+                    third = second;
+                    second = scores[i];
+                }
+
+                else if (scores[i] > third)
+                    third = scores[i];
+            }
+            var scoresList = scores.ToList();
+            index0 = scoresList.IndexOf(first);
+            index1 = scoresList.IndexOf(second);
+            index2 = scoresList.IndexOf(third);
+        }
+    }
+
+    public class FullPrediction
+    {
+        public string PredictedLabel;
+        public float Score;
+        public int OriginalSchemaIndex;
+
+        public FullPrediction(string predictedLabel, float score, int originalSchemaIndex)
+        {
+            PredictedLabel = predictedLabel;
+            Score = score;
+            OriginalSchemaIndex = originalSchemaIndex;
         }
     }
 }

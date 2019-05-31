@@ -55,14 +55,6 @@ namespace CreateMikLabelModel
             var trainingPipeline = dataProcessPipeline.Append(trainer)
                     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
-            // STEP 4: Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
-            // in order to evaluate and get the model's accuracy metrics
-
-            //Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
-            //var crossValidationResults = mlContext.MulticlassClassification.CrossValidate(data: trainingDataView, estimator: trainingPipeline, numberOfFolds: 6, labelColumnName: "Label");
-
-            //ConsoleHelper.PrintMulticlassClassificationFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
-
             // STEP 5: Train the model fitting to the DataSet
             Console.WriteLine("Training the model...");
             var trainedModel = trainingPipeline.Fit(trainingDataView);

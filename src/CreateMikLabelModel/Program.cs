@@ -13,25 +13,37 @@ namespace CreateMikLabelModel
 {
     public class Program
     {
-        static async Task Main(string[] args)
+        private static readonly (string owner, string repo)[] Repos = new[]
         {
-            var tsvRawGitHubDataPath = "issueData.tsv";
-            var modelOutputDataPath = "GitHubLabelerModel.zip";
+            ("aspnet", "AspNetCore"),
+            ("aspnet", "Extensions"),
+        };
 
-            await GetGitHubIssueData(outputPath: tsvRawGitHubDataPath);
+        static async Task Main()
+        {
+            foreach (var repo in Repos)
+            {
+                var tsvRawGitHubDataPath = $"{repo.owner}-{repo.repo}-issueData.tsv";
+                var modelOutputDataPath = $"{repo.owner}-{repo.repo}-GitHubLabelerModel.zip";
 
-            //This line re-trains the ML Model
-            MLHelper.BuildAndTrainModel(
-                tsvRawGitHubDataPath,
-                modelOutputDataPath,
-                MyTrainerStrategy.OVAAveragedPerceptronTrainer);
+                await GetGitHubIssueData(repo.owner, repo.repo, outputPath: tsvRawGitHubDataPath);
 
-            Console.WriteLine($"Please remember to copy {modelOutputDataPath} to the web site's ML folder");
+                //This line re-trains the ML Model
+                MLHelper.BuildAndTrainModel(
+                    tsvRawGitHubDataPath,
+                    modelOutputDataPath,
+                    MyTrainerStrategy.OVAAveragedPerceptronTrainer);
+
+                Console.WriteLine(new string('-', 80));
+                Console.WriteLine();
+            }
+
+            Console.WriteLine($"Please remember to copy the ZIP files to the web site's ML folder");
         }
 
-        private static async Task GetGitHubIssueData(string outputPath)
+        private static async Task GetGitHubIssueData(string owner, string repo, string outputPath)
         {
-            Console.WriteLine($"Getting all issues...");
+            Console.WriteLine($"Getting all issues for {owner}/{repo}...");
 
             var stopWatch = Stopwatch.StartNew();
 
@@ -41,8 +53,8 @@ namespace CreateMikLabelModel
             var allIssues = new List<(string owner, string repo, Issue issue)>();
 
             var allIssuesInRepo = await ghc.Issue.GetAllForRepository(
-                "aspnet",
-                "AspNetCore",
+                owner,
+                repo,
                 new RepositoryIssueRequest
                 {
                     State = ItemStateFilter.All,

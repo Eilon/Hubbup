@@ -8,5 +8,7 @@ node_modules
 
 # Created during WebPack build
 src/Hubbup.Web/wwwroot/dist/
-src/CreateMikLabelModel/issueData.tsv
-src/CreateMikLabelModel/GitHubLabelerModel.zip
+
+# Ignore temporary ML model files
+src/CreateMikLabelModel/*-issueData.tsv
+src/CreateMikLabelModel/*-GitHubLabelerModel.zip

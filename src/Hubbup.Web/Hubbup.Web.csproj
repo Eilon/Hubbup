@@ -18,11 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="ML\GitHubLabelerModel.zip" />
+    <None Remove="ML\*.zip" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="ML\GitHubLabelerModel.zip">
+    <Content Include="ML\*.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

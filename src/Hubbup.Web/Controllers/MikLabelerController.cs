@@ -23,9 +23,15 @@ namespace Hubbup.Web.Controllers
     public class MikLabelerController : Controller
     {
         private readonly ILogger<MikLabelerController> _logger;
-        private static readonly string ModelPath = Path.Combine("ML", "GitHubLabelerModel.zip");
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IMemoryCache _memoryCache;
+
+        private static readonly (string owner, string repo)[] Repos = new[]
+        {
+            ("aspnet", "AspNetCore"),
+            ("aspnet", "Extensions"),
+        };
+
 
         public MikLabelerController(
             ILogger<MikLabelerController> logger,
@@ -40,49 +46,55 @@ namespace Hubbup.Web.Controllers
         [Route("")]
         public async Task<IActionResult> Index()
         {
-            var owner = "aspnet";
-            var repo = "AspNetCore";
-
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
-            var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo);
 
-            var excludeAllAreaLabelsQuery =
-                string.Join(
-                    " ",
-                    existingAreaLabels.Select(label => $"-label:\"{label.Name}\""));
-
-            var getIssuesRequest = new SearchIssuesRequest($"{excludeAllAreaLabelsQuery} -milestone:Discussions")
-            {
-                Is = new[] { IssueIsQualifier.Open },
-                Repos = new RepositoryCollection
-                {
-                    { owner, repo }
-                },
-            };
-
-            var issueSearchResult = await gitHub.Search.SearchIssues(getIssuesRequest);
-
-            var labeler = new Labeler(Path.Combine(_hostingEnvironment.ContentRootPath, ModelPath));
             var predictionList = new List<LabelSuggestionViewModel>();
+            var totalIssuesFound = 0;
 
-            foreach (var issue in issueSearchResult.Items)
+            foreach (var (owner, repo) in Repos)
             {
-                var predictions = labeler.PredictLabel(issue);
+                var modelPath = Path.Combine("ML", $"{owner}-{repo}-GitHubLabelerModel.zip");
 
-                predictionList.Add(new LabelSuggestionViewModel
+                var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo);
+
+                var excludeAllAreaLabelsQuery =
+                    string.Join(
+                        " ",
+                        existingAreaLabels.Select(label => $"-label:\"{label.Name}\""));
+
+                var getIssuesRequest = new SearchIssuesRequest($"{excludeAllAreaLabelsQuery} -milestone:Discussions")
                 {
-                    RepoOwner = owner,
-                    RepoName = repo,
-                    Issue = issue,
-                    LabelScores = predictions.LabelScores.Select(ls => (ls, existingAreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
-                });
+                    Is = new[] { IssueIsQualifier.Open },
+                    Repos = new RepositoryCollection
+                    {
+                        { owner, repo }
+                    },
+                };
+
+                var issueSearchResult = await gitHub.Search.SearchIssues(getIssuesRequest);
+                totalIssuesFound += issueSearchResult.TotalCount;
+
+                var labeler = new Labeler(Path.Combine(_hostingEnvironment.ContentRootPath, modelPath));
+
+                foreach (var issue in issueSearchResult.Items)
+                {
+                    var predictions = labeler.PredictLabel(issue);
+
+                    predictionList.Add(new LabelSuggestionViewModel
+                    {
+                        RepoOwner = owner,
+                        RepoName = repo,
+                        Issue = issue,
+                        LabelScores = predictions.LabelScores.Select(ls => (ls, existingAreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
+                    });
+                }
             }
 
             return View(new MikLabelViewModel
             {
-                PredictionList = predictionList,
-                TotalIssuesFound = issueSearchResult.TotalCount,
+                PredictionList = predictionList.OrderByDescending(prediction => prediction.Issue.CreatedAt).ToList(),
+                TotalIssuesFound = totalIssuesFound,
             });
         }
 

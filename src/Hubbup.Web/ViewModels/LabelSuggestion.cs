@@ -8,5 +8,7 @@ namespace Hubbup.Web.ViewModels
     {
         public Issue Issue { get; set; }
         public List<(LabelAreaScore, Label)> LabelScores { get; set; }
+        public string RepoOwner { get; set; }
+        public string RepoName { get; set; }
     }
 }

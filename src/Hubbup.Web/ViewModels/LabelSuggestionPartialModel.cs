@@ -5,6 +5,8 @@ namespace Hubbup.Web.ViewModels
 {
     public class LabelSuggestionPartialModel
     {
+        public string RepoOwner { get; set; }
+        public string RepoName { get; set; }
         public Issue Issue{ get; set; }
         public Label Label { get; set; }
         public LabelAreaScore Score { get; set; }

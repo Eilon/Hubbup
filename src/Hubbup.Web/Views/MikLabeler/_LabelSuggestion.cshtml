@@ -25,9 +25,8 @@
         </div>
     </div>
     <div class="col-md-3">
-        @using (Html.BeginForm("ApplyLabel", "MikLabeler", FormMethod.Post))
+        @using (Html.BeginForm("ApplyLabel", "MikLabeler", new { owner = Model.RepoOwner, repo = Model.RepoName, issueNumber = Model.Issue.Number }, FormMethod.Post))
         {
-            <input type="hidden" name="issueNumber" value="@Model.Issue.Number">
             <input type="hidden" name="prediction" value="@Model.Label.Name">
             <button type="submit" class="btn btn-sm btn-primary">Apply</button>
         }

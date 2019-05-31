@@ -40,18 +40,12 @@ namespace Hubbup.Web.Controllers
         [Route("")]
         public async Task<IActionResult> Index()
         {
+            var owner = "aspnet";
+            var repo = "AspNetCore";
+
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
-
-            var existingAreaLabels = await _memoryCache.GetOrCreateAsync(
-                "Labels/" + "aspnet/AspNetCore",
-                async cacheEntry =>
-                {
-                    cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
-                    return (await gitHub.Issue.Labels.GetAllForRepository("aspnet", "AspNetCore"))
-                        .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-                });
+            var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo);
 
             var excludeAllAreaLabelsQuery =
                 string.Join(
@@ -63,7 +57,7 @@ namespace Hubbup.Web.Controllers
                 Is = new[] { IssueIsQualifier.Open },
                 Repos = new RepositoryCollection
                 {
-                    { "aspnet", "AspNetCore" }
+                    { owner, repo }
                 },
             };
 
@@ -75,8 +69,11 @@ namespace Hubbup.Web.Controllers
             foreach (var issue in issueSearchResult.Items)
             {
                 var predictions = labeler.PredictLabel(issue);
+
                 predictionList.Add(new LabelSuggestionViewModel
                 {
+                    RepoOwner = owner,
+                    RepoName = repo,
                     Issue = issue,
                     LabelScores = predictions.LabelScores.Select(ls => (ls, existingAreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
                 });
@@ -89,14 +86,27 @@ namespace Hubbup.Web.Controllers
             });
         }
 
+        private async Task<List<Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)
+        {
+            return await _memoryCache.GetOrCreateAsync(
+                $"Labels/{owner}/{repo}",
+                async cacheEntry =>
+                {
+                    cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
+                    return (await gitHub.Issue.Labels.GetAllForRepository(owner, repo))
+                        .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                });
+        }
+
         [HttpPost]
-        [Route("ApplyLabel")]
-        public async Task<IActionResult> ApplyLabel(int issueNumber, string prediction)
+        [Route("ApplyLabel/{owner}/{repo}/{issueNumber}")]
+        public async Task<IActionResult> ApplyLabel(string owner, string repo, int issueNumber, string prediction)
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
-            var issue = await gitHub.Issue.Get("aspnet", "aspnetcore", issueNumber);
+            var issue = await gitHub.Issue.Get(owner, repo, issueNumber);
 
             var issueUpdate = new IssueUpdate
             {
@@ -109,7 +119,7 @@ namespace Hubbup.Web.Controllers
                 issueUpdate.AddLabel(label.Name);
             }
 
-            await gitHub.Issue.Update("aspnet", "aspnetcore", issueNumber, issueUpdate);
+            await gitHub.Issue.Update(owner, repo, issueNumber, issueUpdate);
 
             return RedirectToAction("Index");
         }

@@ -84,6 +84,8 @@ else
                             var bestPrediction = labelPrediction.LabelScores[0];
                             var bestPredictionViewModel = new LabelSuggestionPartialModel
                             {
+                                RepoOwner = labelPrediction.RepoOwner,
+                                RepoName = labelPrediction.RepoName,
                                 Issue = labelPrediction.Issue,
                                 Label = bestPrediction.Item2,
                                 Score = bestPrediction.Item1,
@@ -99,6 +101,8 @@ else
                                 {
                                     var alternatePredictionViewModel = new LabelSuggestionPartialModel
                                     {
+                                        RepoOwner = labelPrediction.RepoOwner,
+                                        RepoName = labelPrediction.RepoName,
                                         Issue = labelPrediction.Issue,
                                         Label = alternatePrediction.Item2,
                                         Score = alternatePrediction.Item1,

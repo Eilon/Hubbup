@@ -1,0 +1,44 @@
+@model LabelSuggestionPartialModel
+@using System.Globalization
+
+@{
+    var hexColor = Model.Label.Color;
+    var confidencePercent = (int)Math.Floor(100f * Model.Score.Score);
+    var confidenceHappinessStyle = confidencePercent > 80 ? "progress-bar-success" : "progress-bar-warning";
+    var progressTextColor = confidencePercent > 80 ? "#fff" : "#000";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <span class="label"
+              style="background-color: #@hexColor; color: #@ColorMath.GetHexForeColorForBackColor(hexColor)">
+            @Model.Label.Name
+        </span>
+    </div>
+    <div class="col-md-2">
+        <div class="progress" style="width: 4em">
+            <div class="progress-bar @confidenceHappinessStyle"
+                 title="Confidence score: @Model.Score.Score"
+                 style="width: @(confidencePercent)%; color: @(progressTextColor)">
+                @(confidencePercent)%
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        @using (Html.BeginForm("ApplyLabel", "MikLabeler", FormMethod.Post))
+        {
+            <input type="hidden" name="issueNumber" value="@Model.Issue.Number">
+            <input type="hidden" name="prediction" value="@Model.Label.Name">
+            <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+        }
+    </div>
+    <div class="col-md-3">
+        @if (Model.IsBestPrediction)
+        {
+        <button class="btn-sm btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample@(Model.Index.ToString(CultureInfo.InvariantCulture))" aria-expanded="false">
+            More
+            <span class="caret"></span>
+        </button>
+        }
+    </div>
+</div>

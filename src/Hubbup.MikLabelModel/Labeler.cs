@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -15,8 +15,6 @@ namespace Hubbup.MikLabelModel
         private readonly PredictionEngine<GitHubIssue, GitHubIssuePrediction> _predEngine;
         private readonly ITransformer _trainedModel;
 
-        private FullPrediction[] _fullPredictions;
-
         public Labeler(string modelPath)
         {
             _modelPath = modelPath;
@@ -29,7 +27,7 @@ namespace Hubbup.MikLabelModel
             _predEngine = _mlContext.Model.CreatePredictionEngine<GitHubIssue, GitHubIssuePrediction>(_trainedModel);
         }
 
-        public FullPrediction[] PredictLabel(Issue issue)
+        public LabelSuggestion PredictLabel(Issue issue)
         {
             var aspnetIssue = new GitHubIssue
             {
@@ -38,19 +36,16 @@ namespace Hubbup.MikLabelModel
                 Description = issue.Body
             };
 
-            _fullPredictions = Predict(aspnetIssue);
-
-            return _fullPredictions;
+            var prediction = _predEngine.Predict(aspnetIssue);
+            var labelPredictions = GetBestThreePredictions(prediction);
+            return new LabelSuggestion
+            {
+                Issue = issue,
+                LabelScores = labelPredictions,
+            };
         }
 
-        public FullPrediction[] Predict(GitHubIssue issue)
-        {
-            var prediction = _predEngine.Predict(issue);
-            var fullPredictions = GetBestThreePredictions(prediction);
-            return fullPredictions;
-        }
-
-        private FullPrediction[] GetBestThreePredictions(GitHubIssuePrediction prediction)
+        private List<LabelAreaScore> GetBestThreePredictions(GitHubIssuePrediction prediction)
         {
             var scores = prediction.Score;
             var size = scores.Length;
@@ -60,14 +55,12 @@ namespace Hubbup.MikLabelModel
 
             GetIndexesOfTopThreeScores(scores, size, out var index0, out var index1, out var index2);
 
-            _fullPredictions = new FullPrediction[]
+            return new List<LabelAreaScore>
                 {
-                    new FullPrediction(slotNames.GetItemOrDefault(index0).ToString(), scores[index0], index0),
-                    new FullPrediction(slotNames.GetItemOrDefault(index1).ToString(), scores[index1], index1),
-                    new FullPrediction(slotNames.GetItemOrDefault(index2).ToString(), scores[index2], index2),
+                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(index0).ToString(), Score = scores[index0] },
+                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(index1).ToString(), Score = scores[index1] },
+                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(index2).ToString(), Score = scores[index2] },
                 };
-
-            return _fullPredictions;
         }
 
         private void GetIndexesOfTopThreeScores(float[] scores, int n, out int index0, out int index1, out int index2)
@@ -98,28 +91,15 @@ namespace Hubbup.MikLabelModel
                     third = second;
                     second = scores[i];
                 }
-
                 else if (scores[i] > third)
+                {
                     third = scores[i];
+                }
             }
             var scoresList = scores.ToList();
             index0 = scoresList.IndexOf(first);
             index1 = scoresList.IndexOf(second);
             index2 = scoresList.IndexOf(third);
-        }
-    }
-
-    public class FullPrediction
-    {
-        public string PredictedLabel;
-        public float Score;
-        public int OriginalSchemaIndex;
-
-        public FullPrediction(string predictedLabel, float score, int originalSchemaIndex)
-        {
-            PredictedLabel = predictedLabel;
-            Score = score;
-            OriginalSchemaIndex = originalSchemaIndex;
         }
     }
 }

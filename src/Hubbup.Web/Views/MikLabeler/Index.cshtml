@@ -1,4 +1,5 @@
 @model MikLabelViewModel
+@using System.Globalization
 
 @{
     ViewData["PageTitlePrefix"] = $"MikLabeler";
@@ -34,9 +35,6 @@ else
         @for (int i = 0; i < Model.PredictionList.Count; i++)
         {
             var labelPrediction = Model.PredictionList[i];
-            var hexColor = labelPrediction.AreaLabel.Color;
-            var confidencePercent = (int)Math.Floor(100f * labelPrediction.Prediction.Score.Max());
-            var confidenceHappinessStyle = confidencePercent > 80 ? "progress-bar-success" : "progress-bar-warning";
 
             var currentIssueDaysAgo = (int)Math.Floor((DateTimeOffset.Now - labelPrediction.Issue.CreatedAt).TotalDays);
             var dayGroupHeaderToShow = (int?)null;
@@ -81,28 +79,36 @@ else
                         <br />
                         Opened @labelPrediction.Issue.CreatedAt.ToPacificTime().ToString()
                     </div>
-                    <div class="col-md-2">
-                        <div class="progress">
-                            <div class="progress-bar @confidenceHappinessStyle"
-                                 title="Confidence score: @labelPrediction.Prediction.Score.Max()"
-                                 style="width: @(confidencePercent)%;">
-                                @(confidencePercent)%
+                    <div class="col-md-4">
+                        @{
+                            var bestPrediction = labelPrediction.LabelScores[0];
+                            var bestPredictionViewModel = new LabelSuggestionPartialModel
+                            {
+                                Issue = labelPrediction.Issue,
+                                Label = bestPrediction.Item2,
+                                Score = bestPrediction.Item1,
+                                Index = i,
+                                IsBestPrediction = true,
+                            };
+                        }
+                        @await Html.PartialAsync("_LabelSuggestion", bestPredictionViewModel)
+
+                        <div class="collapse" id="collapseExample@(i.ToString(CultureInfo.InvariantCulture))">
+                            <div class="well">
+                                @foreach (var alternatePrediction in labelPrediction.LabelScores.Skip(1).Take(3))
+                                {
+                                    var alternatePredictionViewModel = new LabelSuggestionPartialModel
+                                    {
+                                        Issue = labelPrediction.Issue,
+                                        Label = alternatePrediction.Item2,
+                                        Score = alternatePrediction.Item1,
+                                        IsBestPrediction = false,
+                                    };
+                                    @await Html.PartialAsync("_LabelSuggestion", alternatePredictionViewModel)
+                                }
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-1">
-                        <span class="label"
-                              style="background-color: #@hexColor; color: #@ColorMath.GetHexForeColorForBackColor(hexColor)">
-                            @labelPrediction.Prediction.Area
-                        </span>
-                    </div>
-                    <div class="col-md-1">
-                        @using (Html.BeginForm("ApplyLabel", "MikLabeler", FormMethod.Post))
-                        {
-                            <input type="hidden" name="issueNumber" value="@labelPrediction.Issue.Number">
-                            <input type="hidden" name="prediction" value="@labelPrediction.Prediction.Area">
-                            <button type="submit" class="btn btn-sm btn-primary">Apply</button>
-                        }
+
                     </div>
                 </div>
             </li>

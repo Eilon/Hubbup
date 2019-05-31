@@ -1,12 +1,12 @@
-﻿using Hubbup.MikLabelModel;
+﻿using System.Collections.Generic;
+using Hubbup.MikLabelModel;
 using Octokit;
 
 namespace Hubbup.Web.ViewModels
 {
-    public class LabelSuggestion
+    public class LabelSuggestionViewModel
     {
         public Issue Issue { get; set; }
-        public GitHubIssuePrediction Prediction { get; set; }
-        public Label AreaLabel { get; set; }
+        public List<(LabelAreaScore, Label)> LabelScores { get; set; }
     }
 }

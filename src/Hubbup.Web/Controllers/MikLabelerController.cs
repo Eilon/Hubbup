@@ -70,17 +70,15 @@ namespace Hubbup.Web.Controllers
             var issueSearchResult = await gitHub.Search.SearchIssues(getIssuesRequest);
 
             var labeler = new Labeler(Path.Combine(_hostingEnvironment.ContentRootPath, ModelPath));
-            var predictionList = new List<LabelSuggestion>();
+            var predictionList = new List<LabelSuggestionViewModel>();
 
             foreach (var issue in issueSearchResult.Items)
             {
                 var predictions = labeler.PredictLabel(issue);
-                var bestPrediction = new GitHubIssuePrediction { Area = predictions.First().PredictedLabel, Score = new[] { predictions.First().Score } };
-                predictionList.Add(new LabelSuggestion
+                predictionList.Add(new LabelSuggestionViewModel
                 {
                     Issue = issue,
-                    Prediction = bestPrediction,
-                    AreaLabel = existingAreaLabels.Single(label => string.Equals(label.Name, bestPrediction.Area, StringComparison.OrdinalIgnoreCase)),
+                    LabelScores = predictions.LabelScores.Select(ls => (ls, existingAreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
                 });
             }
 

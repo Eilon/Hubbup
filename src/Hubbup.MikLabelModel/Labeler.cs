@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
@@ -20,7 +21,7 @@ namespace Hubbup.MikLabelModel
             _modelPath = modelPath;
             _mlContext = new MLContext(seed: 1);
 
-            //Load model from file
+            // Load model from file
             _trainedModel = _mlContext.Model.Load(_modelPath, inputSchema: out _);
 
             // Create prediction engine related to the loaded trained model
@@ -48,58 +49,45 @@ namespace Hubbup.MikLabelModel
         private List<LabelAreaScore> GetBestThreePredictions(GitHubIssuePrediction prediction)
         {
             var scores = prediction.Score;
-            var size = scores.Length;
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             _predEngine.OutputSchema[nameof(GitHubIssuePrediction.Score)].GetSlotNames(ref slotNames);
 
-            GetIndexesOfTopThreeScores(scores, size, out var index0, out var index1, out var index2);
+            var topThreeScores = GetIndexesOfTopScores(scores, 3);
 
             return new List<LabelAreaScore>
                 {
-                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(index0).ToString(), Score = scores[index0] },
-                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(index1).ToString(), Score = scores[index1] },
-                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(index2).ToString(), Score = scores[index2] },
+                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(topThreeScores[0]).ToString(), Score = scores[topThreeScores[0]] },
+                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(topThreeScores[1]).ToString(), Score = scores[topThreeScores[1]] },
+                    new LabelAreaScore {LabelName=slotNames.GetItemOrDefault(topThreeScores[2]).ToString(), Score = scores[topThreeScores[2]] },
                 };
         }
 
-        private void GetIndexesOfTopThreeScores(float[] scores, int n, out int index0, out int index1, out int index2)
+        private IReadOnlyList<int> GetIndexesOfTopScores(float[] scores, int n)
         {
-            int i;
-            float first, second, third;
-            index0 = index1 = index2 = 0;
-            if (n < 3)
+            var indexedScores = scores
+                .Zip(Enumerable.Range(0, scores.Length), (score, index) => new IndexedScore(index, score));
+
+            var indexedScoresSortedByScore = indexedScores
+                .OrderByDescending(indexedScore => indexedScore.Score);
+
+            return indexedScoresSortedByScore
+                .Take(n)
+                .Select(indexedScore => indexedScore.Index)
+                .ToList()
+                .AsReadOnly();
+        }
+
+        private struct IndexedScore
+        {
+            public IndexedScore(int index, float score)
             {
-                Console.WriteLine("Invalid Input");
-                return;
+                Index = index;
+                Score = score;
             }
-            third = first = second = 000;
-            for (i = 0; i < n; i++)
-            {
-                // If current element is  
-                // smaller than first 
-                if (scores[i] > first)
-                {
-                    third = second;
-                    second = first;
-                    first = scores[i];
-                }
-                // If arr[i] is in between first 
-                // and second then update second 
-                else if (scores[i] > second)
-                {
-                    third = second;
-                    second = scores[i];
-                }
-                else if (scores[i] > third)
-                {
-                    third = scores[i];
-                }
-            }
-            var scoresList = scores.ToList();
-            index0 = scoresList.IndexOf(first);
-            index1 = scoresList.IndexOf(second);
-            index2 = scoresList.IndexOf(third);
+
+            public int Index { get; }
+            public float Score { get; }
         }
     }
 }

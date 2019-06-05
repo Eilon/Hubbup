@@ -21,7 +21,7 @@ namespace Hubbup.MikLabelModel
             _mlContext = new MLContext(seed: 1);
 
             //Load model from file
-            _trainedModel = _mlContext.Model.Load(_modelPath, out _);
+            _trainedModel = _mlContext.Model.Load(_modelPath, inputSchema: out _);
 
             // Create prediction engine related to the loaded trained model
             _predEngine = _mlContext.Model.CreatePredictionEngine<GitHubIssue, GitHubIssuePrediction>(_trainedModel);

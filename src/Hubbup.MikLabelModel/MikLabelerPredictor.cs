@@ -68,11 +68,7 @@ namespace Hubbup.MikLabelModel
 
         private struct IndexedScore
         {
-            public IndexedScore(int index, float score)
-            {
-                Index = index;
-                Score = score;
-            }
+            public IndexedScore(int index, float score) => (Index, Score) = (index, score);
 
             public int Index { get; }
             public float Score { get; }

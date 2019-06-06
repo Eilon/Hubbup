@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Hubbup.IssueMoverApi;
 using Hubbup.IssueMoverClient;
+using Hubbup.MikLabelModel;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
@@ -144,6 +145,8 @@ namespace Hubbup.Web
                 })
                 .AddApplicationInsights();
             services.AddSingleton<IRequestTelemetryListener, ApplicationInsightsRequestTelemetryListener>();
+
+            services.AddSingleton<MikLabelerProvider>();
         }
 
         public void Configure(IApplicationBuilder app)

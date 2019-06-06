@@ -25,7 +25,7 @@ namespace Hubbup.Web.Controllers
         private readonly ILogger<MikLabelerController> _logger;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IMemoryCache _memoryCache;
-
+        private readonly MikLabelerProvider _mikLabelerProvider;
         private static readonly (string owner, string repo)[] Repos = new[]
         {
             ("aspnet", "AspNetCore"),
@@ -36,11 +36,13 @@ namespace Hubbup.Web.Controllers
         public MikLabelerController(
             ILogger<MikLabelerController> logger,
             IWebHostEnvironment hostingEnvironment,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache,
+            MikLabelerProvider mikLabelerProvider)
         {
             _logger = logger;
             _hostingEnvironment = hostingEnvironment;
             _memoryCache = memoryCache;
+            _mikLabelerProvider = mikLabelerProvider;
         }
 
         [Route("")]
@@ -75,7 +77,7 @@ namespace Hubbup.Web.Controllers
                 var issueSearchResult = await gitHub.Search.SearchIssues(getIssuesRequest);
                 totalIssuesFound += issueSearchResult.TotalCount;
 
-                var labeler = new Labeler(Path.Combine(_hostingEnvironment.ContentRootPath, modelPath));
+                var labeler = _mikLabelerProvider.GetMikLabeler(new MikLabelerStringPathProvider(Path.Combine(_hostingEnvironment.ContentRootPath, modelPath))).GetPredictor();
 
                 foreach (var issue in issueSearchResult.Items)
                 {

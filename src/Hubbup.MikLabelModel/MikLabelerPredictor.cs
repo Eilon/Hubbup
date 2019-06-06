@@ -7,24 +7,13 @@ using Octokit;
 
 namespace Hubbup.MikLabelModel
 {
-    //This "Labeler" class could be used in a different End-User application (Web app, other console app, desktop app, etc.)
-    public class Labeler
+    public class MikLabelerPredictor
     {
-        private readonly string _modelPath;
-        private readonly MLContext _mlContext;
-        private readonly PredictionEngine<GitHubIssue, GitHubIssuePrediction> _predEngine;
-        private readonly ITransformer _trainedModel;
+        private readonly PredictionEngine<GitHubIssue, GitHubIssuePrediction> _predictionEngine;
 
-        public Labeler(string modelPath)
+        public MikLabelerPredictor(PredictionEngine<GitHubIssue, GitHubIssuePrediction> predictionEngine)
         {
-            _modelPath = modelPath;
-            _mlContext = new MLContext(seed: 1);
-
-            // Load model from file
-            _trainedModel = _mlContext.Model.Load(_modelPath, inputSchema: out _);
-
-            // Create prediction engine related to the loaded trained model
-            _predEngine = _mlContext.Model.CreatePredictionEngine<GitHubIssue, GitHubIssuePrediction>(_trainedModel);
+            _predictionEngine = predictionEngine;
         }
 
         public LabelSuggestion PredictLabel(Issue issue)
@@ -36,7 +25,7 @@ namespace Hubbup.MikLabelModel
                 Description = issue.Body
             };
 
-            var prediction = _predEngine.Predict(aspnetIssue);
+            var prediction = _predictionEngine.Predict(aspnetIssue);
             var labelPredictions = GetBestThreePredictions(prediction);
             return new LabelSuggestion
             {
@@ -50,7 +39,7 @@ namespace Hubbup.MikLabelModel
             var scores = prediction.Score;
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            _predEngine.OutputSchema[nameof(GitHubIssuePrediction.Score)].GetSlotNames(ref slotNames);
+            _predictionEngine.OutputSchema[nameof(GitHubIssuePrediction.Score)].GetSlotNames(ref slotNames);
 
             var topThreeScores = GetIndexesOfTopScores(scores, 3);
 

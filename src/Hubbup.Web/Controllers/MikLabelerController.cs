@@ -81,14 +81,14 @@ namespace Hubbup.Web.Controllers
 
                 foreach (var issue in issueSearchResult.Items)
                 {
-                    var predictions = labeler.PredictLabel(issue);
+                    var prediction = GetIssuePrediction(owner, repo, issue, labeler);
 
                     predictionList.Add(new LabelSuggestionViewModel
                     {
                         RepoOwner = owner,
                         RepoName = repo,
                         Issue = issue,
-                        LabelScores = predictions.LabelScores.Select(ls => (ls, existingAreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
+                        LabelScores = prediction.Prediction.LabelScores.Select(ls => (ls, existingAreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
                     });
                 }
             }
@@ -98,6 +98,43 @@ namespace Hubbup.Web.Controllers
                 PredictionList = predictionList.OrderByDescending(prediction => prediction.Issue.CreatedAt).ToList(),
                 TotalIssuesFound = totalIssuesFound,
             });
+        }
+
+        private CachedPrediction GetIssuePrediction(string owner, string repo, Issue issue, MikLabelerPredictor labeler)
+        {
+            var issueLastModified = issue.UpdatedAt;
+
+            CachedPrediction prediction;
+            var predictionCacheKey = $"Predictions/{owner}/{repo}/{issue.Number}";
+
+            _logger.LogDebug("Looking for cached prediction for {ITEM}", predictionCacheKey);
+
+            var cachedPrediction = _memoryCache.GetOrCreate(
+                predictionCacheKey,
+                cacheEntry =>
+                {
+                    _logger.LogDebug("[MISS] Creating new cached prediction for {ITEM}", predictionCacheKey);
+                    return new CachedPrediction(labeler.PredictLabel(issue), issueLastModified);
+                });
+
+            if (issueLastModified > cachedPrediction.IssueLastModified)
+            {
+                // If the issue has been modified since the cache entry was added,
+                // then create a new prediction and cache that
+                _logger.LogDebug("[UPDATE] Updating cached prediction for {ITEM}", predictionCacheKey);
+                var newPrediction = new CachedPrediction(labeler.PredictLabel(issue), issueLastModified);
+                _memoryCache.Set(predictionCacheKey, newPrediction);
+                prediction = newPrediction;
+            }
+            else
+            {
+                // If the issue has not been modified since the cache entry was added,
+                // use the cached prediction
+                _logger.LogDebug("[HIT] Using cached prediction for {ITEM}", predictionCacheKey);
+                prediction = cachedPrediction;
+            }
+
+            return prediction;
         }
 
         private async Task<List<Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)
@@ -136,6 +173,15 @@ namespace Hubbup.Web.Controllers
             await gitHub.Issue.Update(owner, repo, issueNumber, issueUpdate);
 
             return RedirectToAction("Index");
+        }
+
+        private struct CachedPrediction
+        {
+            public LabelSuggestion Prediction { get; }
+            public DateTimeOffset? IssueLastModified { get; }
+
+            public CachedPrediction(LabelSuggestion prediction, DateTimeOffset? issueLastModified) =>
+                (Prediction, IssueLastModified) = (prediction, issueLastModified);
         }
     }
 }

@@ -29,7 +29,6 @@ namespace Hubbup.MikLabelModel
             var labelPredictions = GetBestThreePredictions(prediction);
             return new LabelSuggestion
             {
-                Issue = issue,
                 LabelScores = labelPredictions,
             };
         }

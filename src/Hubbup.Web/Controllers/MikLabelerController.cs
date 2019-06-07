@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -48,55 +49,85 @@ namespace Hubbup.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
             var predictionList = new List<LabelSuggestionViewModel>();
             var totalIssuesFound = 0;
 
+            var repoIssueTasks = new List<Task<RepoIssueResult>>();
+
             foreach (var (owner, repo) in Repos)
             {
-                var modelPath = Path.Combine("ML", $"{owner}-{repo}-GitHubLabelerModel.zip");
+                repoIssueTasks.Add(GetRepoIssues(accessToken, owner, repo));
+            }
 
-                var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo);
+            var repoIssueResults = await Task.WhenAll(repoIssueTasks);
 
-                var excludeAllAreaLabelsQuery =
-                    string.Join(
-                        " ",
-                        existingAreaLabels.Select(label => $"-label:\"{label.Name}\""));
+            _logger.LogTrace("Loaded all issues; starting label prediction...");
 
-                var getIssuesRequest = new SearchIssuesRequest($"{excludeAllAreaLabelsQuery} -milestone:Discussions")
-                {
-                    Is = new[] { IssueIsQualifier.Open },
-                    Repos = new RepositoryCollection
-                    {
-                        { owner, repo }
-                    },
-                };
+            foreach (var repoIssueResult in repoIssueResults)
+            {
+                totalIssuesFound += repoIssueResult.TotalCount;
 
-                var issueSearchResult = await gitHub.Search.SearchIssues(getIssuesRequest);
-                totalIssuesFound += issueSearchResult.TotalCount;
-
+                var modelPath = Path.Combine("ML", $"{repoIssueResult.Owner}-{repoIssueResult.Repo}-GitHubLabelerModel.zip");
                 var labeler = _mikLabelerProvider.GetMikLabeler(new MikLabelerStringPathProvider(Path.Combine(_hostingEnvironment.ContentRootPath, modelPath))).GetPredictor();
 
-                foreach (var issue in issueSearchResult.Items)
+                foreach (var issue in repoIssueResult.Issues)
                 {
-                    var prediction = GetIssuePrediction(owner, repo, issue, labeler);
+                    var prediction = GetIssuePrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue, labeler);
 
                     predictionList.Add(new LabelSuggestionViewModel
                     {
-                        RepoOwner = owner,
-                        RepoName = repo,
+                        RepoOwner = repoIssueResult.Owner,
+                        RepoName = repoIssueResult.Repo,
                         Issue = issue,
-                        LabelScores = prediction.Prediction.LabelScores.Select(ls => (ls, existingAreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
+                        LabelScores = prediction.Prediction.LabelScores.Select(ls => (ls, repoIssueResult.AreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
                     });
                 }
             }
+
+            _logger.LogTrace("Finished label prediction");
 
             return View(new MikLabelViewModel
             {
                 PredictionList = predictionList.OrderByDescending(prediction => prediction.Issue.CreatedAt).ToList(),
                 TotalIssuesFound = totalIssuesFound,
             });
+        }
+
+        private async Task<RepoIssueResult> GetRepoIssues(string accessToken, string owner, string repo)
+        {
+            var gitHub = GitHubUtils.GetGitHubClient(accessToken);
+
+            _logger.LogTrace("Getting labels for {OWNER}/{REPO}...", owner, repo);
+            var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo);
+            _logger.LogTrace("Got {COUNT} labels for {OWNER}/{REPO}", existingAreaLabels.Count, owner, repo);
+
+            var excludeAllAreaLabelsQuery =
+                string.Join(
+                    " ",
+                    existingAreaLabels.Select(label => $"-label:\"{label.Name}\""));
+
+            var getIssuesRequest = new SearchIssuesRequest($"{excludeAllAreaLabelsQuery} -milestone:Discussions")
+            {
+                Is = new[] { IssueIsQualifier.Open },
+                Repos = new RepositoryCollection
+                    {
+                        { owner, repo }
+                    },
+            };
+
+            _logger.LogTrace("Finding issues for {OWNER}/{REPO}...", owner, repo);
+            var searchResults = await gitHub.Search.SearchIssues(getIssuesRequest);
+            _logger.LogTrace("Found {COUNT} issues for {OWNER}/{REPO}", searchResults.Items.Count, owner, repo);
+
+            return new RepoIssueResult
+            {
+                Owner = owner,
+                Repo = repo,
+                Issues = searchResults.Items,
+                TotalCount = searchResults.TotalCount,
+                AreaLabels = existingAreaLabels,
+            };
         }
 
         private CachedPrediction GetIssuePrediction(string owner, string repo, Issue issue, MikLabelerPredictor labeler)
@@ -142,6 +173,7 @@ namespace Hubbup.Web.Controllers
                 $"Labels/{owner}/{repo}",
                 async cacheEntry =>
                 {
+                    _logger.LogTrace("Cache MISS for labels for {OWNER}/{REPO}", owner, repo);
                     cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
                     return (await gitHub.Issue.Labels.GetAllForRepository(owner, repo))
                         .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
@@ -181,6 +213,15 @@ namespace Hubbup.Web.Controllers
 
             public CachedPrediction(LabelSuggestion prediction, DateTimeOffset? issueLastModified) =>
                 (Prediction, IssueLastModified) = (prediction, issueLastModified);
+        }
+
+        private class RepoIssueResult
+        {
+            public string Repo { get; set; }
+            public string Owner { get; set; }
+            public IReadOnlyList<Issue> Issues { get; set; }
+            public int TotalCount { get; set; }
+            public List<Label> AreaLabels { get; set; }
         }
     }
 }

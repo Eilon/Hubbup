@@ -1,6 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -120,12 +120,21 @@ namespace Hubbup.Web.Controllers
             var searchResults = await gitHub.Search.SearchIssues(getIssuesRequest);
             _logger.LogTrace("Found {COUNT} issues for {OWNER}/{REPO}", searchResults.Items.Count, owner, repo);
 
+            // Trim out results that are hidden due to recent labeling activity
+            var trimmedResults = searchResults.Items
+                .Where(issue => _memoryCache.Get(GetIssueHiderCacheKey(owner, repo, issue.Number)) == null)
+                .ToList()
+                .AsReadOnly();
+
+            _logger.LogDebug("Found {COUNT} issues for {OWNER}/{REPO} ({TRIMMED} items trimmed out)", searchResults.Items.Count, owner, repo, searchResults.Items.Count - trimmedResults.Count);
+
+
             return new RepoIssueResult
             {
                 Owner = owner,
                 Repo = repo,
-                Issues = searchResults.Items,
-                TotalCount = searchResults.TotalCount,
+                Issues = trimmedResults,
+                TotalCount = searchResults.TotalCount - (searchResults.Items.Count - trimmedResults.Count),
                 AreaLabels = existingAreaLabels,
             };
         }
@@ -181,6 +190,9 @@ namespace Hubbup.Web.Controllers
                 });
         }
 
+        private static string GetIssueHiderCacheKey(string owner, string repo, int issueNumber) =>
+            $"HideIssue/{owner}/{repo}/{issueNumber.ToString(CultureInfo.InvariantCulture)}";
+
         [HttpPost]
         [Route("ApplyLabel/{owner}/{repo}/{issueNumber}")]
         public async Task<IActionResult> ApplyLabel(string owner, string repo, int issueNumber, string prediction)
@@ -202,6 +214,16 @@ namespace Hubbup.Web.Controllers
             }
 
             await gitHub.Issue.Update(owner, repo, issueNumber, issueUpdate);
+
+            // Because GitHub search queries can show stale data, add a cache entry to
+            // indicate this issue should be hidden for a while because it was just labeled.
+            _memoryCache.Set(
+                GetIssueHiderCacheKey(owner, repo, issueNumber),
+                0, // no data is needed; the existence of the cache key is what counts
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
+                });
 
             return RedirectToAction("Index");
         }

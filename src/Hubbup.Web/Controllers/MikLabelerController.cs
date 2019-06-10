@@ -62,7 +62,7 @@ namespace Hubbup.Web.Controllers
 
             var repoIssueResults = await Task.WhenAll(repoIssueTasks);
 
-            _logger.LogTrace("Loaded all issues; starting label prediction...");
+            _logger.LogDebug("Loaded all issues; starting label prediction...");
 
             foreach (var repoIssueResult in repoIssueResults)
             {
@@ -85,7 +85,7 @@ namespace Hubbup.Web.Controllers
                 }
             }
 
-            _logger.LogTrace("Finished label prediction");
+            _logger.LogDebug("Finished label prediction");
 
             return View(new MikLabelViewModel
             {
@@ -98,9 +98,9 @@ namespace Hubbup.Web.Controllers
         {
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
-            _logger.LogTrace("Getting labels for {OWNER}/{REPO}...", owner, repo);
+            _logger.LogDebug("Getting labels for {OWNER}/{REPO}...", owner, repo);
             var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo);
-            _logger.LogTrace("Got {COUNT} labels for {OWNER}/{REPO}", existingAreaLabels.Count, owner, repo);
+            _logger.LogDebug("Got {COUNT} labels for {OWNER}/{REPO}", existingAreaLabels.Count, owner, repo);
 
             var excludeAllAreaLabelsQuery =
                 string.Join(
@@ -116,9 +116,9 @@ namespace Hubbup.Web.Controllers
                     },
             };
 
-            _logger.LogTrace("Finding issues for {OWNER}/{REPO}...", owner, repo);
+            _logger.LogDebug("Finding issues for {OWNER}/{REPO}...", owner, repo);
             var searchResults = await gitHub.Search.SearchIssues(getIssuesRequest);
-            _logger.LogTrace("Found {COUNT} issues for {OWNER}/{REPO}", searchResults.Items.Count, owner, repo);
+            _logger.LogDebug("Found {COUNT} issues for {OWNER}/{REPO}", searchResults.Items.Count, owner, repo);
 
             // Trim out results that are hidden due to recent labeling activity
             var trimmedResults = searchResults.Items
@@ -146,7 +146,7 @@ namespace Hubbup.Web.Controllers
             CachedPrediction prediction;
             var predictionCacheKey = $"Predictions/{owner}/{repo}/{issue.Number}";
 
-            _logger.LogDebug("Looking for cached prediction for {ITEM}", predictionCacheKey);
+            _logger.LogTrace("Looking for cached prediction for {ITEM}", predictionCacheKey);
 
             var cachedPrediction = _memoryCache.GetOrCreate(
                 predictionCacheKey,
@@ -169,7 +169,7 @@ namespace Hubbup.Web.Controllers
             {
                 // If the issue has not been modified since the cache entry was added,
                 // use the cached prediction
-                _logger.LogDebug("[HIT] Using cached prediction for {ITEM}", predictionCacheKey);
+                _logger.LogTrace("[HIT] Using cached prediction for {ITEM}", predictionCacheKey);
                 prediction = cachedPrediction;
             }
 
@@ -182,7 +182,7 @@ namespace Hubbup.Web.Controllers
                 $"Labels/{owner}/{repo}",
                 async cacheEntry =>
                 {
-                    _logger.LogTrace("Cache MISS for labels for {OWNER}/{REPO}", owner, repo);
+                    _logger.LogDebug("Cache MISS for labels for {OWNER}/{REPO}", owner, repo);
                     cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
                     return (await gitHub.Issue.Labels.GetAllForRepository(owner, repo))
                         .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))

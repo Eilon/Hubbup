@@ -11,6 +11,9 @@ using Hubbup.MikLabelModel;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
+using Microsoft.ApplicationInsights.AspNetCore;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.SnapshotCollector;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -19,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Hubbup.Web
 {
@@ -147,6 +151,11 @@ namespace Hubbup.Web
             services.AddSingleton<IRequestTelemetryListener, ApplicationInsightsRequestTelemetryListener>();
 
             services.AddSingleton<MikLabelerProvider>();
+
+            // Add Application Insights services for Snapshot Debugger
+            // https://docs.microsoft.com/en-us/azure/azure-monitor/app/snapshot-debugger-vm?toc=/azure/azure-monitor/toc.json#configure-snapshot-collection-for-aspnet-core-20-applications
+            services.Configure<SnapshotCollectorConfiguration>(Configuration.GetSection(nameof(SnapshotCollectorConfiguration)));
+            services.AddSingleton<ITelemetryProcessorFactory>(sp => new SnapshotCollectorTelemetryProcessorFactory(sp));
         }
 
         public void Configure(IApplicationBuilder app)
@@ -177,6 +186,20 @@ namespace Hubbup.Web
                 routes.MapRazorPages();
                 routes.MapBlazorHub();
             });
+        }
+
+        private class SnapshotCollectorTelemetryProcessorFactory : ITelemetryProcessorFactory
+        {
+            private readonly IServiceProvider _serviceProvider;
+
+            public SnapshotCollectorTelemetryProcessorFactory(IServiceProvider serviceProvider) =>
+                _serviceProvider = serviceProvider;
+
+            public ITelemetryProcessor Create(ITelemetryProcessor next)
+            {
+                var snapshotConfigurationOptions = _serviceProvider.GetService<IOptions<SnapshotCollectorConfiguration>>();
+                return new SnapshotCollectorTelemetryProcessor(next, configuration: snapshotConfigurationOptions.Value);
+            }
         }
     }
 }

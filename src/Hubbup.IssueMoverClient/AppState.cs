@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Hubbup.IssueMover.Dto;
 using Hubbup.IssueMoverApi;
@@ -310,7 +311,7 @@ namespace Hubbup.IssueMoverClient
             string newJsonData;
             try
             {
-                newJsonData = Json.Serialize(data);
+                newJsonData = JsonSerializer.Serialize(data);
             }
             catch (Exception e)
             {

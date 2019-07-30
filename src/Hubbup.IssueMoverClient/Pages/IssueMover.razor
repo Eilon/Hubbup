@@ -13,20 +13,20 @@
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-addon" id="from-label">Move from</span>
-                    <input type="text" id="move-from-input" class="form-control" placeholder="GitHub issue URL or owner/repo#123" aria-describedby="from-label" onblur="@State.OnFromInputBlur" bind="@State.FromValue" />
+                    <input type="text" id="move-from-input" class="form-control" placeholder="GitHub issue URL or owner/repo#123" aria-describedby="from-label" @onblur="State.OnFromInputBlur" @bind="State.FromValue" />
                 </div>
                 <ProgressBar Style="@State.FromProgressBarStyle" Text="@State.FromProgressBarText" />
             </div>
             <div class="col-md-5">
                 <div class="input-group">
                     <span class="input-group-addon" id="to-label">To</span>
-                    <input type="text" id="move-to-input" class="form-control" placeholder="GitHub repo URL or owner/repo" aria-describedby="to-label" onblur="@State.OnToInputBlur" bind="@State.ToValue" />
+                    <input type="text" id="move-to-input" class="form-control" placeholder="GitHub repo URL or owner/repo" aria-describedby="to-label" @onblur="State.OnToInputBlur" @bind="State.ToValue" />
                 </div>
                 <ProgressBar Style="@State.ToProgressBarStyle" Text="@State.ToProgressBarText" />
             </div>
             <div class="col-md-1">
                 <div class="input-group">
-                    <input type="button" class="btn btn-info @(State.ShouldMoveButtonBeEnabled() ? "" : "disabled")" disabled="@(!State.ShouldMoveButtonBeEnabled())" value="Go" onclick="@State.OnMoveButtonClick" />
+                    <input type="button" class="btn btn-info @(State.ShouldMoveButtonBeEnabled() ? "" : "disabled")" disabled="@(!State.ShouldMoveButtonBeEnabled())" value="Go" @onclick="State.OnMoveButtonClick" />
                 </div>
             </div>
         </div>
@@ -43,7 +43,7 @@
                         }
                     </li>
                     <li>
-                        <input type="checkbox" id="createLabelsCheckBox" bind="@State.ShouldCreateDestinationLabels" /> <label for="createLabelsCheckBox">Create destination labels (if needed)</label>
+                        <input type="checkbox" id="createLabelsCheckBox" @bind="State.ShouldCreateDestinationLabels" /> <label for="createLabelsCheckBox">Create destination labels (if needed)</label>
                         <div>
                             @if (State.OriginalIssueMoveData?.Labels.Any() == true)
                             {
@@ -56,7 +56,7 @@
                         </div>
                     </li>
                     <li>
-                        <input type="checkbox" id="createMilestoneCheckBox" bind="@State.ShouldCreateDestinationMilestone" /> <label for="createMilestoneCheckBox">Create destination milestone (if needed)</label>
+                        <input type="checkbox" id="createMilestoneCheckBox" @bind="State.ShouldCreateDestinationMilestone" /> <label for="createMilestoneCheckBox">Create destination milestone (if needed)</label>
                         <div>@State.OriginalIssueMoveData?.Milestone</div>
                     </li>
                     <li>
@@ -64,7 +64,7 @@
                         <div><span class="glyphicon glyphicon-comment" aria-hidden="true"></span> @State.OriginalIssueMoveData?.Comments.Count.ToString(CultureInfo.InvariantCulture) comment(s)</div>
                     </li>
                     <li><input type="checkbox" id="addCloseMessageCheckBox" checked="checked" disabled="disabled" /> <label for="addCloseMessageCheckBox">Add close message to original issue</label></li>
-                    <li><input type="checkbox" id="lockOriginalIssueCheckBox" bind="@State.ShouldLockOriginalIssue" /> <label for="lockOriginalIssueCheckBox">Lock original issue</label></li>
+                    <li><input type="checkbox" id="lockOriginalIssueCheckBox" @bind="State.ShouldLockOriginalIssue" /> <label for="lockOriginalIssueCheckBox">Lock original issue</label></li>
                     <li><input type="checkbox" id="closeOriginalIssueCheckBox" checked="checked" disabled="disabled" /> <label for="closeOriginalIssueCheckBox">Close original issue</label></li>
                 </ul>
             </div>
@@ -103,7 +103,7 @@
     <textarea rows="10" cols="120" style="resize: both; overflow: auto">@State.JsonData</textarea>
 </CollapsePanel>
 
-@functions
+@code
 {
     protected override void OnInit()
     {

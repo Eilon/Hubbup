@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Hubbup.IssueMover.Dto;
 using Hubbup.IssueMoverApi;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 
 namespace Hubbup.IssueMoverClient
 {

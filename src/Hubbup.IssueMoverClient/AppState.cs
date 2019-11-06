@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Hubbup.IssueMover.Dto;
 using Hubbup.IssueMoverApi;
-using Microsoft.AspNetCore.Components;
 
 namespace Hubbup.IssueMoverClient
 {
@@ -319,7 +318,7 @@ namespace Hubbup.IssueMoverClient
             JsonData = $"@ {DateTimeOffset.Now}\r\n\r\n{newJsonData}\r\n\r\n{new string('-', 40)}\r\n\r\n{JsonData}";
         }
 
-        public async Task OnMoveButtonClick(UIMouseEventArgs e)
+        public async Task OnMoveButtonClick()
         {
             IssueMoveStates = new List<IssueMoveState>();
 

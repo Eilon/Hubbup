@@ -1,16 +1,13 @@
-﻿<div class="progress" style="width: 100%; visibility:@(Style == ProgressBarStyle.None ? "hidden" : "visible")">
-    <div class="progress-bar @GetProgressBarClass(Style)" role="progressbar" style="width: 100%">
+﻿<div class="progress" style="@("width: 100%; visibility:" + (Style == ProgressBarStyle.None ? "hidden" : "visible"))">
+    <div class="@("progress-bar " + GetProgressBarClass(Style))" role="progressbar" style="width: 100%">
         <span>@Text</span>
     </div>
 </div>
 
 @code
 {
-    [Parameter]
-    private ProgressBarStyle Style { get; set; }
-
-    [Parameter]
-    private string Text { get; set; }
+    [Parameter] public ProgressBarStyle Style { get; set; }
+    [Parameter] public string Text { get; set; }
 
     private static string GetProgressBarClass(ProgressBarStyle style)
     {

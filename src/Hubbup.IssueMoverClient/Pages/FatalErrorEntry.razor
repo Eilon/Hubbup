@@ -6,13 +6,10 @@
 
 @code
 {
-    ElementRef tooltipElem;
+    ElementReference tooltipElem;
 
-    [Parameter]
-    private string Description { get; set; }
-
-    [Parameter]
-    private IErrorResult ErrorResult { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public IErrorResult ErrorResult { get; set; }
 
     public string ErrorMessage
     {
@@ -30,7 +27,7 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await JSRuntime.InvokeAsync<object>("updateTooltips", tooltipElem);
     }

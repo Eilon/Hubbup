@@ -9,7 +9,7 @@
 
 @*<base href="/Mover/" />*@
 
-<app>@(await Html.RenderComponentAsync<IssueMoverClient.Pages.IssueMover>())</app>
+<app>@(await Html.RenderComponentAsync<IssueMoverClient.Pages.IssueMover>(RenderMode.ServerPrerendered))</app>
 
 <script src="_framework/blazor.server.js"></script>
 

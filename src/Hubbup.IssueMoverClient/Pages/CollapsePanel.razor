@@ -1,4 +1,4 @@
-﻿<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#@PanelID">
+﻿<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="@("#" + PanelID)">
     @Title
 </button>
 <div class="collapse" id="@PanelID">
@@ -9,12 +9,7 @@
 
 @code
 {
-    [Parameter]
-    private string PanelID { get; set; }
-
-    [Parameter]
-    private string Title { get; set; }
-
-    [Parameter]
-    private RenderFragment ChildContent { get; set; }
+    [Parameter] public string PanelID { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
 }

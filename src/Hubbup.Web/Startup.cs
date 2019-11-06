@@ -148,6 +148,7 @@ namespace Hubbup.Web
                     options.FlushRate = TimeSpan.FromSeconds(5);
                 })
                 .AddApplicationInsights();
+            services.AddApplicationInsightsTelemetry();
             services.AddSingleton<IRequestTelemetryListener, ApplicationInsightsRequestTelemetryListener>();
 
             services.AddSingleton<MikLabelerProvider>();

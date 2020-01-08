@@ -15,8 +15,8 @@ namespace CreateMikLabelModel
     {
         private static readonly (string owner, string repo)[] Repos = new[]
         {
-            ("aspnet", "AspNetCore"),
-            ("aspnet", "Extensions"),
+            ("dotnet", "aspnetcore"),
+            ("dotnet", "extensions"),
         };
 
         static async Task Main()

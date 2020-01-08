@@ -28,8 +28,8 @@ namespace Hubbup.Web.Controllers
         private readonly MikLabelerProvider _mikLabelerProvider;
         private static readonly (string owner, string repo)[] Repos = new[]
         {
-            ("aspnet", "AspNetCore"),
-            ("aspnet", "Extensions"),
+            ("dotnet", "aspnetcore"),
+            ("dotnet", "extensions"),
         };
 
 

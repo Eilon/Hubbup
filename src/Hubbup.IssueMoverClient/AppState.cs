@@ -523,7 +523,7 @@ namespace Hubbup.IssueMoverClient
                                 new CommentMoveRequest
                                 {
                                     IssueNumber = destinationIssueNumber,
-                                    Text = GetDestinationComment(commentData.Author, commentData.Text, commentData.Date),
+                                    Text = GetDestinationComment(OriginalIssueMoveData, commentData.Author, commentData.Text, commentData.Date),
                                 });
                             if (commentMoveResult.HasErrors())
                             {
@@ -771,18 +771,35 @@ namespace Hubbup.IssueMoverClient
 
         private static string GetDestinationBody(IssueMoveData issueToMove)
         {
+            var originalIssueLink = $"{issueToMove.RepoOwner}/{issueToMove.RepoName}#{issueToMove.Number}";
             var dateTime = issueToMove.CreatedDate.ToLocalTime().DateTime;
-            return $@"_From @{issueToMove.Author} on {dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}_
+            var issueDate = $"{dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}";
+            var author = issueToMove.Author;
 
-{issueToMove.Body}
+            return $@"---
+**Issue moved from {originalIssueLink}**
+- Please respond to @{author}.
 
-_Copied from original issue: {issueToMove.RepoOwner}/{issueToMove.RepoName}#{issueToMove.Number}_";
+---
+
+_From @{author} on {issueDate}_
+
+{issueToMove.Body}";
         }
 
-        private static string GetDestinationComment(string author, string text, DateTimeOffset date)
+        private static string GetDestinationComment(IssueMoveData issueToMove, string author, string text, DateTimeOffset date)
         {
+            var originalIssueLink = $"{issueToMove.RepoOwner}/{issueToMove.RepoName}#{issueToMove.Number}";
             var dateTime = date.ToLocalTime().DateTime;
-            return $@"_From @{author} on {dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}_
+            var commentDate = $"{dateTime.ToLongDateString()} {dateTime.ToLongTimeString()}";
+
+            return $@"---
+**Issue moved from {originalIssueLink}**
+- Please respond to @{author}.
+
+---
+
+_From @{author} on {commentDate}_
 
 {text}";
         }

@@ -75,6 +75,14 @@ namespace Hubbup.Web
 
             services.AddMemoryCache();
 
+            if (!HostingEnvironment.IsDevelopment())
+            {
+                services.AddSignalR().AddAzureSignalR(options =>
+                {
+                    options.ServerStickyMode = Microsoft.Azure.SignalR.ServerStickyMode.Required;
+                });
+            }
+
             services
                 .AddAuthentication(options =>
                 {

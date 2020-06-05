@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Client.Http;
@@ -19,6 +20,9 @@ namespace CreateMikLabelModel
             ("dotnet", "extensions"),
         };
 
+        private const int MaxFileChangesPerPR = 100;
+        private const string DeletedUser = "ghost";
+
         static async Task<int> Main()
         {
             foreach (var repo in Repos)
@@ -32,11 +36,11 @@ namespace CreateMikLabelModel
                 {
                     WriteCsvHeader(outputWriter);
 
-                    if (!await ProcessGitHubIssueData(repo.owner, repo.repo, IssueType.Issue, outputWriter))
+                    if (!await ProcessGitHubIssueData(repo.owner, repo.repo, IssueType.Issue, outputWriter, GetGitHubIssuePage<IssuesNode>))
                     {
                         return -1;
                     }
-                    if (!await ProcessGitHubIssueData(repo.owner, repo.repo, IssueType.PullRequest, outputWriter))
+                    if (!await ProcessGitHubIssueData(repo.owner, repo.repo, IssueType.PullRequest, outputWriter, GetGitHubIssuePage<PullRequestsNode>))
                     {
                         return -1;
                     }
@@ -60,7 +64,9 @@ namespace CreateMikLabelModel
             return 0;
         }
 
-        private static async Task<bool> ProcessGitHubIssueData(string owner, string repo, IssueType issueType, StreamWriter outputWriter)
+        private static async Task<bool> ProcessGitHubIssueData<T>(
+            string owner, string repo, IssueType issueType, StreamWriter outputWriter, 
+            Func<GraphQLHttpClient, string, string, IssueType, string, Task<GitHubListPage<T>>> getPage) where T : IssuesNode
         {
             Console.WriteLine($"Getting all '{issueType}' items for {owner}/{repo}...");
 
@@ -71,7 +77,7 @@ namespace CreateMikLabelModel
                 var totalProcessed = 0;
                 do
                 {
-                    var issuePage = await GetGitHubIssuePage(ghGraphQL, owner, repo, issueType, afterID);
+                    var issuePage = await getPage(ghGraphQL, owner, repo, issueType, afterID);
 
                     if (issuePage.IsError)
                     {
@@ -102,6 +108,25 @@ namespace CreateMikLabelModel
                         }
                     }
 
+                    if (issueType == IssueType.PullRequest)
+                    {
+                        var prsWithTooManyFileChanges =
+                            issuePage.Issues.Repository.Issues.Nodes
+                                .Where(x => x as PullRequestsNode != null).Select(x => x as PullRequestsNode).Where(i => i.Files.TotalCount > MaxFileChangesPerPR);
+
+                        if (prsWithTooManyFileChanges.Any())
+                        {
+                            // The GraphQL query gets at most N file changes per pr. So if a pr has more than N files changed,
+                            // then it's possible that we don't know about it. So we warn.
+                            foreach (var issue in prsWithTooManyFileChanges)
+                            {
+                                Console.WriteLine(
+                                    $"\tWARNING: PR {owner}/{repo}#{issue.Number} has more than {MaxFileChangesPerPR} labels ({issue.Files.TotalCount} total)" +
+                                    $"and the first {MaxFileChangesPerPR} are only used for training its area.");
+                            }
+                        }
+                    }
+
                     totalProcessed += issuePage.Issues.Repository.Issues.Nodes.Count;
                     Console.WriteLine(
                         $"Processing {totalProcessed}/{issuePage.Issues.Repository.Issues.TotalCount}. " +
@@ -109,7 +134,7 @@ namespace CreateMikLabelModel
 
                     foreach (var issue in issuesOfInterest)
                     {
-                        WriteCsvIssue(outputWriter, issue);
+                        WriteCsvIssue(outputWriter, issue, issueType);
                     }
                     hasNextPage = issuePage.Issues.Repository.Issues.PageInfo.HasNextPage;
                     afterID = issuePage.Issues.Repository.Issues.PageInfo.EndCursor;
@@ -133,14 +158,30 @@ namespace CreateMikLabelModel
 
         private static void WriteCsvHeader(StreamWriter outputWriter)
         {
-            outputWriter.WriteLine("ID\tArea\tTitle\tDescription");
+            outputWriter.WriteLine("ID\tArea\tTitle\tDescription\tAuthor\tIsPR\tFilePaths");
         }
 
-        private static void WriteCsvIssue(StreamWriter outputWriter, IssuesNode issue)
+        private static void WriteCsvIssue(StreamWriter outputWriter, IssuesNode issue, IssueType issueType)
         {
+            string author = issue.Author != null ? issue.Author.Login : DeletedUser;
             var area = issue.Labels.Nodes.First(l => l.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase)).Name;
-            var body = issue.BodyText.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
-            outputWriter.WriteLine($"{issue.Number}\t{area}\t{issue.Title}\t{body}");
+            var body = issue.BodyText.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ').Replace('"', '`');
+            if (issueType == IssueType.Issue)
+            {
+                outputWriter.WriteLine($"{issue.Number}\t{area}\t{issue.Title}\t{body}\t{author}\t0\t");
+            }
+            else if (issueType == IssueType.PullRequest && issue is PullRequestsNode pullRequest)
+            {
+                string filePaths = string.Empty;
+                if (pullRequest.Files.Nodes.Count > 0)
+                    filePaths = pullRequest.Files.Nodes.Select(x => x.Path)
+                        .Aggregate(new StringBuilder(), (a, b) => a.Append(";").Append(b), (a) => a.Remove(0, 1).ToString());
+                outputWriter.WriteLine($"{pullRequest.Number}\t{area}\t{pullRequest.Title}\t{body}\t{author}\t1\t{filePaths}");
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(issueType));
+            }
         }
 
         private enum IssueType
@@ -149,8 +190,23 @@ namespace CreateMikLabelModel
             PullRequest,
         }
 
-        private static async Task<GitHubIssueListPage> GetGitHubIssuePage(GraphQLHttpClient ghGraphQL, string owner, string repo, IssueType issueType, string afterID)
+        private static async Task<GitHubListPage<T>> GetGitHubIssuePage<T>(GraphQLHttpClient ghGraphQL, string owner, string repo, IssueType issueType, string afterID)
         {
+            var prSpecific = issueType switch
+            {
+                IssueType.Issue => string.Empty,
+                IssueType.PullRequest => @"files(first: " + MaxFileChangesPerPR + @") {
+                    totalCount
+                    nodes {
+                        path
+                    }
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                }",
+                _ => throw new ArgumentOutOfRangeException(nameof(issueType)),
+            };
             var issueNodeName = issueType switch
             {
                 IssueType.Issue => "issues", // Query for issues
@@ -165,6 +221,9 @@ namespace CreateMikLabelModel
     " + issueNodeName + @"(after: $afterIssue, first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
       nodes {
         number
+        author {
+          login
+        }" + prSpecific + @"
         title
         bodyText
         labels(first: 10) {
@@ -190,7 +249,7 @@ namespace CreateMikLabelModel
                     afterIssue = afterID,
                 });
 
-            var result = await ghGraphQL.SendQueryAsync<Data>(issueRequest);
+            var result = await ghGraphQL.SendQueryAsync<Data<T>>(issueRequest);
             if (result.Errors?.Any() ?? false)
             {
                 Console.WriteLine($"GraphQL errors! ({result.Errors.Length})");
@@ -198,10 +257,10 @@ namespace CreateMikLabelModel
                 {
                     Console.WriteLine($"\t{error.Message}");
                 }
-                return new GitHubIssueListPage { IsError = true, };
+                return new GitHubListPage<T> { IsError = true, };
             }
 
-            var issueList = new GitHubIssueListPage
+            var issueList = new GitHubListPage<T>
             {
                 Issues = result.Data,
             };

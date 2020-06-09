@@ -16,7 +16,7 @@ namespace CreateMikLabelModel.DL
 {
     public static class DownloadHelper
     {
-        public static async Task<int> DownloadItemsAsync(string outputPath, (string repo, string owner)[] repoCombo)
+        public static async Task<int> DownloadItemsAsync(string outputPath, (string owner, string repo)[] repoCombo)
         {
             var stopWatch = Stopwatch.StartNew();
 
@@ -78,6 +78,7 @@ namespace CreateMikLabelModel.DL
         {
             Console.WriteLine($"Getting all '{issueType}' items for {owner}/{repo}...");
             bool skip = true;
+            int limitBackToBackFailure = 10;
             using (var ghGraphQL = CreateGraphQLClient())
             {
                 bool hasNextPage = true;
@@ -148,6 +149,7 @@ namespace CreateMikLabelModel.DL
                         }
                         hasNextPage = issuePage.Issues.Repository.Issues.PageInfo.HasNextPage;
                         afterID = issuePage.Issues.Repository.Issues.PageInfo.EndCursor;
+                        limitBackToBackFailure = 0;
                     }
                     catch (RateLimitExceededException ex)
                     {
@@ -163,6 +165,8 @@ namespace CreateMikLabelModel.DL
                         {
                             throw cx;
                         }
+                        limitBackToBackFailure++;
+                        await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
                     }
                 }
                 while (hasNextPage);

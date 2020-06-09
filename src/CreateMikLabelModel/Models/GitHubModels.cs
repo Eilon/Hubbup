@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 // Various models used to deserialize GraphQL responses from GitHub
-namespace CreateMikLabelModel
+namespace CreateMikLabelModel.Models
 {
     public class GitHubListPage<T>
     {
@@ -32,6 +33,7 @@ namespace CreateMikLabelModel
         public long Number { get; set; }
         public string Title { get; set; }
         public string BodyText { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
         public Actor Author { get; set; }
         public Labels Labels { get; set; }
     }

@@ -1,10 +1,16 @@
-﻿#pragma warning disable 649 // We don't care about unsused fields here, because they are mapped with the input file.
-
-using Microsoft.ML.Data;
+﻿using Microsoft.ML.Data;
 using System;
 
-namespace Hubbup.MikLabelModel
+namespace CreateMikLabelModel.Models
 {
+    public class GitHubIssuePrediction
+    {
+        [ColumnName("PredictedLabel")]
+        public string Area;
+
+        public float[] Score;
+    }
+
     public class GitHubPullRequest : GitHubIssue
     {
         [LoadColumn(9)]
@@ -32,7 +38,7 @@ namespace Hubbup.MikLabelModel
         public string CombinedID;
 
         [LoadColumn(1)]
-        public string ID;
+        public Single ID;
 
         [LoadColumn(2)]
         public string Area;

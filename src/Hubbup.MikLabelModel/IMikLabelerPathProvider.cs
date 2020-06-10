@@ -2,6 +2,6 @@
 {
     public interface IMikLabelerPathProvider
     {
-        string GetModelPath();
+        (string issuePath, string prPath) GetModelPath();
     }
 }

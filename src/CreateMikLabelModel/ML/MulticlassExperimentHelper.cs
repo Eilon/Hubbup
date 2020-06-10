@@ -1,4 +1,4 @@
-﻿using CreateMikLabelModel.Models;
+﻿using Hubbup.MikLabelModel;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.Data;

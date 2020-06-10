@@ -32,7 +32,7 @@ namespace Hubbup.MikLabelModel
         public string CombinedID;
 
         [LoadColumn(1)]
-        public string ID;
+        public Single ID;
 
         [LoadColumn(2)]
         public string Area;

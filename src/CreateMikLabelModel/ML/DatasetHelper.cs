@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hubbup.MikLabelModel;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -216,7 +217,7 @@ namespace CreateMikLabelModel.ML
             {
                 var userMentions = _regexForUserMentions.Matches(body).Select(x => x.Value).ToArray();
                 _sb.Append('\t').Append(userMentions.Length)
-                    .Append('\t').Append(FlattenIntoColumn(userMentions));
+                    .Append('\t').Append(string.Join(' ', userMentions));
             }
 
             private void AppendColumnsForFileDiffs(string semicolonDelimitedFilesWithDiff, bool isPr, Func<string[], string, string[]> reMapFiles, string fromRepo)
@@ -233,11 +234,11 @@ namespace CreateMikLabelModel.ML
 
                         var segmentedDiff = _diffHelper.SegmentDiff(filePaths);
 
-                        _sb.Append('\t').Append(FlattenIntoColumn(filePaths))
-                            .Append('\t').Append(FlattenIntoColumn(segmentedDiff.Filenames))
-                            .Append('\t').Append(FlattenIntoColumn(segmentedDiff.Extensions))
-                            .Append('\t').Append(FlattenIntoColumn(segmentedDiff.FolderNames))
-                            .Append('\t').Append(FlattenIntoColumn(segmentedDiff.Folders));
+                        _sb.Append('\t').Append(string.Join(' ', filePaths))
+                            .Append('\t').Append(string.Join(' ', segmentedDiff.Filenames))
+                            .Append('\t').Append(string.Join(' ', segmentedDiff.Extensions))
+                            .Append('\t').Append(_diffHelper.FlattenWithWhitespace(segmentedDiff.FolderNames))
+                            .Append('\t').Append(_diffHelper.FlattenWithWhitespace(segmentedDiff.Folders));
                     }
                     else
                     {
@@ -249,57 +250,6 @@ namespace CreateMikLabelModel.ML
                     _sb.Append('\t').Append(0)
                         .Append('\t', 5);
                 }
-            }
-
-            /// <summary>
-            /// flattens a dictionary to be repeated in a space separated format
-            /// </summary>
-            /// <param name="textToFlatten">a dictionary containing text and number of times they were repeated</param>
-            /// <returns>space delimited text</returns>
-            public string FlattenIntoColumn(Dictionary<string, int> folder)
-            {
-                _folderSb.Clear();
-                string res;
-                foreach (var f in folder.OrderByDescending(x => x.Value))
-                {
-                    Debug.Assert(f.Value >= 1);
-                    _folderSb.Append(f.Key);
-                    for (int j = 0; j < f.Value - 1; j++)
-                    {
-                        _folderSb.Append(" ").Append(f.Key);
-                    }
-                    _folderSb.Append(" ");
-                }
-                if (_folderSb.Length == 0)
-                {
-                    res = string.Empty;
-                }
-                else
-                {
-                    res = _folderSb.ToString();
-                    res = res.Substring(0, res.Length - 1);
-                }
-                return res;
-            }
-
-            /// <summary>
-            /// flattens texts in a space separated format
-            /// </summary>
-            /// <param name="array">the input containing text to show</param>
-            /// <returns>space delimited text</returns>
-            public string FlattenIntoColumn(string[] array)
-            {
-                return string.Join(' ', array);
-            }
-
-            /// <summary>
-            /// flattens texts in a space separated format
-            /// </summary>
-            /// <param name="enumerable">the input containing text to show</param>
-            /// <returns>space delimited text</returns>
-            public string FlattenIntoColumn(IEnumerable<string> enumerable)
-            {
-                return string.Join(' ', enumerable);
             }
         }
     }

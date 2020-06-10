@@ -14,6 +14,9 @@ namespace CreateMikLabelModel
                 ("dotnet", "aspnetcore"),   // first item is the target Repo
             },
             new[] {
+                ("dotnet", "extensions"),
+            },
+            new[] {
                 ("dotnet", "runtime"),      // first item is the target Repo
                 ("dotnet", "extensions"),   // the rest are archived repositories
                 ("dotnet", "corefx"),

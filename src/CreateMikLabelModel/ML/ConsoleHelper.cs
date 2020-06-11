@@ -149,10 +149,10 @@ namespace CreateMikLabelModel.ML
 
                 tableRows.Add(new[]
                 {
-                columnName,
-                GetColumnDataType(columnName),
-                columnPurpose
-            });
+                    columnName,
+                    GetColumnDataType(columnName),
+                    columnPurpose
+                });
             }
 
             private void AppendTableRows(ICollection<string[]> tableRows,

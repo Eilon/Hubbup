@@ -12,69 +12,60 @@ namespace Hubbup.MikLabelModel
     {
         private readonly PredictionEngine<GitHubIssue, GitHubIssuePrediction> _predictionEngine;
         private readonly PredictionEngine<GitHubPullRequest, GitHubIssuePrediction> _prPredictionEngine;
+        private readonly Regex _regex;
 
         public MikLabelerPredictor(PredictionEngine<GitHubIssue, GitHubIssuePrediction> predictionEngine,
             PredictionEngine<GitHubPullRequest, GitHubIssuePrediction> prPredictionEngine)
         {
             _predictionEngine = predictionEngine;
             _prPredictionEngine = prPredictionEngine;
+            _regex = new Regex(@"@[a-zA-Z0-9_//-]+");
         }
 
-        private Regex _regex;
-
-        public LabelSuggestion PredictLabel(Issue issue)
+        public LabelSuggestion PredictLabel(Issue issue, string[] filePaths = null)
         {
-            if (_regex == null)
-            {
-                _regex = new Regex(@"@[a-zA-Z0-9_//-]+");
-            }
             var userMentions = _regex.Matches(issue.Body).Select(x => x.Value).ToArray();
 
-            var aspnetIssue = new GitHubIssue
+            List<LabelAreaScore> labelPredictions;
+            if (filePaths == null)
             {
-                ID = issue.Number,
-                Title = issue.Title,
-                Description = issue.Body,
-                IsPR = 0,
-                Author = issue.User.Login,
-                UserMentions = string.Join(' ', userMentions),
-                NumMentions = userMentions.Length,
-            };
-
-            var prediction = _predictionEngine.Predict(aspnetIssue);
-            var labelPredictions = GetBestThreePredictions(prediction, forPrs: false);
-            return new LabelSuggestion
-            {
-                LabelScores = labelPredictions,
-            };
-        }
-
-        public LabelSuggestion PredictLabel(PullRequest pr, string[] filePaths)
-        {
-            if (_regex == null)
-            {
-                _regex = new Regex(@"@[a-zA-Z0-9_//-]+");
+                var aspnetIssue = new GitHubIssue
+                {
+                    ID = issue.Number,
+                    Title = issue.Title,
+                    Description = issue.Body,
+                    IsPR = 0,
+                    Author = issue.User.Login,
+                    UserMentions = string.Join(' ', userMentions),
+                    NumMentions = userMentions.Length,
+                };
+                var prediction = _predictionEngine.Predict(aspnetIssue);
+                labelPredictions = GetBestThreePredictions(prediction, forPrs: false);
             }
-            var userMentions = _regex.Matches(pr.Body).Select(x => x.Value).ToArray();
-
-            var diffHelper = new DiffHelper();
-            var segmentedDiff = diffHelper.SegmentDiff(filePaths);
-            var aspnetIssue = new GitHubPullRequest
+            else
             {
-                ID = pr.Number,
-                Title = pr.Title,
-                Description = pr.Body,
-                IsPR = 1,
-                FileCount = filePaths.Length,
-                Files = string.Join(' ', segmentedDiff.FileDiffs),
-                Filenames = string.Join(' ', segmentedDiff.Filenames),
-                FileExtensions = string.Join(' ', segmentedDiff.Extensions),
-                FolderNames = diffHelper.FlattenWithWhitespace(segmentedDiff.FolderNames),
-                Folders = diffHelper.FlattenWithWhitespace(segmentedDiff.Folders)
-            };
+                var diffHelper = new DiffHelper();
+                var segmentedDiff = diffHelper.SegmentDiff(filePaths);
+                var aspnetIssue = new GitHubPullRequest
+                {
+                    ID = issue.Number,
+                    Title = issue.Title,
+                    Description = issue.Body,
+                    IsPR = 1,
+                    Author = issue.User.Login,
+                    UserMentions = string.Join(' ', userMentions),
+                    NumMentions = userMentions.Length,
+                    FileCount = filePaths.Length,
+                    Files = string.Join(' ', segmentedDiff.FileDiffs),
+                    Filenames = string.Join(' ', segmentedDiff.Filenames),
+                    FileExtensions = string.Join(' ', segmentedDiff.Extensions),
+                    FolderNames = diffHelper.FlattenWithWhitespace(segmentedDiff.FolderNames),
+                    Folders = diffHelper.FlattenWithWhitespace(segmentedDiff.Folders)
+                };
+                var prediction = _prPredictionEngine.Predict(aspnetIssue);
+                labelPredictions = GetBestThreePredictions(prediction, forPrs: true);
+            }
 
-            var prediction = _prPredictionEngine.Predict(aspnetIssue);
-            var labelPredictions = GetBestThreePredictions(prediction, forPrs: true);
             return new LabelSuggestion
             {
                 LabelScores = labelPredictions,

@@ -75,14 +75,18 @@ namespace Hubbup.Web.Controllers
                     Path.Combine(_hostingEnvironment.ContentRootPath, modelPath),
                     Path.Combine(_hostingEnvironment.ContentRootPath, prModelPath))).GetPredictor();
 
+                CachedPrediction prediction;
                 foreach (var issue in repoIssueResult.Issues)
                 {
-                    var prediction = GetIssuePrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue, labeler);
-                    if (issue.PullRequest != null && issue.PullRequest.ChangedFiles > 0)
+                    if (issue.PullRequest == null)
+                    {
+                        prediction = GetIssuePrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue, labeler);
+                    }
+                    else
                     {
                         var gitHub = GitHubUtils.GetGitHubClient(accessToken);
                         IReadOnlyList<PullRequestFile> prFiles = await gitHub.PullRequest.Files(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
-                        prediction = GetPrPrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue.PullRequest, prFiles, labeler);
+                        prediction = GetPrPrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue, prFiles, labeler);
                     }
 
                     predictionList.Add(new LabelSuggestionViewModel
@@ -186,13 +190,13 @@ namespace Hubbup.Web.Controllers
             return prediction;
         }
 
-        private CachedPrediction GetPrPrediction(string owner, string repo, PullRequest pullRequest, IReadOnlyList<PullRequestFile> prFiles, MikLabelerPredictor labeler)
+        private CachedPrediction GetPrPrediction(string owner, string repo, Issue issue, IReadOnlyList<PullRequestFile> prFiles, MikLabelerPredictor labeler)
         {
             string[] filePaths = prFiles.Select(x => x.FileName).ToArray();
-            var issueLastModified = pullRequest.UpdatedAt;
+            var issueLastModified = issue.UpdatedAt;
 
             CachedPrediction prediction;
-            var predictionCacheKey = $"Predictions/{owner}/{repo}/{pullRequest.Number}";
+            var predictionCacheKey = $"Predictions/{owner}/{repo}/{issue.Number}";
 
             _logger.LogTrace("Looking for cached prediction for {ITEM}", predictionCacheKey);
 
@@ -201,7 +205,7 @@ namespace Hubbup.Web.Controllers
                 cacheEntry =>
                 {
                     _logger.LogDebug("[MISS] Creating new cached prediction for {ITEM}", predictionCacheKey);
-                    return new CachedPrediction(labeler.PredictLabel(pullRequest, filePaths), issueLastModified);
+                    return new CachedPrediction(labeler.PredictLabel(issue, filePaths), issueLastModified);
                 });
 
             if (issueLastModified > cachedPrediction.IssueLastModified)
@@ -209,7 +213,7 @@ namespace Hubbup.Web.Controllers
                 // If the issue has been modified since the cache entry was added,
                 // then create a new prediction and cache that
                 _logger.LogDebug("[UPDATE] Updating cached prediction for {ITEM}", predictionCacheKey);
-                var newPrediction = new CachedPrediction(labeler.PredictLabel(pullRequest, filePaths), issueLastModified);
+                var newPrediction = new CachedPrediction(labeler.PredictLabel(issue, filePaths), issueLastModified);
                 _memoryCache.Set(predictionCacheKey, newPrediction);
                 prediction = newPrediction;
             }

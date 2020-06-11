@@ -117,9 +117,8 @@ namespace Hubbup.MikLabelModel
             {
                 return string.Empty;
             }
-            string res = folderSb.ToString();
-            res = res.Substring(0, res.Length - 1);
-            return res;
+            folderSb.Length--;
+            return folderSb.ToString();
         }
     }
 }

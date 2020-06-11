@@ -3,7 +3,6 @@ using GraphQL;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
 using Microsoft.Extensions.Configuration;
-using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -77,7 +76,6 @@ namespace CreateMikLabelModel.DL
             Func<GraphQLHttpClient, string, string, IssueType, string, Task<GitHubListPage<T>>> getPage) where T : IssuesNode
         {
             Console.WriteLine($"Getting all '{issueType}' items for {owner}/{repo}...");
-            bool skip = true;
             int limitBackToBackFailure = 10;
             using (var ghGraphQL = CreateGraphQLClient())
             {
@@ -123,7 +121,9 @@ namespace CreateMikLabelModel.DL
                         {
                             var prsWithTooManyFileChanges =
                                 issuePage.Issues.Repository.Issues.Nodes
-                                    .Where(x => x as PullRequestsNode != null).Select(x => x as PullRequestsNode).Where(i => i.Files != null && i.Files.TotalCount > MaxFileChangesPerPR);
+                                    .Where(x => x as PullRequestsNode != null)
+                                    .Select(x => x as PullRequestsNode)
+                                    .Where(i => i.Files != null && i.Files.TotalCount > MaxFileChangesPerPR);
 
                             if (prsWithTooManyFileChanges.Any())
                             {
@@ -151,22 +151,21 @@ namespace CreateMikLabelModel.DL
                         afterID = issuePage.Issues.Repository.Issues.PageInfo.EndCursor;
                         limitBackToBackFailure = 0;
                     }
-                    catch (RateLimitExceededException ex)
-                    {
-                        Console.WriteLine("oh rate limit exceeded " + DateTimeOffset.UtcNow.ToString());
-                        TimeSpan timeToWait = ex.Reset.AddMinutes(5) - DateTimeOffset.UtcNow;
-                        await Task.Delay(timeToWait).ConfigureAwait(false);
-                    }
                     catch (Exception cx)
                     {
                         Console.WriteLine(cx.Message);
                         Console.WriteLine(string.Join(Environment.NewLine, cx.StackTrace));
-                        if (!skip)
+                        if (limitBackToBackFailure < 10)
                         {
-                            throw cx;
+                            limitBackToBackFailure++;
+                            await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
                         }
-                        limitBackToBackFailure++;
-                        await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+                        else
+                        {
+                            Console.WriteLine("Retried 10 consecutive times, skip and move on");
+                            hasNextPage = false;
+                            // TODO later: investigate different reasons for which this might happen
+                        }
                     }
                 }
                 while (hasNextPage);
@@ -207,8 +206,7 @@ namespace CreateMikLabelModel.DL
             {
                 string filePaths = string.Empty;
                 if (pullRequest.Files != null && pullRequest.Files.Nodes.Count > 0)
-                    filePaths = pullRequest.Files.Nodes.Select(x => x.Path)
-                        .Aggregate(new StringBuilder(), (a, b) => a.Append(";").Append(b), (a) => a.Remove(0, 1).ToString());
+                    filePaths = string.Join(";", pullRequest.Files.Nodes.Select(x => x.Path));
                 outputLines.Add($"{createdAt},{repo},{issue.Number}\t{pullRequest.Number}\t{area}\t{pullRequest.Title}\t{body}\t{author}\t1\t{filePaths}");
             }
             else

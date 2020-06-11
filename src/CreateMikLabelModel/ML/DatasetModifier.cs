@@ -91,36 +91,36 @@ namespace CreateMikLabelModel.ML
                         case "corefx":
                         case "coreclr":
                         case "core-setup":
-                            if (filePaths[i].StartsWith($"src/coreclr/"))
+                            if (filePaths[i].StartsWith($"src/coreclr/", StringComparison.Ordinal))
                             {
                                 filePaths[i] = $"src/coreclr/src/" + filePaths[i].Substring(
                                     $"src/coreclr/".Length);
                             }
-                            if (filePaths[i].Contains($"src/coreclr/src/mscorlib/shared/"))
+                            if (filePaths[i].Contains($"src/coreclr/src/mscorlib/shared/", StringComparison.Ordinal))
                             {
                                 filePaths[i] = filePaths[i].Replace(
                                     $"src/coreclr/src/mscorlib/shared/",
                                     $"src/libraries/System.Private.CoreLib/src/");
                             }
-                            if (filePaths[i].Contains($"src/coreclr/System.Private.CoreLib/shared"))
+                            if (filePaths[i].Contains($"src/coreclr/System.Private.CoreLib/shared", StringComparison.Ordinal))
                             {
                                 filePaths[i] = filePaths[i].Replace(
                                     $"src/coreclr/src/System.Private.CoreLib/shared/",
                                     $"src/libraries/System.Private.CoreLib/src/");
                             }
-                            else if (filePaths[i].Contains($".azure-ci.yml"))
+                            else if (filePaths[i].Contains($".azure-ci.yml", StringComparison.Ordinal))
                             {
                                 filePaths[i] = filePaths[i].Replace(
                                     $".azure-ci.yml",
                                     $"eng/pipelines/" + repoFrom + $"/.azure-ci.yml");
                             }
-                            else if (filePaths[i].Contains($"azure-pipelines.yml"))
+                            else if (filePaths[i].Contains($"azure-pipelines.yml", StringComparison.Ordinal))
                             {
                                 filePaths[i] = filePaths[i].Replace(
                                     $"azure-pipelines.yml",
                                     $"eng/pipelines/" + repoFrom + $"/azure-pipelines.yml");
                             }
-                            else if (filePaths[i].Contains($"eng/pipelines/"))
+                            else if (filePaths[i].Contains($"eng/pipelines/", StringComparison.Ordinal))
                             {
                                 filePaths[i] = filePaths[i].Replace(
                                     $"eng/pipelines",
@@ -173,7 +173,7 @@ namespace CreateMikLabelModel.ML
                                     ("Primitives", "Primitives"),
                                 })
                             {
-                                if (filePaths[i].StartsWith($"src/{item.from}/"))
+                                if (filePaths[i].StartsWith($"src/{item.from}/", StringComparison.Ordinal))
                                 {
                                     filePaths[i] = filePaths[i].Replace($"src/{item.from}/", $"{prefix}.{item.to}/");
                                     break;

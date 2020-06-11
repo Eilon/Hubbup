@@ -175,7 +175,7 @@ namespace CreateMikLabelModel.ML
                 string body;
                 if (lines.Length != 0)
                 {
-                    foreach (var line in lines.Where(x => !x.StartsWith("CombinedID") && !string.IsNullOrEmpty(x)))
+                    foreach (var line in lines.Where(x => !x.StartsWith("CombinedID", StringComparison.Ordinal) && !string.IsNullOrEmpty(x)))
                     {
                         _sb.Clear();
                         var lineSplitByTab = line.Split("\t");

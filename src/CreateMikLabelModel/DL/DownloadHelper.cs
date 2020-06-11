@@ -121,8 +121,7 @@ namespace CreateMikLabelModel.DL
                         {
                             var prsWithTooManyFileChanges =
                                 issuePage.Issues.Repository.Issues.Nodes
-                                    .Where(x => x as PullRequestsNode != null)
-                                    .Select(x => x as PullRequestsNode)
+                                    .OfType<PullRequestsNode>()
                                     .Where(i => i.Files != null && i.Files.TotalCount > MaxFileChangesPerPR);
 
                             if (prsWithTooManyFileChanges.Any())
@@ -143,7 +142,7 @@ namespace CreateMikLabelModel.DL
                             $"Processing {totalProcessed}/{issuePage.Issues.Repository.Issues.TotalCount}. " +
                             $"Writing {issuesOfInterest.Count} items of interest to output TSV file...");
 
-                        foreach (var issue in issuesOfInterest.TakeLast(issuesOfInterest.Count))
+                        foreach (var issue in issuesOfInterest)
                         {
                             WriteCsvIssue(outputLines, issue, issueType, repo);
                         }

@@ -51,13 +51,13 @@ namespace Hubbup.MikLabelModel
                 {
                     foreach (var folderNameInPr in folderNamesInPr)
                     {
-                        if (folderNameInPr.Equals("ref") &&
-                            subfolder.StartsWith("src" + Path.DirectorySeparatorChar + "libraries") &&
+                        if (folderNameInPr.Equals("ref", StringComparison.Ordinal) &&
+                            subfolder.StartsWith("src" + Path.DirectorySeparatorChar + "libraries", StringComparison.Ordinal) &&
                             Path.GetExtension(fileWithDiff).Equals(".cs", StringComparison.OrdinalIgnoreCase))
                         {
                             addDocInfo = true;
                         }
-                        if (subfolder.StartsWith("src" + Path.DirectorySeparatorChar + "libraries" + Path.DirectorySeparatorChar + "Microsoft.Extensions.") &&
+                        if (subfolder.StartsWith("src" + Path.DirectorySeparatorChar + "libraries" + Path.DirectorySeparatorChar + "Microsoft.Extensions.", StringComparison.Ordinal) &&
                             Path.GetExtension(fileWithDiff).Equals(".cs", StringComparison.OrdinalIgnoreCase))
                         {
                             possiblyExtensionsLabel = true;

@@ -162,14 +162,14 @@ namespace CreateMikLabelModel.ML
                 ));
 
             int countSuccess = analysis.Where(x =>
-                    (x.confidentInPrediction && x.predictedArea.Equals(x.knownLabel)) ||
-                    (!x.confidentInPrediction && !x.predictedArea.Equals(x.knownLabel))).Count();
+                    (x.confidentInPrediction && x.predictedArea.Equals(x.knownLabel, StringComparison.Ordinal)) ||
+                    (!x.confidentInPrediction && !x.predictedArea.Equals(x.knownLabel, StringComparison.Ordinal))).Count();
 
             int missedOpportunity = analysis
-                .Where(x => !x.confidentInPrediction && x.knownLabel.Equals(x.predictedArea)).Count();
+                .Where(x => !x.confidentInPrediction && x.knownLabel.Equals(x.predictedArea, StringComparison.Ordinal)).Count();
 
             var mistakes = analysis
-                .Where(x => x.confidentInPrediction && !x.knownLabel.Equals(x.predictedArea))
+                .Where(x => x.confidentInPrediction && !x.knownLabel.Equals(x.predictedArea, StringComparison.Ordinal))
                 .Select(x => $"Predicted: {x.predictedArea}, Actual:{x.knownLabel}")
                 .GroupBy(x => x)
                 .Select(x => new {

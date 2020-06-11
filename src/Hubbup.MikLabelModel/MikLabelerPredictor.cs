@@ -12,19 +12,18 @@ namespace Hubbup.MikLabelModel
     {
         private readonly PredictionEngine<GitHubIssue, GitHubIssuePrediction> _predictionEngine;
         private readonly PredictionEngine<GitHubPullRequest, GitHubIssuePrediction> _prPredictionEngine;
-        private readonly Regex _regex;
-
+        private readonly Regex _regex = new Regex(@"@[a-zA-Z0-9_//-]+");
+        private readonly DiffHelper _diffHelper = new DiffHelper();
         public MikLabelerPredictor(PredictionEngine<GitHubIssue, GitHubIssuePrediction> predictionEngine,
             PredictionEngine<GitHubPullRequest, GitHubIssuePrediction> prPredictionEngine)
         {
             _predictionEngine = predictionEngine;
             _prPredictionEngine = prPredictionEngine;
-            _regex = new Regex(@"@[a-zA-Z0-9_//-]+");
         }
 
         public LabelSuggestion PredictLabel(Issue issue, string[] filePaths = null)
         {
-            var userMentions = _regex.Matches(issue.Body).Select(x => x.Value).ToArray();
+            var userMentions = issue.Body != null ? _regex.Matches(issue.Body).Select(x => x.Value).ToArray() : new string[0];
 
             List<LabelAreaScore> labelPredictions;
             if (filePaths == null)
@@ -44,8 +43,7 @@ namespace Hubbup.MikLabelModel
             }
             else
             {
-                var diffHelper = new DiffHelper();
-                var segmentedDiff = diffHelper.SegmentDiff(filePaths);
+                var segmentedDiff = _diffHelper.SegmentDiff(filePaths);
                 var aspnetIssue = new GitHubPullRequest
                 {
                     ID = issue.Number,
@@ -59,8 +57,8 @@ namespace Hubbup.MikLabelModel
                     Files = string.Join(' ', segmentedDiff.FileDiffs),
                     Filenames = string.Join(' ', segmentedDiff.Filenames),
                     FileExtensions = string.Join(' ', segmentedDiff.Extensions),
-                    FolderNames = diffHelper.FlattenWithWhitespace(segmentedDiff.FolderNames),
-                    Folders = diffHelper.FlattenWithWhitespace(segmentedDiff.Folders)
+                    FolderNames = _diffHelper.FlattenWithWhitespace(segmentedDiff.FolderNames),
+                    Folders = _diffHelper.FlattenWithWhitespace(segmentedDiff.Folders)
                 };
                 var prediction = _prPredictionEngine.Predict(aspnetIssue);
                 labelPredictions = GetBestThreePredictions(prediction, forPrs: true);
@@ -77,10 +75,13 @@ namespace Hubbup.MikLabelModel
             var scores = prediction.Score;
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            _predictionEngine.OutputSchema[nameof(GitHubIssuePrediction.Score)].GetSlotNames(ref slotNames);
             if (forPrs)
             {
                 _prPredictionEngine.OutputSchema[nameof(GitHubIssuePrediction.Score)].GetSlotNames(ref slotNames);
+            }
+            else
+            {
+                _predictionEngine.OutputSchema[nameof(GitHubIssuePrediction.Score)].GetSlotNames(ref slotNames);
             }
 
             var topThreeScores = GetIndexesOfTopScores(scores, 3);

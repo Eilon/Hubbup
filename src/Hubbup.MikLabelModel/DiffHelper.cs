@@ -107,7 +107,7 @@ namespace Hubbup.MikLabelModel
             {
                 Debug.Assert(f.Value >= 1);
                 folderSb.Append(f.Key);
-                for (int j = 0; j < f.Value - 1; j++)
+                for (var j = 0; j < f.Value - 1; j++)
                 {
                     folderSb.Append(" ").Append(f.Key);
                 }

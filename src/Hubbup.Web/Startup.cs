@@ -1,10 +1,3 @@
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Security.Claims;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Hubbup.IssueMoverApi;
 using Hubbup.IssueMoverClient;
 using Hubbup.MikLabelModel;
@@ -23,6 +16,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web
 {

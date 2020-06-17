@@ -16,8 +16,12 @@ namespace Hubbup.Web.Utils
                 select Task.Run(async () =>
                 {
                     using (partition)
+                    {
                         while (partition.MoveNext())
+                        {
                             await body(partition.Current);
+                        }
+                    }
                 }));
         }
     }

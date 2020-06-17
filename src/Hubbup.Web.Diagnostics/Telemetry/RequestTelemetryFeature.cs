@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Hubbup.Web.Diagnostics.Telemetry
 {

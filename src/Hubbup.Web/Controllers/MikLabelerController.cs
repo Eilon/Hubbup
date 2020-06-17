@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Hubbup.MikLabelModel;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
@@ -15,6 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Octokit;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web.Controllers
 {
@@ -89,7 +89,7 @@ namespace Hubbup.Web.Controllers
                     else
                     {
                         var gitHub = GitHubUtils.GetGitHubClient(accessToken);
-                        IReadOnlyList<PullRequestFile> prFiles = await gitHub.PullRequest.Files(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
+                        var prFiles = await gitHub.PullRequest.Files(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
                         prediction = GetPrPrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue, prFiles, labeler);
                     }
 
@@ -196,7 +196,7 @@ namespace Hubbup.Web.Controllers
 
         private CachedPrediction GetPrPrediction(string owner, string repo, Issue issue, IReadOnlyList<PullRequestFile> prFiles, MikLabelerPredictor labeler)
         {
-            string[] filePaths = prFiles.Select(x => x.FileName).ToArray();
+            var filePaths = prFiles.Select(x => x.FileName).ToArray();
             var issueLastModified = issue.UpdatedAt;
 
             CachedPrediction prediction;

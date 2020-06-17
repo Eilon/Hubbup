@@ -84,7 +84,7 @@ namespace CreateMikLabelModel.ML
 
             public static Func<string[], string, string[]> RemapFilesForRuntimeRepo = (filePaths, repoFrom) =>
             {
-                for (int i = 0; i < filePaths.Length; i++)
+                for (var i = 0; i < filePaths.Length; i++)
                 {
                     switch (repoFrom)
                     {
@@ -129,7 +129,7 @@ namespace CreateMikLabelModel.ML
                             break;
                         case "extensions":
                         case "Extensions":
-                            string prefix = "src/libraries/Microsoft.Extensions";
+                            var prefix = "src/libraries/Microsoft.Extensions";
                             foreach (var item in new (string from, string to)[] { 
                                 // area-Caching
                                     ("Caching/Abstraction", "Caching.Abstractions"),

@@ -1,8 +1,8 @@
-﻿using System.Threading.Tasks;
-using Hubbup.IssueMoverApi;
+﻿using Hubbup.IssueMoverApi;
 using Hubbup.Web.Utils;
 using Microsoft.JSInterop;
 using Octokit;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web
 {
@@ -17,7 +17,7 @@ namespace Hubbup.Web
 
         public async Task<IGitHubClient> GetGitHubClient()
         {
-            var accessToken =  await _jsRuntime.InvokeAsync<string>("GetGitHubAccessToken");
+            var accessToken = await _jsRuntime.InvokeAsync<string>("GetGitHubAccessToken");
             return GitHubUtils.GetGitHubClient(accessToken);
         }
     }

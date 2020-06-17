@@ -1,6 +1,6 @@
+using Hubbup.Web.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Hubbup.Web.Models;
 
 namespace Hubbup.Web.DataSources
 {

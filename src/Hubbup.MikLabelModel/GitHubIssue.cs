@@ -1,14 +1,13 @@
 ﻿#pragma warning disable 649 // We don't care about unsused fields here, because they are mapped with the input file.
 
 using Microsoft.ML.Data;
-using System;
 
 namespace Hubbup.MikLabelModel
 {
     public class GitHubPullRequest : GitHubIssue
     {
         [LoadColumn(9)]
-        public Single FileCount;
+        public float FileCount;
 
         [LoadColumn(10)]
         public string Files;
@@ -32,7 +31,7 @@ namespace Hubbup.MikLabelModel
         public string CombinedID;
 
         [LoadColumn(1)]
-        public Single ID;
+        public float ID;
 
         [LoadColumn(2)]
         public string Area;
@@ -53,6 +52,6 @@ namespace Hubbup.MikLabelModel
         public string UserMentions;
 
         [LoadColumn(8)]
-        public Single NumMentions;
+        public float NumMentions;
     }
 }

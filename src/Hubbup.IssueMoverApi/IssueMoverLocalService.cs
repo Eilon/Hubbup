@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Hubbup.IssueMover.Dto;
+using Octokit;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Hubbup.IssueMover.Dto;
-using Octokit;
 
 namespace Hubbup.IssueMoverApi
 {

@@ -1,6 +1,6 @@
-﻿using System;
-using Microsoft.ML.AutoML;
+﻿using Microsoft.ML.AutoML;
 using Microsoft.ML.Data;
+using System;
 
 namespace CreateMikLabelModel.ML
 {

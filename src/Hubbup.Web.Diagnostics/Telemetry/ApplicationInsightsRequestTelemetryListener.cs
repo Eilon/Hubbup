@@ -1,7 +1,7 @@
-using System;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace Hubbup.Web.Diagnostics.Telemetry
 {

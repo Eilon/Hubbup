@@ -5,9 +5,9 @@ namespace Hubbup.Web.Diagnostics.Metrics
 {
     public struct TimeMetricDisposable : IDisposable
     {
-        private IMetricsService _metricsService;
-        private string _measurement;
-        private Stopwatch _stopwatch;
+        private readonly IMetricsService _metricsService;
+        private readonly string _measurement;
+        private readonly Stopwatch _stopwatch;
 
         public TimeMetricDisposable(IMetricsService metricsService, string measurement)
         {

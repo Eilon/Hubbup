@@ -57,12 +57,12 @@ namespace CreateMikLabelModel.ML
             /// <param name="testPath">the output to store the train dataset</param>
             public async Task BreakIntoTrainValidateTestDatasetsAsync(string[] lines, string trainPath, string validatePath, string testPath)
             {
-                int totalCount = lines.Length;
+                var totalCount = lines.Length;
 
                 // have at least 1000 elements
                 Debug.Assert(totalCount > 1000);
-                int numInTrain = (int)(lines.Length * 0.8);
-                int numInValidate = (int)(lines.Length * 0.1);
+                var numInTrain = (int)(lines.Length * 0.8);
+                var numInValidate = (int)(lines.Length * 0.1);
 
                 // 80% into train dataset
                 await SaveFromXToYAsync(
@@ -106,7 +106,7 @@ namespace CreateMikLabelModel.ML
                 Debug.Assert(header[0].Split("\t")[_isPrIndex] == "IsPR");
                 lines = lines.Skip(1).ToArray();
                 return header.Union(
-                    lines.Where(x => int.TryParse(x.Split('\t')[_isPrIndex], out int isPrAsNumber) && isPrAsNumber == 1)).ToArray();
+                    lines.Where(x => int.TryParse(x.Split('\t')[_isPrIndex], out var isPrAsNumber) && isPrAsNumber == 1)).ToArray();
             }
 
             private readonly int _isPrIndex = 6;
@@ -122,7 +122,7 @@ namespace CreateMikLabelModel.ML
                 Debug.Assert(header[0].Split("\t")[_isPrIndex] == "IsPR");
                 lines = lines.Skip(1).ToArray();
                 return header.Union(
-                    lines.Where(x => int.TryParse(x.Split('\t')[_isPrIndex], out int isPrAsNumber) && isPrAsNumber == 0)).ToArray();
+                    lines.Where(x => int.TryParse(x.Split('\t')[_isPrIndex], out var isPrAsNumber) && isPrAsNumber == 0)).ToArray();
             }
 
             /// <summary>
@@ -139,15 +139,15 @@ namespace CreateMikLabelModel.ML
                 DatasetModifier datasetModifier,
                 bool includeFileColumns = true)
             {
-                var existingHeaders = 
+                var existingHeaders =
                     new string[] { "CombinedID", "ID", "Area", "Title", "Description", "Author", "IsPR", "FilePaths" };
-                var headersToKeep = 
+                var headersToKeep =
                     new string[] { "CombinedID", "ID", "Area", "Title", "Description", "Author", "IsPR" };
-                var newOnesToAdd = 
+                var newOnesToAdd =
                     new string[] { "NumMentions", "UserMentions" };
 
                 var headerIndices = new Dictionary<string, int>();
-                for (int i = 0; i < existingHeaders.Length; i++)
+                for (var i = 0; i < existingHeaders.Length; i++)
                 {
                     headerIndices.Add(existingHeaders[i], i);
                 }
@@ -179,8 +179,8 @@ namespace CreateMikLabelModel.ML
                     {
                         _sb.Clear();
                         var lineSplitByTab = line.Split("\t");
-                        string fromRepo = lineSplitByTab[headerIndices["CombinedID"]].Split(",")[1];
-                        string area = datasetModifier.ReMapLabel(lineSplitByTab[headerIndices["Area"]], fromRepo);
+                        var fromRepo = lineSplitByTab[headerIndices["CombinedID"]].Split(",")[1];
+                        var area = datasetModifier.ReMapLabel(lineSplitByTab[headerIndices["Area"]], fromRepo);
                         if (string.IsNullOrWhiteSpace(area))
                         {
                             // the label from archived file is not being used in targetRepo.. can skip this row
@@ -197,7 +197,7 @@ namespace CreateMikLabelModel.ML
                         _sb.Append('\t').Append(body);
                         _sb.Append('\t').Append(lineSplitByTab[headerIndices["Author"]]);
 
-                        int.TryParse(lineSplitByTab[headerIndices["IsPR"]], out int isPrAsNumber);
+                        int.TryParse(lineSplitByTab[headerIndices["IsPR"]], out var isPrAsNumber);
                         Debug.Assert((isPrAsNumber == 1 || isPrAsNumber == 0));
                         _sb.Append('\t').Append(isPrAsNumber);
 
@@ -224,8 +224,8 @@ namespace CreateMikLabelModel.ML
             {
                 if (isPr)
                 {
-                    string[] filePaths = semicolonDelimitedFilesWithDiff.Split(';');
-                    int numFilesChanged = filePaths.Length == 1 && string.IsNullOrEmpty(filePaths[0]) ? 0 : filePaths.Length;
+                    var filePaths = semicolonDelimitedFilesWithDiff.Split(';');
+                    var numFilesChanged = filePaths.Length == 1 && string.IsNullOrEmpty(filePaths[0]) ? 0 : filePaths.Length;
                     _sb.Append('\t').Append(numFilesChanged);
                     if (numFilesChanged != 0)
                     {

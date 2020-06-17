@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Hubbup.Web.Diagnostics.Metrics
 {
@@ -23,7 +23,7 @@ namespace Hubbup.Web.Diagnostics.Metrics
 
         public void ReceiveMetrics(IReadOnlyList<Metric> metrics)
         {
-            if(_telemetryClient == null)
+            if (_telemetryClient == null)
             {
                 _logger.LogTrace("Not recording metrics because Application Insights was not registered");
                 return;
@@ -34,7 +34,7 @@ namespace Hubbup.Web.Diagnostics.Metrics
             {
                 // Calculate the necessary aggregates
                 // TODO: Consider tracking these aggregates in the MetricsService? 
-                int count = 0;
+                var count = 0;
                 double sum = 0;
                 double sumOfSquares = 0;
                 double? min = null;

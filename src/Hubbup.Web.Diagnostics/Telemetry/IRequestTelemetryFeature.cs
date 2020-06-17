@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Hubbup.Web.Diagnostics.Telemetry
 {
     public interface IRequestTelemetryFeature

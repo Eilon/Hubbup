@@ -122,6 +122,6 @@ namespace Microsoft.AspNetCore.Components
             }
         }
 
-        class IgnoreResponse { }
+        private class IgnoreResponse { }
     }
 }

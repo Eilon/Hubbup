@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Hubbup.IssueMover.Dto;
+﻿using Hubbup.IssueMover.Dto;
+using System.Threading.Tasks;
 
 namespace Hubbup.IssueMoverApi
 {

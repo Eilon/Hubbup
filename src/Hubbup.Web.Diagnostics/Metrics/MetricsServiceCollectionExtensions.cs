@@ -1,5 +1,5 @@
-using System;
 using Hubbup.Web.Diagnostics.Metrics;
+using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

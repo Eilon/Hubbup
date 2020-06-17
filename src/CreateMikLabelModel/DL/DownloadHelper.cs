@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CreateMikLabelModel.DL
@@ -76,10 +75,10 @@ namespace CreateMikLabelModel.DL
             Func<GraphQLHttpClient, string, string, IssueType, string, Task<GitHubListPage<T>>> getPage) where T : IssuesNode
         {
             Console.WriteLine($"Getting all '{issueType}' items for {owner}/{repo}...");
-            int limitBackToBackFailure = 10;
+            var limitBackToBackFailure = 10;
             using (var ghGraphQL = CreateGraphQLClient())
             {
-                bool hasNextPage = true;
+                var hasNextPage = true;
                 string afterID = null;
                 var totalProcessed = 0;
                 do
@@ -193,19 +192,22 @@ namespace CreateMikLabelModel.DL
             // TODO: lookup HtmlUrl for transferred files, may be different than repo
             , string repo)
         {
-            string author = issue.Author != null ? issue.Author.Login : DeletedUser;
+            var author = issue.Author != null ? issue.Author.Login : DeletedUser;
             var area = issue.Labels.Nodes.First(l => l.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase)).Name;
             var body = issue.BodyText.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ').Replace('"', '`');
-            long createdAt = issue.CreatedAt.UtcDateTime.ToFileTimeUtc();
+            var createdAt = issue.CreatedAt.UtcDateTime.ToFileTimeUtc();
             if (issueType == IssueType.Issue)
             {
                 outputLines.Add($"{createdAt},{repo},{issue.Number}\t{issue.Number}\t{area}\t{issue.Title}\t{body}\t{author}\t0\t");
             }
             else if (issueType == IssueType.PullRequest && issue is PullRequestsNode pullRequest)
             {
-                string filePaths = string.Empty;
+                var filePaths = string.Empty;
                 if (pullRequest.Files != null && pullRequest.Files.Nodes.Count > 0)
+                {
                     filePaths = string.Join(";", pullRequest.Files.Nodes.Select(x => x.Path));
+                }
+
                 outputLines.Add($"{createdAt},{repo},{issue.Number}\t{pullRequest.Number}\t{area}\t{pullRequest.Title}\t{body}\t{author}\t1\t{filePaths}");
             }
             else

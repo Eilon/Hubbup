@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Hubbup.IssueMover.Dto
+﻿namespace Hubbup.IssueMover.Dto
 {
     public class RepoMoveData : IErrorResult
     {

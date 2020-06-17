@@ -213,7 +213,7 @@ namespace Hubbup.Web.Controllers
         {
             try
             {
-                var issueCloseResult = await IssueMoverService.CloseIssue(fromOwnerName, fromRepoName,issueCloseRequest);
+                var issueCloseResult = await IssueMoverService.CloseIssue(fromOwnerName, fromRepoName, issueCloseRequest);
 
                 return Ok(issueCloseResult);
             }

@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.ML;
+using Microsoft.ML.Data;
+using Octokit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.ML;
-using Microsoft.ML.Data;
-using Octokit;
 
 namespace Hubbup.MikLabelModel
 {

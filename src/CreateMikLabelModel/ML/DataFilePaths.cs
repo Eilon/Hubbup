@@ -8,7 +8,7 @@ namespace CreateMikLabelModel.ML
         {
             Folder = folder;
             InputPath = Path.Combine(Folder, customPrefix + "issueAndPrData.tsv");
-            var prefix = forPrs? "only-prs" : "only-issues";
+            var prefix = forPrs ? "only-prs" : "only-issues";
 
             TrainPath = Path.Combine(Folder, customPrefix + prefix + "-part1.tsv");
             ValidatePath = Path.Combine(Folder, customPrefix + prefix + "-part2.tsv");

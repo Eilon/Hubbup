@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Hubbup.Web.Models;
+﻿using Hubbup.Web.Models;
+using System.Collections.Generic;
 
 namespace Hubbup.Web.ViewModels
 {

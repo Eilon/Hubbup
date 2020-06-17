@@ -1,8 +1,8 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Hubbup.Web.Diagnostics.Metrics
 {

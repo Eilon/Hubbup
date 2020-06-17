@@ -1,8 +1,6 @@
+using Hubbup.Web.Utils;
 using System;
 using System.Collections.Generic;
-using Hubbup.Web.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Hubbup.Web.Models
 {
@@ -25,7 +23,7 @@ namespace Hubbup.Web.Models
         public bool Stale => WorkingStartedAt != null ?
             WorkingStartedAt.Value < DateTimeOffset.UtcNow.AddDays(-14) :
             UpdatedAt < DateTimeOffset.UtcNow.AddDays(-14);
-        
+
         public string CreatedTimeAgo => CreatedAt.ToTimeAgo();
         public string WorkingTimeAgo => WorkingStartedAt?.ToTimeAgo();
 

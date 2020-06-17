@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Hubbup.IssueMover.Dto
+﻿namespace Hubbup.IssueMover.Dto
 {
     public class IssueLockResult : IErrorResult
     {

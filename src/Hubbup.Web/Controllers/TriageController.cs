@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Models;
@@ -20,6 +12,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 using Octokit;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web.Controllers
 {
@@ -623,8 +623,7 @@ namespace Hubbup.Web.Controllers
         {
             public PossibleSemanticVersion(string possibleSemanticVersion)
             {
-                NuGetVersion nuGetVersion;
-                if (NuGetVersion.TryParse(possibleSemanticVersion, out nuGetVersion))
+                if (NuGetVersion.TryParse(possibleSemanticVersion, out var nuGetVersion))
                 {
                     NuGetVersion = nuGetVersion;
                 }

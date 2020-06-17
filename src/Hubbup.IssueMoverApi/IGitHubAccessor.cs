@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Octokit;
+﻿using Octokit;
+using System.Threading.Tasks;
 
 namespace Hubbup.IssueMoverApi
 {

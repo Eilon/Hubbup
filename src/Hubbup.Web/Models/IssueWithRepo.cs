@@ -1,5 +1,5 @@
-﻿using System;
-using Octokit;
+﻿using Octokit;
+using System;
 
 namespace Hubbup.Web.Models
 {

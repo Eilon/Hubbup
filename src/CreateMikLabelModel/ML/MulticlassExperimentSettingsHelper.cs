@@ -37,7 +37,7 @@ namespace CreateMikLabelModel.ML
         private static ColumnInferenceResults InferColumns(MLContext mlContext, string dataPath, string labelColumnName)
         {
             ConsoleHelper.ConsoleWriteHeader("=============== Inferring columns in dataset ===============");
-            ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(dataPath, labelColumnName, groupColumns: false);
+            var columnInference = mlContext.Auto().InferColumns(dataPath, labelColumnName, groupColumns: false);
             return columnInference;
         }
     }

@@ -1,9 +1,9 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Hubbup.Web.DataSources;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Hubbup.Web
 {
@@ -17,7 +17,7 @@ namespace Hubbup.Web
 
         private readonly Timer _timer;
         private int _loading;
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public DataLoadingService(IDataSource dataSource, ILogger<DataLoadingService> logger)
         {

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Hubbup.MikLabelModel;
+﻿using Hubbup.MikLabelModel;
 using Octokit;
+using System.Collections.Generic;
 
 namespace Hubbup.Web.ViewModels
 {

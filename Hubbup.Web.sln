@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D534DD7-7F6
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{162FF4CF-3941-40FD-B8EF-F0DF1FA84C6C}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		NuGet.config = NuGet.config
 	EndProjectSection
@@ -29,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateMikLabelModel", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hubbup.MikLabelModel", "src\Hubbup.MikLabelModel\Hubbup.MikLabelModel.csproj", "{CA47F6FC-382F-4034-9F12-517CC14E5CB0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hubbup.IssueMoverApi", "src\Hubbup.IssueMoverApi\Hubbup.IssueMoverApi.csproj", "{D0479E4A-530C-48A6-A6E2-ED115727CEB5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hubbup.IssueMoverApi", "src\Hubbup.IssueMoverApi\Hubbup.IssueMoverApi.csproj", "{D0479E4A-530C-48A6-A6E2-ED115727CEB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

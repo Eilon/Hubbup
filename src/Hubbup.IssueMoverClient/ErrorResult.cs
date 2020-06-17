@@ -1,5 +1,4 @@
-﻿using System;
-using Hubbup.IssueMover.Dto;
+﻿using Hubbup.IssueMover.Dto;
 
 namespace Hubbup.IssueMoverClient
 {

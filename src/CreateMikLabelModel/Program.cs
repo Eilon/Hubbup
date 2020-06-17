@@ -25,17 +25,19 @@ namespace CreateMikLabelModel
             }
         };
 
-        static async Task<int> Main()
+        private static async Task<int> Main()
         {
-            string folder = Directory.GetCurrentDirectory();
+            var folder = Directory.GetCurrentDirectory();
             foreach (var repoCombo in Repos)
             {
-                string customFilenamePrefix = $"{repoCombo[0].owner}-{repoCombo[0].repo}-";
+                var customFilenamePrefix = $"{repoCombo[0].owner}-{repoCombo[0].repo}-";
                 var issueFiles = new DataFilePaths(folder, customFilenamePrefix, forPrs: false);
                 var prFiles = new DataFilePaths(folder, customFilenamePrefix, forPrs: true);
 
                 if (await DownloadHelper.DownloadItemsAsync(issueFiles.InputPath, repoCombo) == -1)
+                {
                     return -1;
+                }
 
                 var dm = new DatasetModifier(targetRepo: repoCombo[0].repo);
                 Console.WriteLine($"Reading input TSV {issueFiles.InputPath}...");
@@ -46,7 +48,7 @@ namespace CreateMikLabelModel
 
                 Console.WriteLine($"First train issues");
                 mlHelper.Train(issueFiles, forPrs: false);
-                
+
                 Console.WriteLine($"Next to train PRs");
                 mlHelper.Train(prFiles, forPrs: true);
 

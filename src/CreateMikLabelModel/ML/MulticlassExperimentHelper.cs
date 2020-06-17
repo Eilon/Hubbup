@@ -17,7 +17,7 @@ namespace CreateMikLabelModel.ML
         {
             ConsoleHelper.ConsoleWriteHeader("=============== Running AutoML experiment ===============");
             Console.WriteLine($"Running AutoML multiclass classification experiment for {experimentSettings.MaxExperimentTimeInSeconds} seconds...");
-            ExperimentResult<MulticlassClassificationMetrics> experimentResult = mlContext.Auto()
+            var experimentResult = mlContext.Auto()
                 .CreateMulticlassClassificationExperiment(experimentSettings)
                 .Execute(dataView, labelColumnName, progressHandler: progressHandler);
 
@@ -54,26 +54,26 @@ namespace CreateMikLabelModel.ML
         public static ITransformer Retrain(ExperimentResult<MulticlassClassificationMetrics> experimentResult,
             string trainerName, MultiFileSource multiFileSource, string dataPath, string modelPath, TextLoader textLoader, MLContext mlContext)
         {
-            IDataView dataView = textLoader.Load(dataPath);
+            var dataView = textLoader.Load(dataPath);
 
             ConsoleHelper.ConsoleWriteHeader("=============== Re-fitting best pipeline ===============");
             var combinedDataView = textLoader.Load(multiFileSource);
 
-            RunDetail<MulticlassClassificationMetrics> bestRun = experimentResult.BestRun;
+            var bestRun = experimentResult.BestRun;
             var refitModel = bestRun.Estimator.Fit(combinedDataView);
 
             EvaluateTrainedModelAndPrintMetrics(mlContext, refitModel, trainerName, dataView);
             SaveModel(mlContext, refitModel, modelPath, dataView);
             return refitModel;
         }
-        
+
         public static ITransformer Retrain(MLContext mlContext, ExperimentResult<MulticlassClassificationMetrics> experimentResult,
             ColumnInferenceResults columnInference, DataFilePaths paths, bool fixedBug = false)
         {
             ConsoleHelper.ConsoleWriteHeader("=============== Re-fitting best pipeline ===============");
             var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var combinedDataView = textLoader.Load(new MultiFileSource(paths.TrainPath, paths.ValidatePath, paths.TestPath));
-            RunDetail<MulticlassClassificationMetrics> bestRun = experimentResult.BestRun;
+            var bestRun = experimentResult.BestRun;
             if (fixedBug)
             {
                 // TODO: retry: below gave error but I thought it would work:
@@ -132,9 +132,9 @@ namespace CreateMikLabelModel.ML
             Console.WriteLine("The model is saved to {0}", modelPath);
         }
 
-        public static void TestPrediction(MLContext mlContext, DataFilePaths files, bool forPrs, double threshold = 0.4) 
+        public static void TestPrediction(MLContext mlContext, DataFilePaths files, bool forPrs, double threshold = 0.4)
         {
-            ITransformer trainedModel = mlContext.Model.Load(files.FittedModelPath, out _);
+            var trainedModel = mlContext.Model.Load(files.FittedModelPath, out _);
             IEnumerable<(string knownLabel, GitHubIssuePrediction predictedResult)> predictions = null;
             if (forPrs)
             {
@@ -153,7 +153,7 @@ namespace CreateMikLabelModel.ML
                    .Select(x => (knownLabel: x.Area, predictedResult: issueEngine.Predict(x)));
             }
 
-            IEnumerable<(string knownLabel, string predictedArea, bool confidentInPrediction)> analysis = 
+            var analysis =
                 predictions.Select(x =>
                 (
                     knownLabel: x.knownLabel,
@@ -161,18 +161,19 @@ namespace CreateMikLabelModel.ML
                     confidentInPrediction: x.predictedResult.Score.Max() >= threshold
                 ));
 
-            int countSuccess = analysis.Where(x =>
+            var countSuccess = analysis.Where(x =>
                     (x.confidentInPrediction && x.predictedArea.Equals(x.knownLabel, StringComparison.Ordinal)) ||
                     (!x.confidentInPrediction && !x.predictedArea.Equals(x.knownLabel, StringComparison.Ordinal))).Count();
 
-            int missedOpportunity = analysis
+            var missedOpportunity = analysis
                 .Where(x => !x.confidentInPrediction && x.knownLabel.Equals(x.predictedArea, StringComparison.Ordinal)).Count();
 
             var mistakes = analysis
                 .Where(x => x.confidentInPrediction && !x.knownLabel.Equals(x.predictedArea, StringComparison.Ordinal))
                 .Select(x => $"Predicted: {x.predictedArea}, Actual:{x.knownLabel}")
                 .GroupBy(x => x)
-                .Select(x => new {
+                .Select(x => new
+                {
                     Count = x.Count(),
                     Name = x.Key
                 })
@@ -187,7 +188,7 @@ namespace CreateMikLabelModel.ML
 
         public static GitHubIssue[] GetIssues(MLContext mlContext, string dataFilePath)
         {
-            IDataView dataView = mlContext.Data.LoadFromTextFile<GitHubIssue>(
+            var dataView = mlContext.Data.LoadFromTextFile<GitHubIssue>(
                                             path: dataFilePath,
                                             hasHeader: true,
                                             separatorChar: '\t',
@@ -199,7 +200,7 @@ namespace CreateMikLabelModel.ML
 
         public static GitHubPullRequest[] GetPullRequests(MLContext mlContext, string dataFilePath)
         {
-            IDataView dataView = mlContext.Data.LoadFromTextFile<GitHubPullRequest>(
+            var dataView = mlContext.Data.LoadFromTextFile<GitHubPullRequest>(
                                             path: dataFilePath,
                                             hasHeader: true,
                                             separatorChar: '\t',

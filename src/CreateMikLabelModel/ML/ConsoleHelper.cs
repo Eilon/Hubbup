@@ -47,11 +47,11 @@ namespace CreateMikLabelModel.ML
 
         public static string BuildStringTable(IList<string[]> arrValues)
         {
-            int[] maxColumnsWidth = GetMaxColumnsWidth(arrValues);
+            var maxColumnsWidth = GetMaxColumnsWidth(arrValues);
             var headerSpliter = new string('-', maxColumnsWidth.Sum(i => i + 3) - 1);
 
             var sb = new StringBuilder();
-            for (int rowIndex = 0; rowIndex < arrValues.Count; rowIndex++)
+            for (var rowIndex = 0; rowIndex < arrValues.Count; rowIndex++)
             {
                 if (rowIndex == 0)
                 {
@@ -59,10 +59,10 @@ namespace CreateMikLabelModel.ML
                     sb.AppendLine();
                 }
 
-                for (int colIndex = 0; colIndex < arrValues[0].Length; colIndex++)
+                for (var colIndex = 0; colIndex < arrValues[0].Length; colIndex++)
                 {
                     // Print cell
-                    string cell = arrValues[rowIndex][colIndex];
+                    var cell = arrValues[rowIndex][colIndex];
                     cell = cell.PadRight(maxColumnsWidth[colIndex]);
                     sb.Append(" | ");
                     sb.Append(cell);
@@ -91,12 +91,12 @@ namespace CreateMikLabelModel.ML
         private static int[] GetMaxColumnsWidth(IList<string[]> arrValues)
         {
             var maxColumnsWidth = new int[arrValues[0].Length];
-            for (int colIndex = 0; colIndex < arrValues[0].Length; colIndex++)
+            for (var colIndex = 0; colIndex < arrValues[0].Length; colIndex++)
             {
-                for (int rowIndex = 0; rowIndex < arrValues.Count; rowIndex++)
+                for (var rowIndex = 0; rowIndex < arrValues.Count; rowIndex++)
                 {
-                    int newLength = arrValues[rowIndex][colIndex].Length;
-                    int oldLength = maxColumnsWidth[colIndex];
+                    var newLength = arrValues[rowIndex][colIndex].Length;
+                    var oldLength = maxColumnsWidth[colIndex];
 
                     if (newLength > oldLength)
                     {
@@ -108,7 +108,7 @@ namespace CreateMikLabelModel.ML
             return maxColumnsWidth;
         }
 
-        class ColumnInferencePrinter
+        private class ColumnInferencePrinter
         {
             private static readonly string[] TableHeaders = new[] { "Name", "Data Type", "Purpose" };
 

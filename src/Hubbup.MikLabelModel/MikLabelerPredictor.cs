@@ -14,6 +14,7 @@ namespace Hubbup.MikLabelModel
         private readonly PredictionEngine<GitHubPullRequest, GitHubIssuePrediction> _prPredictionEngine;
         private readonly Regex _regex = new Regex(@"@[a-zA-Z0-9_//-]+");
         private readonly DiffHelper _diffHelper = new DiffHelper();
+
         public MikLabelerPredictor(PredictionEngine<GitHubIssue, GitHubIssuePrediction> predictionEngine,
             PredictionEngine<GitHubPullRequest, GitHubIssuePrediction> prPredictionEngine)
         {

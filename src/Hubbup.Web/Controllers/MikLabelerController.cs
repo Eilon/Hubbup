@@ -30,7 +30,7 @@ namespace Hubbup.Web.Controllers
         {
             ("dotnet", "aspnetcore"),
             ("dotnet", "extensions"),
-            ("dotnet", "runtime"),
+            //("dotnet", "runtime"),
         };
 
 
@@ -71,9 +71,13 @@ namespace Hubbup.Web.Controllers
 
                 var modelPath = Path.Combine("ML", $"{repoIssueResult.Owner}-{repoIssueResult.Repo}-GitHubLabelerModel.zip");
                 var prModelPath = Path.Combine("ML", $"{repoIssueResult.Owner}-{repoIssueResult.Repo}-GitHubPrLabelerModel.zip");
-                var labeler = _mikLabelerProvider.GetMikLabeler(new MikLabelerStringPathProvider(
-                    Path.Combine(_hostingEnvironment.ContentRootPath, modelPath),
-                    Path.Combine(_hostingEnvironment.ContentRootPath, prModelPath))).GetPredictor();
+                var labeler =
+                    _mikLabelerProvider
+                        .GetMikLabeler(
+                            new MikLabelerStringPathProvider(
+                                issuePath: Path.Combine(_hostingEnvironment.ContentRootPath, modelPath),
+                                prPath: Path.Combine(_hostingEnvironment.ContentRootPath, prModelPath)))
+                        .GetPredictor();
 
                 CachedPrediction prediction;
                 foreach (var issue in repoIssueResult.Issues)

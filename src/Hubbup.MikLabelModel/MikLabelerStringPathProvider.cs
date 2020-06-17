@@ -3,15 +3,17 @@
     public class MikLabelerStringPathProvider : IMikLabelerPathProvider
     {
         private readonly string _path;
+        private readonly string _prPath;
 
-        public MikLabelerStringPathProvider(string path)
+        public MikLabelerStringPathProvider(string issuePath, string prPath)
         {
-            _path = path;
+            _path = issuePath;
+            _prPath = prPath;
         }
 
-        string IMikLabelerPathProvider.GetModelPath()
+        (string issuePath, string prPath) IMikLabelerPathProvider.GetModelPath()
         {
-            return _path;
+            return (_path, _prPath);
         }
     }
 }

@@ -18,7 +18,7 @@
     "@types/react": "^15.0.27",
     "@types/react-dom": "^15.5.0",
     "bootstrap": "^3.3.7",
-    "jquery": "^3.2.1",
+    "jquery": "^3.5.0",
     "promise-polyfill": "^6.0.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",

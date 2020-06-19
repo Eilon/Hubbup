@@ -12,12 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		NuGet.config = NuGet.config
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hubbup-data", "Hubbup-data", "{67F62450-68DD-4C10-B218-91A5956BF395}"
-	ProjectSection(SolutionItems) = preProject
-		..\Hubbup-data\personSets.json = ..\Hubbup-data\personSets.json
-		..\Hubbup-data\repoSets.json = ..\Hubbup-data\repoSets.json
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hubbup.Web", "src\Hubbup.Web\Hubbup.Web.csproj", "{B5BA0A3B-2E78-4B7D-BDF3-29969F700281}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hubbup.Web.Diagnostics", "src\Hubbup.Web.Diagnostics\Hubbup.Web.Diagnostics.csproj", "{D704BDF1-18AD-47EB-A468-199FC413D0BC}"

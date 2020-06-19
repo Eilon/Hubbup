@@ -1,7 +1,6 @@
 using Hubbup.IssueMoverApi;
 using Hubbup.IssueMoverClient;
 using Hubbup.MikLabelModel;
-using Hubbup.Web.DataSources;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
 using Microsoft.ApplicationInsights.AspNetCore;
@@ -58,20 +57,6 @@ namespace Hubbup.Web
             // Blazor end
 
             services.AddOptions();
-
-            if (HostingEnvironment.IsDevelopment())
-            {
-                services.Configure<LocalJsonDataSourceOptions>(Configuration.GetSection("LocalJson"));
-                services.AddSingleton<IDataSource, LocalJsonDataSource>();
-            }
-            else
-            {
-                services.Configure<RemoteJsonDataSourceOptions>(Configuration.GetSection("RemoteJson"));
-                services.AddSingleton<IDataSource, RemoteJsonDataSource>();
-            }
-
-            services.AddSingleton<IGitHubDataSource, GitHubDataSource>();
-            services.AddSingleton<IHostedService, DataLoadingService>();
 
             services.AddMemoryCache();
 

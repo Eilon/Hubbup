@@ -4,18 +4,11 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>hubbup</UserSecretsId>
-    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked> 
     <LangVersion>preview</LangVersion> 
-    <TypeScriptToolsVersion>2.5</TypeScriptToolsVersion>
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
     <ApplicationInsightsResourceId>/subscriptions/b0ec8d78-5966-4ded-8400-4c83c6284cc3/resourcegroups/Default-Storage-WestUS/providers/microsoft.insights/components/hubbup</ApplicationInsightsResourceId>
     <ApplicationInsightsAnnotationResourceId>/subscriptions/b0ec8d78-5966-4ded-8400-4c83c6284cc3/resourcegroups/Default-Storage-WestUS/providers/microsoft.insights/components/hubbup</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <WebpackInputs Include="Client\**" />
-    <WebpackOutputs Include="wwwroot\dist\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="ML\*.zip" />
@@ -33,18 +26,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Server" Version="3.0.0-preview7.19365.7" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.4" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.4.3" />
-    <PackageReference Include="NuGet.Versioning" Version="5.6.0" />
-  </ItemGroup>
-
-  <Target Name="ClientBuild" Inputs="@(WebpackInputs)" Outputs="@(WebpackOutputs)" BeforeTargets="Build">
-    <Exec Command="npm install" />
-    <Exec Command="npm run build" />
-  </Target>
-
-  <ItemGroup>
-    <Content Update="Data\**">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -52,13 +33,6 @@
     <ProjectReference Include="..\Hubbup.MikLabelModel\Hubbup.MikLabelModel.csproj" />
     <ProjectReference Include="..\Hubbup.Web.Diagnostics\Hubbup.Web.Diagnostics.csproj" />
     <ProjectReference Include="..\IssueMoverDto\IssueMoverDto.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <TypeScriptCompile Include="Client\data.ts" />
-    <TypeScriptCompile Include="Client\global.ts" />
-    <TypeScriptCompile Include="Client\Standup\components.tsx" />
-    <TypeScriptCompile Include="Client\Standup\page.tsx" />
   </ItemGroup>
 
 </Project>

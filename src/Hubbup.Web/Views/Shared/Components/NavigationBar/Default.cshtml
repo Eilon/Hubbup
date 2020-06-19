@@ -13,28 +13,11 @@
             <a class="navbar-brand" style="padding-top: 5px; padding-bottom: 0px" href="/"><img src="/images/hubbup-menu-logo.png" style="padding-top:-10px" /></a>
         </div>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
+                <li class="@(Model.CurrentGroup == "" ? "active" : "")"><a href="@Url.Action("Index", "Home")">Home</a></li>
                 <li class="@(Model.CurrentGroup == "Mover" ? "active" : "")"><a href="/Mover">Issue Mover</a></li>
                 <li class="@(Model.CurrentGroup == "MikLabel" ? "active" : "")"><a href="/miklabel">MikLabel</a></li>
-                <li class="@(Model.CurrentGroup == "" ? "active" : "")"><a href="@Url.Action("Index", "Home")">Home</a></li>
-                @foreach (var repoSetName in Model.GroupNames.Take(10))
-                {
-                    <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a href="@Url.Page("/Index", new { repoSetName = repoSetName })">@repoSetName</a></li>
-                }
-                @if (Model.GroupNames.Count > 10)
-                {
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">more <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            @foreach (var repoSetName in Model.GroupNames.Skip(10))
-                            {
-                                <li class="@(Model.CurrentGroup == repoSetName ? "active" : "")"><a href="@Url.Page("/Index", new { repoSetName = repoSetName })">@repoSetName</a></li>
-                            }
-                        </ul>
-                    </li>
-                }
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><p class="navbar-text">Signed in as <a href="https://github.com/@Model.UserName">@Model.UserName</a></p></li>
@@ -42,4 +25,3 @@
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
-

@@ -1,6 +1,5 @@
 using Hubbup.IssueMover.Dto;
 using Hubbup.IssueMoverApi;
-using Hubbup.Web.DataSources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,14 +12,12 @@ namespace Hubbup.Web.Controllers
     [Authorize]
     public class MoverApiController : Controller
     {
-        private readonly IDataSource _dataSource;
-        private readonly ILogger<IssuesApiController> _logger;
+        private readonly ILogger<MoverApiController> _logger;
 
         public IIssueMoverService IssueMoverService { get; }
 
-        public MoverApiController(IDataSource dataSource, ILogger<IssuesApiController> logger, IIssueMoverService issueMoverService)
+        public MoverApiController(ILogger<MoverApiController> logger, IIssueMoverService issueMoverService)
         {
-            _dataSource = dataSource;
             _logger = logger;
             IssueMoverService = issueMoverService;
         }

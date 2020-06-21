@@ -1,8 +1,23 @@
-@page "{repoSetName}"
+@page "{repoSetName?}"
 
 @{
-    ViewData["PageTitlePrefix"] = "Standup";
-    ViewData["CurrentGroup"] = "";
+    var repoSetName = (string)RouteData.Values["repoSetName"];
 }
 
-<h1>The standup feature is no longer supported. If you miss this functionality, please log an issue at <a href="https://github.com/Eilon/Hubbup/issues">Hubbup Issues</a></h1>
+@if (string.IsNullOrEmpty(repoSetName))
+{
+    ViewData["PageTitlePrefix"] = "Home";
+
+    <p>
+        <a href="/Mover"><img src="~/images/issue-mover-min.png" alt="Issue Mover" width="400" height="400" /></a>
+        <a href="/miklabel"><img src="~/images/issue-labeler-min.png" alt="Issue Labeler" width="400" height="400" /></a>
+    </p>
+
+}
+else
+{
+    ViewData["PageTitlePrefix"] = "Standup";
+    ViewData["CurrentGroup"] = "";
+
+    <h1>The standup feature is no longer supported. If you miss this functionality, please log an issue at <a href="https://github.com/Eilon/Hubbup/issues">Hubbup Issues</a></h1>
+}

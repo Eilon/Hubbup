@@ -1,15 +1,14 @@
-using Hubbup.MikLabelModel;
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Hubbup.Web.Services
@@ -17,9 +16,8 @@ namespace Hubbup.Web.Services
     public class MikLabelService
     {
         private readonly ILogger<MikLabelService> _logger;
-        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IMemoryCache _memoryCache;
-        private readonly MikLabelerProvider _mikLabelerProvider;
+        private readonly IHttpClientFactory _httpClientFactory;
         private static readonly (string owner, string repo)[] Repos = new[]
         {
             ("dotnet", "aspnetcore"),
@@ -30,14 +28,22 @@ namespace Hubbup.Web.Services
 
         public MikLabelService(
             ILogger<MikLabelService> logger,
-            IWebHostEnvironment hostingEnvironment,
             IMemoryCache memoryCache,
-            MikLabelerProvider mikLabelerProvider)
+            IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
-            _hostingEnvironment = hostingEnvironment;
             _memoryCache = memoryCache;
-            _mikLabelerProvider = mikLabelerProvider;
+            _httpClientFactory = httpClientFactory;
+        }
+
+        private static string GetPredictionUrl(string owner, string repo, int issueNumber)
+        {
+            return (owner.ToLowerInvariant(), repo.ToLowerInvariant()) switch
+            {
+                ("dotnet", "aspnetcore") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-aspnetcore-labeler.azurewebsites.net/api/WebhookIssue/dotnet/aspnetcore/{0}", issueNumber),
+                ("dotnet", "extensions") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-extensions-labeler.azurewebsites.net/api/WebhookIssue/dotnet/extensions/{0}", issueNumber),
+                _ => throw new ArgumentException($"Can't find remote prediction URL for issue {owner}/{repo}#{issueNumber}."),
+            };
         }
 
         public async Task<MikLabelViewModel> GetViewModel(string accessToken)
@@ -60,37 +66,9 @@ namespace Hubbup.Web.Services
             {
                 totalIssuesFound += repoIssueResult.TotalCount;
 
-                var modelPath = Path.Combine("ML", $"{repoIssueResult.Owner}-{repoIssueResult.Repo}-GitHubLabelerModel.zip");
-                var prModelPath = Path.Combine("ML", $"{repoIssueResult.Owner}-{repoIssueResult.Repo}-GitHubPrLabelerModel.zip");
-                var labeler =
-                    _mikLabelerProvider
-                        .GetMikLabeler(
-                            new MikLabelerStringPathProvider(
-                                issuePath: Path.Combine(_hostingEnvironment.ContentRootPath, modelPath),
-                                prPath: Path.Combine(_hostingEnvironment.ContentRootPath, prModelPath)))
-                        .GetPredictor();
-
-                CachedPrediction prediction;
                 foreach (var issue in repoIssueResult.Issues)
                 {
-                    if (issue.PullRequest == null)
-                    {
-                        prediction = GetIssuePrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue, labeler);
-                    }
-                    else
-                    {
-                        var gitHub = GitHubUtils.GetGitHubClient(accessToken);
-                        var prFiles = await gitHub.PullRequest.Files(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
-                        prediction = GetPrPrediction(repoIssueResult.Owner, repoIssueResult.Repo, issue, prFiles, labeler);
-                    }
-
-                    predictionList.Add(new LabelSuggestionViewModel
-                    {
-                        RepoOwner = repoIssueResult.Owner,
-                        RepoName = repoIssueResult.Repo,
-                        Issue = issue,
-                        LabelScores = prediction.Prediction.LabelScores.Select(ls => (ls, repoIssueResult.AreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
-                    });
+                    await AddIssuePrediction(predictionList, repoIssueResult, issue);
                 }
             }
 
@@ -102,6 +80,38 @@ namespace Hubbup.Web.Services
                 TotalIssuesFound = totalIssuesFound,
             };
 
+        }
+
+        private async Task AddIssuePrediction(List<LabelSuggestionViewModel> predictionList, RepoIssueResult repoIssueResult, Issue issue)
+        {
+            var predictionUrl = GetPredictionUrl(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
+            var request = new HttpRequestMessage(HttpMethod.Get, predictionUrl);
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                var remotePrediction = await JsonSerializer.DeserializeAsync<RemoteLabelPrediction>(responseStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                predictionList.Add(new LabelSuggestionViewModel
+                {
+                    RepoOwner = repoIssueResult.Owner,
+                    RepoName = repoIssueResult.Repo,
+                    Issue = issue,
+                    LabelScores = remotePrediction.LabelScores.Select(ls => (new LabelAreaScore { LabelName = ls.LabelName, Score = ls.Score }, repoIssueResult.AreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
+                });
+            }
+            else
+            {
+                predictionList.Add(new LabelSuggestionViewModel
+                {
+                    RepoOwner = repoIssueResult.Owner,
+                    RepoName = repoIssueResult.Repo,
+                    Issue = issue,
+                    ErrorMessage = $"Could not retrieve label predictions for this issue. Remote HTTP prediction status code {response.StatusCode} from URL '{predictionUrl}'.",
+                });
+            }
         }
 
         private async Task<RepoIssueResult> GetRepoIssues(string accessToken, string owner, string repo)
@@ -149,81 +159,6 @@ namespace Hubbup.Web.Services
             };
         }
 
-        private CachedPrediction GetIssuePrediction(string owner, string repo, Issue issue, MikLabelerPredictor labeler)
-        {
-            var issueLastModified = issue.UpdatedAt;
-
-            CachedPrediction prediction;
-            var predictionCacheKey = $"Predictions/{owner}/{repo}/{issue.Number}";
-
-            _logger.LogTrace("Looking for cached prediction for {ITEM}", predictionCacheKey);
-
-            var cachedPrediction = _memoryCache.GetOrCreate(
-                predictionCacheKey,
-                cacheEntry =>
-                {
-                    _logger.LogDebug("[MISS] Creating new cached prediction for {ITEM}", predictionCacheKey);
-                    return new CachedPrediction(labeler.PredictLabel(issue), issueLastModified);
-                });
-
-            if (issueLastModified > cachedPrediction.IssueLastModified)
-            {
-                // If the issue has been modified since the cache entry was added,
-                // then create a new prediction and cache that
-                _logger.LogDebug("[UPDATE] Updating cached prediction for {ITEM}", predictionCacheKey);
-                var newPrediction = new CachedPrediction(labeler.PredictLabel(issue), issueLastModified);
-                _memoryCache.Set(predictionCacheKey, newPrediction);
-                prediction = newPrediction;
-            }
-            else
-            {
-                // If the issue has not been modified since the cache entry was added,
-                // use the cached prediction
-                _logger.LogTrace("[HIT] Using cached prediction for {ITEM}", predictionCacheKey);
-                prediction = cachedPrediction;
-            }
-
-            return prediction;
-        }
-
-        private CachedPrediction GetPrPrediction(string owner, string repo, Issue issue, IReadOnlyList<PullRequestFile> prFiles, MikLabelerPredictor labeler)
-        {
-            var filePaths = prFiles.Select(x => x.FileName).ToArray();
-            var issueLastModified = issue.UpdatedAt;
-
-            CachedPrediction prediction;
-            var predictionCacheKey = $"Predictions/{owner}/{repo}/{issue.Number}";
-
-            _logger.LogTrace("Looking for cached prediction for {ITEM}", predictionCacheKey);
-
-            var cachedPrediction = _memoryCache.GetOrCreate(
-                predictionCacheKey,
-                cacheEntry =>
-                {
-                    _logger.LogDebug("[MISS] Creating new cached prediction for {ITEM}", predictionCacheKey);
-                    return new CachedPrediction(labeler.PredictLabel(issue, filePaths), issueLastModified);
-                });
-
-            if (issueLastModified > cachedPrediction.IssueLastModified)
-            {
-                // If the issue has been modified since the cache entry was added,
-                // then create a new prediction and cache that
-                _logger.LogDebug("[UPDATE] Updating cached prediction for {ITEM}", predictionCacheKey);
-                var newPrediction = new CachedPrediction(labeler.PredictLabel(issue, filePaths), issueLastModified);
-                _memoryCache.Set(predictionCacheKey, newPrediction);
-                prediction = newPrediction;
-            }
-            else
-            {
-                // If the issue has not been modified since the cache entry was added,
-                // use the cached prediction
-                _logger.LogTrace("[HIT] Using cached prediction for {ITEM}", predictionCacheKey);
-                prediction = cachedPrediction;
-            }
-
-            return prediction;
-        }
-
         private async Task<List<Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)
         {
             return await _memoryCache.GetOrCreateAsync(
@@ -241,15 +176,6 @@ namespace Hubbup.Web.Services
         private static string GetIssueHiderCacheKey(string owner, string repo, int issueNumber) =>
             $"HideIssue/{owner}/{repo}/{issueNumber.ToString(CultureInfo.InvariantCulture)}";
 
-        private struct CachedPrediction
-        {
-            public LabelSuggestion Prediction { get; }
-            public DateTimeOffset? IssueLastModified { get; }
-
-            public CachedPrediction(LabelSuggestion prediction, DateTimeOffset? issueLastModified) =>
-                (Prediction, IssueLastModified) = (prediction, issueLastModified);
-        }
-
         private class RepoIssueResult
         {
             public string Repo { get; set; }
@@ -257,6 +183,36 @@ namespace Hubbup.Web.Services
             public IReadOnlyList<Issue> Issues { get; set; }
             public int TotalCount { get; set; }
             public List<Label> AreaLabels { get; set; }
+        }
+
+        private sealed class RemoteLabelPrediction
+        {
+            // Meant to deserialize a JSON response like this:
+            //{
+            //    "labelScores":
+            //    [
+            //        {
+            //            "labelName": "area-infrastructure",
+            //            "score": 0.988357544
+            //        },
+            //        {
+            //            "labelName": "area-mvc",
+            //            "score": 0.008182112
+            //        },
+            //        {
+            //            "labelName": "area-servers",
+            //            "score": 0.002301987
+            //        }
+            //    ]
+            //}
+            public List<RemoteLabelPredictionScore> LabelScores { get; set; }
+
+        }
+
+        private sealed class RemoteLabelPredictionScore
+        {
+            public string LabelName { get; set; }
+            public float Score { get; set; }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Hubbup.MikLabelModel;
+﻿using Hubbup.Web.Services;
 using Octokit;
 using System.Collections.Generic;
 
@@ -10,5 +10,7 @@ namespace Hubbup.Web.ViewModels
         public List<(LabelAreaScore, Label)> LabelScores { get; set; }
         public string RepoOwner { get; set; }
         public string RepoName { get; set; }
+
+        public string ErrorMessage { get; set; }
     }
 }

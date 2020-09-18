@@ -1,6 +1,5 @@
 using Hubbup.IssueMoverApi;
 using Hubbup.IssueMoverClient;
-using Hubbup.MikLabelModel;
 using Hubbup.Web.Diagnostics.Metrics;
 using Hubbup.Web.Diagnostics.Telemetry;
 using Hubbup.Web.Services;
@@ -145,13 +144,14 @@ namespace Hubbup.Web
             services.AddApplicationInsightsTelemetry();
             services.AddSingleton<IRequestTelemetryListener, ApplicationInsightsRequestTelemetryListener>();
 
-            services.AddSingleton<MikLabelerProvider>();
             services.AddSingleton<MikLabelService>();
 
             // Add Application Insights services for Snapshot Debugger
             // https://docs.microsoft.com/en-us/azure/azure-monitor/app/snapshot-debugger-vm?toc=/azure/azure-monitor/toc.json#configure-snapshot-collection-for-aspnet-core-20-applications
             services.Configure<SnapshotCollectorConfiguration>(Configuration.GetSection(nameof(SnapshotCollectorConfiguration)));
             services.AddSingleton<ITelemetryProcessorFactory>(sp => new SnapshotCollectorTelemetryProcessorFactory(sp));
+
+            services.AddHttpClient();
         }
 
         public void Configure(IApplicationBuilder app)

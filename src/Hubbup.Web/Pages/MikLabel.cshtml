@@ -109,6 +109,17 @@ else
                     </div>
                     <div class="col-md-4">
                         @{
+                            var isError = !string.IsNullOrEmpty(labelPrediction.ErrorMessage);
+                        }
+
+                        @if (isError)
+                        {
+                            <div class="alert alert-danger">
+                                <strong>Error:</strong> @labelPrediction.ErrorMessage
+                            </div>
+                        }
+                        else
+                        {
                             var bestPrediction = labelPrediction.LabelScores[0];
                             var bestPredictionViewModel = new LabelSuggestionPartialModel
                             {
@@ -120,27 +131,27 @@ else
                                 Index = i,
                                 IsBestPrediction = true,
                             };
-                        }
-                        @await Html.PartialAsync("_LabelSuggestion", bestPredictionViewModel)
 
-                        <div class="collapse" id="collapseExample@(i.ToString(CultureInfo.InvariantCulture))">
-                            <div class="well">
-                                @foreach (var alternatePrediction in labelPrediction.LabelScores.Skip(1).Take(3))
-                                {
-                                    var alternatePredictionViewModel = new LabelSuggestionPartialModel
+                            @await Html.PartialAsync("_LabelSuggestion", bestPredictionViewModel)
+
+                            <div class="collapse" id="collapseExample@(i.ToString(CultureInfo.InvariantCulture))">
+                                <div class="well">
+                                    @foreach (var alternatePrediction in labelPrediction.LabelScores.Skip(1).Take(3))
                                     {
-                                        RepoOwner = labelPrediction.RepoOwner,
-                                        RepoName = labelPrediction.RepoName,
-                                        Issue = labelPrediction.Issue,
-                                        Label = alternatePrediction.Item2,
-                                        Score = alternatePrediction.Item1,
-                                        IsBestPrediction = false,
-                                    };
-                                    @await Html.PartialAsync("_LabelSuggestion", alternatePredictionViewModel)
-                                }
+                                        var alternatePredictionViewModel = new LabelSuggestionPartialModel
+                                        {
+                                            RepoOwner = labelPrediction.RepoOwner,
+                                            RepoName = labelPrediction.RepoName,
+                                            Issue = labelPrediction.Issue,
+                                            Label = alternatePrediction.Item2,
+                                            Score = alternatePrediction.Item1,
+                                            IsBestPrediction = false,
+                                        };
+                                        @await Html.PartialAsync("_LabelSuggestion", alternatePredictionViewModel)
+                                    }
+                                </div>
                             </div>
-                        </div>
-
+                        }
                     </div>
                 </div>
             </li>

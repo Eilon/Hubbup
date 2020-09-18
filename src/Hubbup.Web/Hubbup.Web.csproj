@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hubbup.IssueMoverClient\Hubbup.IssueMoverClient.csproj" />
-    <ProjectReference Include="..\Hubbup.MikLabelModel\Hubbup.MikLabelModel.csproj" />
     <ProjectReference Include="..\Hubbup.Web.Diagnostics\Hubbup.Web.Diagnostics.csproj" />
     <ProjectReference Include="..\IssueMoverDto\IssueMoverDto.csproj" />
   </ItemGroup>

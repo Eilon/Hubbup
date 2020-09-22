@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 namespace Hubbup.Web
 {
+
     public class Program
     {
         public static async Task Main(string[] args)

@@ -40,8 +40,8 @@ namespace Hubbup.Web.Services
         {
             return (owner.ToLowerInvariant(), repo.ToLowerInvariant()) switch
             {
-                ("dotnet", "aspnetcore") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-aspnetcore-labeler.azurewebsites.net/api/WebhookIssue/dotnet/aspnetcore/{0}", issueNumber),
-                ("dotnet", "extensions") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-extensions-labeler.azurewebsites.net/api/WebhookIssue/dotnet/extensions/{0}", issueNumber),
+                ("dotnet", "aspnetcore") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-runtime-issue-labeler.azurewebsites.net/api/WebhookIssue/dotnet/aspnetcore/{0}", issueNumber),
+                ("dotnet", "extensions") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-runtime-issue-labeler.azurewebsites.net/api/WebhookIssue/dotnet/extensions/{0}", issueNumber),
                 _ => throw new ArgumentException($"Can't find remote prediction URL for issue {owner}/{repo}#{issueNumber}."),
             };
         }

@@ -99,7 +99,19 @@ namespace Hubbup.Web.Services
                     RepoOwner = repoIssueResult.Owner,
                     RepoName = repoIssueResult.Repo,
                     Issue = issue,
-                    LabelScores = remotePrediction.LabelScores.Select(ls => (new LabelAreaScore { LabelName = ls.LabelName, Score = ls.Score }, repoIssueResult.AreaLabels.Single(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase)))).ToList()
+                    LabelScores =
+                        remotePrediction.LabelScores
+                            .Select(ls =>
+                                (
+                                    new LabelAreaScore
+                                    {
+                                        LabelName = ls.LabelName,
+                                        Score = ls.Score,
+                                    },
+                                    repoIssueResult.AreaLabels
+                                        .SingleOrDefault(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase))
+                                ))
+                                .ToList()
                 });
             }
             else

@@ -12,3 +12,4 @@ src/Hubbup.Web/wwwroot/dist/
 # Ignore temporary ML model files
 src/CreateMikLabelModel/*-issueData.tsv
 src/CreateMikLabelModel/*-GitHubLabelerModel.zip
+*.svclog

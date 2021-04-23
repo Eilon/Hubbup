@@ -158,6 +158,14 @@ namespace Hubbup.Web.Services
                 .ToList()
                 .AsReadOnly();
 
+            // Trim out results that are erroneously returned by GitHub's search API. It sometimes returns
+            // results that _do_ have an area-XYZ label even though the search query excludes them, so we
+            // remove any issues that have area-XYZ labels.
+            trimmedResults = trimmedResults
+                .Where(i => !IssueHasAreaLabel(i))
+                .ToList()
+                .AsReadOnly();
+
             _logger.LogDebug("Found {COUNT} issues for {OWNER}/{REPO} ({TRIMMED} items trimmed out)", searchResults.Items.Count, owner, repo, searchResults.Items.Count - trimmedResults.Count);
 
 
@@ -169,6 +177,12 @@ namespace Hubbup.Web.Services
                 TotalCount = searchResults.TotalCount - (searchResults.Items.Count - trimmedResults.Count),
                 AreaLabels = existingAreaLabels,
             };
+        }
+
+        private static bool IssueHasAreaLabel(Issue issue)
+        {
+            return
+                issue.Labels.Any(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase));
         }
 
         private async Task<List<Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)

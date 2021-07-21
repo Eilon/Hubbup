@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Hubbup.Web.Services
@@ -87,9 +88,20 @@ namespace Hubbup.Web.Services
             var predictionUrl = GetPredictionUrl(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
             var request = new HttpRequestMessage(HttpMethod.Get, predictionUrl);
             var client = _httpClientFactory.CreateClient();
-            var response = await client.SendAsync(request);
+            var responseTimeOutSeconds = 5;
+            var cts = new CancellationTokenSource(responseTimeOutSeconds * 1_000);
+            HttpResponseMessage response = null;
+            Exception failureException = null;
+            try
+            {
+                response = await client.SendAsync(request, cts.Token);
+            }
+            catch (Exception ex)
+            {
+                failureException = ex;
+            }
 
-            if (response.IsSuccessStatusCode)
+            if (response != null && response.IsSuccessStatusCode)
             {
                 using var responseStream = await response.Content.ReadAsStreamAsync();
                 var remotePrediction = await JsonSerializer.DeserializeAsync<RemoteLabelPrediction>(responseStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -116,12 +128,25 @@ namespace Hubbup.Web.Services
             }
             else
             {
+                string failureReason;
+                if (cts.IsCancellationRequested)
+                {
+                    failureReason = $"Prediction response from URL '{predictionUrl}' timed out after {responseTimeOutSeconds} seconds.";
+                }
+                else if (response != null)
+                {
+                    failureReason = $"Remote HTTP prediction status code {response.StatusCode} from URL '{predictionUrl}'.";
+                }
+                else
+                {
+                    failureReason = $"Unexpected exception: {failureException?.Message ?? "<null>"}";
+                }
                 predictionList.Add(new LabelSuggestionViewModel
                 {
                     RepoOwner = repoIssueResult.Owner,
                     RepoName = repoIssueResult.Repo,
                     Issue = issue,
-                    ErrorMessage = $"Could not retrieve label predictions for this issue. Remote HTTP prediction status code {response.StatusCode} from URL '{predictionUrl}'.",
+                    ErrorMessage = $"Could not retrieve label predictions for this issue. {failureReason}",
                 });
             }
         }

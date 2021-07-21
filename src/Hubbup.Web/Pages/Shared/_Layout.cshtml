@@ -1,5 +1,4 @@
-﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostingEnvironment
+﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostingEnvironment
 
 <!DOCTYPE html>
 <html lang="en-us">
@@ -9,7 +8,6 @@
     <title>@ViewData["PageTitlePrefix"] - Hubbup</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-    @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
 

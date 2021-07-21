@@ -21,7 +21,7 @@ namespace Hubbup.Web.Services
         private static readonly (string owner, string repo)[] Repos = new[]
         {
             ("dotnet", "aspnetcore"),
-            ("dotnet", "extensions"),
+            //("dotnet", "extensions"),
             //("dotnet", "runtime"),
         };
 

@@ -1,3 +1,4 @@
+using Hubbup.Web.Services;
 using Hubbup.Web.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -25,9 +26,6 @@ namespace Hubbup.Web.Controllers
             _memoryCache = memoryCache;
         }
 
-        private static string GetIssueHiderCacheKey(string owner, string repo, int issueNumber) =>
-            $"HideIssue/{owner}/{repo}/{issueNumber.ToString(CultureInfo.InvariantCulture)}";
-
         [HttpPost]
         [Route("ApplyLabel/{owner}/{repo}/{issueNumber}/{repoSetName?}")]
         public async Task<IActionResult> ApplyLabel(string owner, string repo, int issueNumber, string prediction, string repoSetName)
@@ -42,7 +40,7 @@ namespace Hubbup.Web.Controllers
 
         [HttpPost]
         [Route("ApplyLabels/{repoSetName?}")]
-        public async Task<IActionResult> ApplyLabels([FromForm]List<string> applyDefault, string repoSetName)
+        public async Task<IActionResult> ApplyLabels([FromForm] List<string> applyDefault, string repoSetName)
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
@@ -92,7 +90,7 @@ namespace Hubbup.Web.Controllers
             // Because GitHub search queries can show stale data, add a cache entry to
             // indicate this issue should be hidden for a while because it was just labeled.
             _memoryCache.Set(
-                GetIssueHiderCacheKey(owner, repo, issueNumber),
+                MikLabelService.GetIssueHiderCacheKey(owner, repo, issueNumber),
                 0, // no data is needed; the existence of the cache key is what counts
                 new MemoryCacheEntryOptions
                 {

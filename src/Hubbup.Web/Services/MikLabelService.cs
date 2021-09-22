@@ -231,7 +231,7 @@ namespace Hubbup.Web.Services
                 });
         }
 
-        private static string GetIssueHiderCacheKey(string owner, string repo, int issueNumber) =>
+        internal static string GetIssueHiderCacheKey(string owner, string repo, int issueNumber) =>
             $"HideIssue/{owner}/{repo}/{issueNumber.ToString(CultureInfo.InvariantCulture)}";
 
         private class RepoIssueResult

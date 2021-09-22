@@ -29,20 +29,20 @@ namespace Hubbup.Web.Controllers
             $"HideIssue/{owner}/{repo}/{issueNumber.ToString(CultureInfo.InvariantCulture)}";
 
         [HttpPost]
-        [Route("ApplyLabel/{owner}/{repo}/{issueNumber}")]
-        public async Task<IActionResult> ApplyLabel(string owner, string repo, int issueNumber, string prediction)
+        [Route("ApplyLabel/{owner}/{repo}/{issueNumber}/{repoSetName?}")]
+        public async Task<IActionResult> ApplyLabel(string owner, string repo, int issueNumber, string prediction, string repoSetName)
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
             await ApplyLabel(gitHub, owner, repo, issueNumber, prediction);
 
-            return RedirectToPage("/MikLabel");
+            return RedirectToPage("/MikLabel", routeValues: new { repoSetName = repoSetName });
         }
 
         [HttpPost]
-        [Route("ApplyLabels")]
-        public async Task<IActionResult> ApplyLabels([FromForm]List<string> applyDefault)
+        [Route("ApplyLabels/{repoSetName?}")]
+        public async Task<IActionResult> ApplyLabels([FromForm]List<string> applyDefault, string repoSetName)
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
@@ -56,7 +56,7 @@ namespace Hubbup.Web.Controllers
 
             await Task.WhenAll(tasks);
 
-            return RedirectToPage("/MikLabel");
+            return RedirectToPage("/MikLabel", routeValues: new { repoSetName = repoSetName });
         }
 
         private (string owner, string repo, int number, string prediction) ParsePrediction(string input)

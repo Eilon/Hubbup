@@ -29,7 +29,7 @@
     <div class="col-md-3">
         @if (Model.Label?.Name == Model.DesiredLabel)
         {
-            using (Html.BeginForm("ApplyLabel", "MikLabeler", new { owner = Model.RepoOwner, repo = Model.RepoName, issueNumber = Model.Issue.Number }, FormMethod.Post))
+            using (Html.BeginForm("ApplyLabel", "MikLabeler", routeValues: new { owner = Model.RepoOwner, repo = Model.RepoName, issueNumber = Model.Issue.Number, repoSetName = Model.RepoSetName }, FormMethod.Post))
             {
                 <input type="hidden" name="prediction" value="@Model.Label.Name">
                 <button type="submit" class="btn btn-sm btn-primary">Apply</button>

@@ -18,5 +18,7 @@ namespace Hubbup.Web.ViewModels
         public LabelAreaScore Score { get; set; }
         public int Index { get; set; }
         public bool IsBestPrediction { get; set; }
+
+        public string RepoSetName { get; set; }
     }
 }

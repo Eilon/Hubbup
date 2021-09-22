@@ -19,12 +19,6 @@ namespace Hubbup.Web.Services
         private readonly ILogger<MikLabelService> _logger;
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpClientFactory _httpClientFactory;
-        private static readonly (string owner, string repo)[] Repos = new[]
-        {
-            ("dotnet", "aspnetcore"),
-            //("dotnet", "extensions"),
-            //("dotnet", "runtime"),
-        };
 
 
         public MikLabelService(
@@ -43,18 +37,19 @@ namespace Hubbup.Web.Services
             {
                 ("dotnet", "aspnetcore") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-aspnetcore-labeler.azurewebsites.net/api/WebhookIssue/dotnet/aspnetcore/{0}", issueNumber),
                 ("dotnet", "extensions") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-runtime-issue-labeler.azurewebsites.net/api/WebhookIssue/dotnet/Extensions/{0}", issueNumber),
+                ("dotnet", "maui") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-aspnetcore-labeler.azurewebsites.net/api/WebhookIssue/dotnet/maui/{0}", issueNumber),
                 _ => throw new ArgumentException($"Can't find remote prediction URL for issue {owner}/{repo}#{issueNumber}."),
             };
         }
 
-        public async Task<MikLabelViewModel> GetViewModel(string accessToken)
+        public async Task<MikLabelViewModel> GetViewModel(string accessToken, RepoSet repoSet)
         {
             var predictionList = new List<LabelSuggestionViewModel>();
             var totalIssuesFound = 0;
 
             var repoIssueTasks = new List<Task<RepoIssueResult>>();
 
-            foreach (var (owner, repo) in Repos)
+            foreach (var (owner, repo) in repoSet.Repos)
             {
                 repoIssueTasks.Add(GetRepoIssues(accessToken, owner, repo));
             }
@@ -85,6 +80,10 @@ namespace Hubbup.Web.Services
 
         private async Task AddIssuePrediction(List<LabelSuggestionViewModel> predictionList, RepoIssueResult repoIssueResult, Issue issue)
         {
+            // Check cache entry
+            // if found, add prediction
+            // if not, proceed
+
             var predictionUrl = GetPredictionUrl(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
             var request = new HttpRequestMessage(HttpMethod.Get, predictionUrl);
             var client = _httpClientFactory.CreateClient();
@@ -125,6 +124,8 @@ namespace Hubbup.Web.Services
                                 ))
                                 .ToList()
                 });
+
+                // cache success for 1hr
             }
             else
             {
@@ -207,8 +208,14 @@ namespace Hubbup.Web.Services
         private static bool IssueHasAreaLabel(Issue issue)
         {
             return
-                issue.Labels.Any(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase));
+                issue.Labels.Any(
+                    label =>
+                        IsAreaLabel(label.Name));
         }
+
+        private static bool IsAreaLabel(string labelName) =>
+            labelName.StartsWith("area-", StringComparison.OrdinalIgnoreCase) ||
+            labelName.StartsWith("area/", StringComparison.OrdinalIgnoreCase);
 
         private async Task<List<Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)
         {
@@ -219,7 +226,7 @@ namespace Hubbup.Web.Services
                     _logger.LogDebug("Cache MISS for labels for {OWNER}/{REPO}", owner, repo);
                     cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
                     return (await gitHub.Issue.Labels.GetAllForRepository(owner, repo))
-                        .Where(label => label.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
+                        .Where(label => IsAreaLabel(label.Name))
                         .ToList();
                 });
         }

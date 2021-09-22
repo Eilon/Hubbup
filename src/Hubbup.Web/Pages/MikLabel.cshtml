@@ -1,4 +1,5 @@
-@page
+@page "{repoSetName?}"
+
 @using System.Globalization
 @using Hubbup.Web.ViewModels
 @using Hubbup.Web.Utils
@@ -27,20 +28,45 @@
         return -1;
     }
 
-    var labelModel = await GetViewModel();
+    var repoSetName = (string)ViewContext.RouteData.Values["repoSetName"];
+
+    var repoSet = RepoSetNames.GetReposInSet(repoSetName);
+
+    var labelModel = await GetViewModel(repoSet);
 }
+
+<ul class="nav nav-pills">
+    @foreach (var availableRepoSet in RepoSetNames.RepoSets)
+    {
+        var isActive = string.Equals(availableRepoSet.Name, repoSet?.Name, StringComparison.InvariantCultureIgnoreCase);
+        var activeClass = isActive ? "active" : null;
+        <li role="presentation" class="@activeClass">
+            <a href="~/miklabel/@availableRepoSet.Name">@availableRepoSet.Name</a>
+        </li>
+    }
+</ul>
 
 @functions
 {
-    private async Task<MikLabelViewModel> GetViewModel()
+    private async Task<MikLabelViewModel> GetViewModel(RepoSet repoSet)
     {
+        if (repoSet == null)
+        {
+            return null;
+        }
         var accessToken = await HttpContext.GetTokenAsync("access_token");
 
-        return await _mikLabelerProvider.GetViewModel(accessToken);
+        return await _mikLabelerProvider.GetViewModel(accessToken, repoSet);
     }
 }
 
-@if (labelModel.PredictionList.Count == 0)
+@if (labelModel == null)
+{
+    <div class="text-center text-danger">
+        <h3>Unknown repo set name: @repoSetName</h3>
+    </div>
+}
+else if (labelModel.PredictionList.Count == 0)
 {
     <div class="text-center">
         <h3>No undispatched issues!</h3>
@@ -135,6 +161,7 @@ else
                                 Score = bestPrediction.Item1,
                                 Index = i,
                                 IsBestPrediction = true,
+                                RepoSetName = repoSetName,
                             };
 
                             @await Html.PartialAsync("_LabelSuggestion", bestPredictionViewModel)
@@ -152,6 +179,7 @@ else
                                             Label = alternatePrediction.Item2,
                                             Score = alternatePrediction.Item1,
                                             IsBestPrediction = false,
+                                            RepoSetName = repoSetName,
                                         };
                                         @await Html.PartialAsync("_LabelSuggestion", alternatePredictionViewModel)
                                     }
@@ -163,7 +191,7 @@ else
             </li>
         }
     </ul>
-    @using (Html.BeginForm("ApplyLabels", "MikLabeler", FormMethod.Post, new { id = "ApplyAllForm" }))
+    @using (Html.BeginForm("ApplyLabels", "MikLabeler", routeValues: new { repoSetName = repoSetName }, FormMethod.Post, antiforgery: null, new { id = "ApplyAllForm" }))
     {
         <button type="submit" class="btn btn-sm btn-primary">Apply All</button>
     }

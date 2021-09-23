@@ -78,11 +78,46 @@ namespace Hubbup.Web.Services
 
         }
 
+        private struct CachedPrediction
+        {
+            public LabelSuggestion Prediction { get; }
+            public DateTimeOffset? IssueLastModified { get; }
+
+            public CachedPrediction(LabelSuggestion prediction, DateTimeOffset? issueLastModified) =>
+                (Prediction, IssueLastModified) = (prediction, issueLastModified);
+        }
+
+
         private async Task AddIssuePrediction(List<LabelSuggestionViewModel> predictionList, RepoIssueResult repoIssueResult, Issue issue)
         {
-            // Check cache entry
-            // if found, add prediction
-            // if not, proceed
+            // Check cache entry for previous successful prediction
+            var issueLastModified = issue.UpdatedAt;
+
+            var predictionCacheKey = $"Predictions/{repoIssueResult.Owner}/{repoIssueResult.Repo}/{issue.Number}";
+
+            _logger.LogTrace("Looking for cached prediction for {ITEM}", predictionCacheKey);
+
+            if (_memoryCache.TryGetValue(
+                predictionCacheKey,
+                out CachedPrediction cachedPrediction))
+            {
+
+                // if cache entry found, check that it isn't out-of-date compared to the issue
+                if (issueLastModified <= cachedPrediction.IssueLastModified)
+                {
+                    // If the issue has not been modified since the cache entry was added,
+                    // use the cached prediction
+                    _logger.LogTrace("[HIT] Using cached prediction for {ITEM}", predictionCacheKey);
+
+                    AddPredictionToList(predictionList, repoIssueResult, issue, cachedPrediction.Prediction.LabelScores);
+
+                    return;
+                }
+
+                // If the issue has been modified since the cache entry was added,
+                // then go create a new prediction and cache that
+                _logger.LogDebug("[UPDATE] Updating stale cached prediction for {ITEM}", predictionCacheKey);
+            }
 
             var predictionUrl = GetPredictionUrl(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
             var request = new HttpRequestMessage(HttpMethod.Get, predictionUrl);
@@ -105,27 +140,14 @@ namespace Hubbup.Web.Services
                 using var responseStream = await response.Content.ReadAsStreamAsync();
                 var remotePrediction = await JsonSerializer.DeserializeAsync<RemoteLabelPrediction>(responseStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                predictionList.Add(new LabelSuggestionViewModel
-                {
-                    RepoOwner = repoIssueResult.Owner,
-                    RepoName = repoIssueResult.Repo,
-                    Issue = issue,
-                    LabelScores =
-                        remotePrediction.LabelScores
-                            .Select(ls =>
-                                (
-                                    new LabelAreaScore
-                                    {
-                                        LabelName = ls.LabelName,
-                                        Score = ls.Score,
-                                    },
-                                    repoIssueResult.AreaLabels
-                                        .SingleOrDefault(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase))
-                                ))
-                                .ToList()
-                });
+                var areaScores = remotePrediction.LabelScores.Select(remoteScore => new LabelAreaScore { LabelName = remoteScore.LabelName, Score = remoteScore.Score, }).ToList();
+                AddPredictionToList(predictionList, repoIssueResult, issue, areaScores);
 
-                // cache success for 1hr
+                // cache successful prediction
+                var newPrediction = new CachedPrediction(new LabelSuggestion { LabelScores = areaScores }, issue.UpdatedAt);
+                _memoryCache.Set(predictionCacheKey, newPrediction);
+
+                _logger.LogDebug("[CACHE] Storing cached prediction for {OWNER}/{REPO}#{NUMBER}", repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
             }
             else
             {
@@ -149,7 +171,34 @@ namespace Hubbup.Web.Services
                     Issue = issue,
                     ErrorMessage = $"Could not retrieve label predictions for this issue. {failureReason}",
                 });
+
+                _logger.LogWarning("Failed to get prediction for {ITEM}", predictionCacheKey);
+
+                // don't cache failed predictions (the prediction API call can fail for many reasons, so we want to give it another chance)
             }
+        }
+
+        private static void AddPredictionToList(List<LabelSuggestionViewModel> predictionList, RepoIssueResult repoIssueResult, Issue issue, List<LabelAreaScore> areaScores)
+        {
+            predictionList.Add(new LabelSuggestionViewModel
+            {
+                RepoOwner = repoIssueResult.Owner,
+                RepoName = repoIssueResult.Repo,
+                Issue = issue,
+                LabelScores =
+                                    areaScores
+                                        .Select(ls =>
+                                            (
+                                                new LabelAreaScore
+                                                {
+                                                    LabelName = ls.LabelName,
+                                                    Score = ls.Score,
+                                                },
+                                                repoIssueResult.AreaLabels
+                                                    .SingleOrDefault(label => string.Equals(label.Name, ls.LabelName, StringComparison.OrdinalIgnoreCase))
+                                            ))
+                                            .ToList()
+            });
         }
 
         private async Task<RepoIssueResult> GetRepoIssues(string accessToken, string owner, string repo)

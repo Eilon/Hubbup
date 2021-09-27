@@ -13,7 +13,8 @@
 <div class="row">
     <div class="col-md-4">
         <span class="label"
-              style="background-color: #@hexColor; color: #@ColorMath.GetHexForeColorForBackColor(hexColor)">
+              style="background-color: #@hexColor; color: #@ColorMath.GetHexForeColorForBackColor(hexColor)"
+              title="@Model.Label?.Description">
             @(Model.Label?.Name ?? ("Invalid label: " + Model.DesiredLabel))
         </span>
     </div>

@@ -58,6 +58,16 @@
 
         return await _mikLabelerProvider.GetViewModel(accessToken, repoSet);
     }
+
+    private string GetIssueTooltip(Octokit.Issue issue)
+    {
+        if(issue == null)
+        {
+            return string.Empty;
+        }
+
+        return issue.Body?.Substring(0, Math.Min(issue.Body.Length, 400));
+    }
 }
 
 @if (labelModel == null)
@@ -110,7 +120,7 @@ else
 
             <li class="list-group-item">
                 <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-8" title="@GetIssueTooltip(labelPrediction.Issue)">
                         <div>
                             @if (labelPrediction.ErrorMessage == null)
                             {

@@ -221,6 +221,7 @@ namespace Hubbup.Web.Services
                 {
                     { owner, repo }
                 },
+                PerPage = 50, // Note: 100 is the max issues per page that is supported by GitHub
             };
 
             _logger.LogDebug("Finding issues for {OWNER}/{REPO}...", owner, repo);

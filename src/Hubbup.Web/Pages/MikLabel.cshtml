@@ -145,6 +145,12 @@ else
                         </div>
                         <div>
                             Opened @labelPrediction.Issue.CreatedAt.ToPacificTime().ToString()
+                            <span>
+                                @foreach (var existingLabel in labelPrediction.Issue.Labels)
+                                {
+                                    @await Html.PartialAsync("_Label", new LabelViewModel(existingLabel, desiredLabel: null))
+                                }
+                            </span>
                         </div>
                     </div>
                     <div class="col-md-4">

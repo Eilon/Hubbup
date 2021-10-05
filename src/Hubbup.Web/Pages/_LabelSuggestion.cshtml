@@ -12,11 +12,7 @@
 
 <div class="row">
     <div class="col-md-4">
-        <span class="label"
-              style="background-color: #@hexColor; color: #@ColorMath.GetHexForeColorForBackColor(hexColor)"
-              title="@Model.Label?.Description">
-            @(Model.Label?.Name ?? ("Invalid label: " + Model.DesiredLabel))
-        </span>
+        @await Html.PartialAsync("_Label", new LabelViewModel(Model.Label, Model.DesiredLabel))
     </div>
     <div class="col-md-2">
         <div class="progress" style="width: 4em">

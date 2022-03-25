@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5</TargetFramework>
+    <TargetFramework>net6</TargetFramework>
     <UserSecretsId>hubbup</UserSecretsId>
     <LangVersion>preview</LangVersion> 
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>

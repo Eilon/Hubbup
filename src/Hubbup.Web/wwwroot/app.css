@@ -4,6 +4,10 @@ body {
     background-color: #f6f6f6;
 }
 
+a {
+    text-decoration: none;
+}
+
 /* Wrapping element */
 /* Set some basic padding to keep content from hitting the edges */
 .body-content {
@@ -27,16 +31,12 @@ textarea {
 }
 
 .issue-link {
-    margin-left:1.5em;
+    margin-left: 1.5em;
     font-size: large
 }
 
-.badge-pad {
-    margin-left: 4px
-}
-
 .repo-name {
-    font-weight:bolder;
+    font-weight: bolder;
     color: #999;
     margin-right: 4px;
     font-size: smaller
@@ -59,9 +59,5 @@ textarea {
 }
 
 .list-group-item.stale {
-    background-color: #d9534f;
-}
-
-.badge.stale {
     background-color: #d9534f;
 }

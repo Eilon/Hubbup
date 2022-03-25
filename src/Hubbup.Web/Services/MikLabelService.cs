@@ -58,6 +58,8 @@ namespace Hubbup.Web.Services
 
             _logger.LogDebug("Loaded all issues; starting label prediction...");
 
+            var allAreaLabelsForRepoSet = new List<Label>();
+
             foreach (var repoIssueResult in repoIssueResults)
             {
                 totalIssuesFound += repoIssueResult.TotalCount;
@@ -66,6 +68,8 @@ namespace Hubbup.Web.Services
                 {
                     await AddIssuePrediction(predictionList, repoIssueResult, issue);
                 }
+
+                allAreaLabelsForRepoSet.AddRange(repoIssueResult.AreaLabels);
             }
 
             _logger.LogDebug("Finished label prediction");
@@ -74,6 +78,10 @@ namespace Hubbup.Web.Services
             {
                 PredictionList = predictionList.OrderByDescending(prediction => prediction.Issue.CreatedAt).ToList(),
                 TotalIssuesFound = totalIssuesFound,
+                AllAreaLabels =
+                    allAreaLabelsForRepoSet
+                        .OrderBy(label => label.Name, StringComparer.OrdinalIgnoreCase)
+                        .ToList(),
             };
 
         }
@@ -277,6 +285,7 @@ namespace Hubbup.Web.Services
                     cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
                     return (await gitHub.Issue.Labels.GetAllForRepository(owner, repo))
                         .Where(label => IsAreaLabel(label.Name))
+                        .OrderBy(label => label.Name, StringComparer.OrdinalIgnoreCase)
                         .ToList();
                 });
         }

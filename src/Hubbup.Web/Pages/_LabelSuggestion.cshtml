@@ -4,24 +4,39 @@
 @using Hubbup.Web.Utils
 
 @{
-    var hexColor = Model.Label?.Color ?? "ff0000";
-    var confidencePercent = (int)Math.Floor(100f * Model.Score.Score);
-    var confidenceHappinessStyle = confidencePercent > 80 ? "progress-bar-success" : "progress-bar-warning";
+    var hasConfidenceScore = Model.Score != null;
+
+    var confidencePercent = (int)Math.Floor(100f * Model.Score?.Score ?? 0f);
+    var confidenceHappinessStyle = confidencePercent > 80 ? "bg-success" : "bg-warning";
     var progressTextColor = confidencePercent > 80 ? "#fff" : "#000";
 }
 
-<div class="row">
-    <div class="col-md-4">
+<div class="row" style="margin-top: 0.5em;">
+    <div class="col-md-6">
         @await Html.PartialAsync("_Label", new LabelViewModel(Model.Label, Model.DesiredLabel))
     </div>
-    <div class="col-md-2">
-        <div class="progress" style="width: 4em">
-            <div class="progress-bar @confidenceHappinessStyle"
-                 title="Confidence score: @Model.Score.Score"
-                 style="width: @(confidencePercent)%; color: @(progressTextColor)">
-                @(confidencePercent)%
+    <div class="col-md-3">
+        @if (hasConfidenceScore)
+        {
+            <div class="progress" style="width: 4em">
+                <div class="progress-bar @confidenceHappinessStyle"
+                        title="Confidence score: @Model.Score.Score"
+                        style="width: @(confidencePercent)%; color: @(progressTextColor)">
+                    @if (confidencePercent > 40)
+                    {
+                        <text>
+                            @(confidencePercent)%
+                        </text>
+                    }
+                </div>
+                @if (confidencePercent <= 40)
+                {
+                    <text>
+                        @(confidencePercent)%
+                    </text>
+                }
             </div>
-        </div>
+        }
     </div>
     <div class="col-md-3">
         @if (Model.Label?.Name == Model.DesiredLabel)
@@ -38,15 +53,6 @@
             <div class="alert alert-danger">
                 <strong>Error:</strong> Label doesn't exist in repo: @Model.DesiredLabel.
             </div>
-        }
-    </div>
-    <div class="col-md-3">
-        @if (Model.IsBestPrediction)
-        {
-        <button class="btn-sm btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample@(Model.Index.ToString(CultureInfo.InvariantCulture))" aria-expanded="false">
-            More
-            <span class="caret"></span>
-        </button>
         }
     </div>
 </div>

@@ -19,11 +19,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="NuGet-Home-only-issues-final-model.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="NuGet-Home-only-issues-final-model.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.4" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.4.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\issue-labeler\src\LabelPredictor\Microsoft.DotNet.Github.LabelPredictor.csproj" />
     <ProjectReference Include="..\Hubbup.IssueMoverClient\Hubbup.IssueMoverClient.csproj" />
     <ProjectReference Include="..\IssueMoverDto\IssueMoverDto.csproj" />
   </ItemGroup>

@@ -1,5 +1,7 @@
 using Hubbup.Web.Utils;
 using Hubbup.Web.ViewModels;
+using Microsoft.DotNet.Github.IssueLabeler.Models;
+using Microsoft.DotNet.GitHub.IssueLabeler;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -9,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,7 +61,7 @@ namespace Hubbup.Web.Services
 
             _logger.LogDebug("Loaded all issues; starting label prediction...");
 
-            var allAreaLabelsForRepoSet = new List<Label>();
+            var allAreaLabelsForRepoSet = new List<Octokit.Label>();
 
             foreach (var repoIssueResult in repoIssueResults)
             {
@@ -95,6 +98,158 @@ namespace Hubbup.Web.Services
                 (Prediction, IssueLastModified) = (prediction, issueLastModified);
         }
 
+        public class PredictionResult
+        {
+            public bool IsSuccess;
+            public string ErrorMessage;
+            public List<LabelAreaScore> LabelScores;
+        }
+
+        public interface IPredictionGetter
+        {
+            Task<PredictionResult> GetPredictionResult(string owner, string repo, Octokit.Issue issue);
+        }
+
+        public class RemotePredictionGetter : IPredictionGetter
+        {
+            private readonly IHttpClientFactory _httpClientFactory;
+
+            public RemotePredictionGetter(IHttpClientFactory httpClientFactory)
+            {
+                _httpClientFactory = httpClientFactory;
+            }
+
+            public async Task<PredictionResult> GetPredictionResult(string owner, string repo, Octokit.Issue issue)
+            {
+                var predictionUrl = GetPredictionUrl(owner, repo, issue.Number);
+                var request = new HttpRequestMessage(HttpMethod.Get, predictionUrl);
+                var client = _httpClientFactory.CreateClient();
+                var responseTimeOutSeconds = 5;
+                var cts = new CancellationTokenSource(responseTimeOutSeconds * 1_000);
+                HttpResponseMessage response = null;
+                Exception failureException = null;
+                try
+                {
+                    response = await client.SendAsync(request, cts.Token);
+                }
+                catch (Exception ex)
+                {
+                    failureException = ex;
+                }
+
+                if (response != null && response.IsSuccessStatusCode)
+                {
+                    using var responseStream = await response.Content.ReadAsStreamAsync();
+                    var remotePrediction = await JsonSerializer.DeserializeAsync<RemoteLabelPrediction>(responseStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    var areaScores = remotePrediction.LabelScores.Select(remoteScore => new LabelAreaScore { LabelName = remoteScore.LabelName, Score = remoteScore.Score, }).ToList();
+
+                    return new PredictionResult
+                    {
+                        IsSuccess = true,
+                        LabelScores = areaScores,
+                    };
+                }
+                else
+                {
+                    string failureReason;
+                    if (cts.IsCancellationRequested)
+                    {
+                        failureReason = $"Prediction response from URL '{predictionUrl}' timed out after {responseTimeOutSeconds} seconds.";
+                    }
+                    else if (response != null)
+                    {
+                        failureReason = $"Remote HTTP prediction status code {response.StatusCode} from URL '{predictionUrl}'.";
+                    }
+                    else
+                    {
+                        failureReason = $"Unexpected exception: {failureException?.Message ?? "<null>"}";
+                    }
+
+                    return new PredictionResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = $"Could not retrieve label predictions for this issue. {failureReason}",
+                    };
+                }
+            }
+        }
+
+        private sealed class FakeLogger : ILogger<LocalFileModelHolderFactory>
+        {
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                return new NullDisposable();
+            }
+
+            private sealed class NullDisposable : IDisposable
+            {
+                public void Dispose()
+                {
+                }
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return false;
+            }
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+            }
+        }
+
+        public class LocalPredictionGetter : IPredictionGetter
+        {
+            private static IModelHolder _holder;
+
+            public async Task<PredictionResult> GetPredictionResult(string owner, string repo, Octokit.Issue issue)
+            {
+                if (_holder == null)
+                {
+                    _holder = new LocalFileModelHolder(new FakeLogger(), configuration: null, owner, repo);
+                }
+                if (!_holder.LoadRequested)
+                {
+                    await _holder.LoadEnginesAsync();
+                }
+
+                bool isPr = issue.PullRequest != null;
+
+                var regex = new Regex(@"@[a-zA-Z0-9_//-]+");
+
+
+                string body = issue.Body ?? string.Empty;
+                var userMentions = regex.Matches(body).Select(x => x.Value).ToArray();
+
+                var suggestion = Predictor.Predict(
+                    CreateIssue(issue.Number, issue.Title, issue.Body, userMentions, issue.User.Login),
+                    new FakeLogger(),
+                    _holder);
+
+                return new PredictionResult
+                {
+                    IsSuccess = true,
+                    LabelScores = suggestion.LabelScores
+                        .Select(s => new LabelAreaScore { LabelName = s.LabelName, Score = s.Score })
+                        .ToList(),
+                };
+            }
+
+            private static IssueModel CreateIssue(int number, string title, string body, string[] userMentions, string author)
+            {
+                return new IssueModel()
+                {
+                    Number = number,
+                    Title = title,
+                    Description = body,
+                    IsPR = 0,
+                    Author = author,
+                    UserMentions = string.Join(' ', userMentions),
+                    NumMentions = userMentions.Length
+                };
+            }
+        }
 
         private async Task AddIssuePrediction(List<LabelSuggestionViewModel> predictionList, RepoIssueResult repoIssueResult, Issue issue)
         {
@@ -127,57 +282,37 @@ namespace Hubbup.Web.Services
                 _logger.LogDebug("[UPDATE] Updating stale cached prediction for {ITEM}", predictionCacheKey);
             }
 
-            var predictionUrl = GetPredictionUrl(repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
-            var request = new HttpRequestMessage(HttpMethod.Get, predictionUrl);
-            var client = _httpClientFactory.CreateClient();
-            var responseTimeOutSeconds = 5;
-            var cts = new CancellationTokenSource(responseTimeOutSeconds * 1_000);
-            HttpResponseMessage response = null;
-            Exception failureException = null;
-            try
+            PredictionResult predictionResult;
+            if (!string.Equals(repoIssueResult.Owner, "NuGet", StringComparison.OrdinalIgnoreCase))
             {
-                response = await client.SendAsync(request, cts.Token);
+                var remoteGetter = new RemotePredictionGetter(_httpClientFactory);
+                predictionResult = await remoteGetter.GetPredictionResult(repoIssueResult.Owner, repoIssueResult.Repo, issue);
             }
-            catch (Exception ex)
+            else
             {
-                failureException = ex;
+                var remoteGetter = new LocalPredictionGetter();
+                predictionResult = await remoteGetter.GetPredictionResult(repoIssueResult.Owner, repoIssueResult.Repo, issue);
             }
 
-            if (response != null && response.IsSuccessStatusCode)
-            {
-                using var responseStream = await response.Content.ReadAsStreamAsync();
-                var remotePrediction = await JsonSerializer.DeserializeAsync<RemoteLabelPrediction>(responseStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                var areaScores = remotePrediction.LabelScores.Select(remoteScore => new LabelAreaScore { LabelName = remoteScore.LabelName, Score = remoteScore.Score, }).ToList();
-                AddPredictionToList(predictionList, repoIssueResult, issue, areaScores);
+            if (predictionResult.IsSuccess)
+            {
+                AddPredictionToList(predictionList, repoIssueResult, issue, predictionResult.LabelScores);
 
                 // cache successful prediction
-                var newPrediction = new CachedPrediction(new LabelSuggestion { LabelScores = areaScores }, issue.UpdatedAt);
+                var newPrediction = new CachedPrediction(new LabelSuggestion { LabelScores = predictionResult.LabelScores }, issue.UpdatedAt);
                 _memoryCache.Set(predictionCacheKey, newPrediction);
 
                 _logger.LogDebug("[CACHE] Storing cached prediction for {OWNER}/{REPO}#{NUMBER}", repoIssueResult.Owner, repoIssueResult.Repo, issue.Number);
             }
             else
             {
-                string failureReason;
-                if (cts.IsCancellationRequested)
-                {
-                    failureReason = $"Prediction response from URL '{predictionUrl}' timed out after {responseTimeOutSeconds} seconds.";
-                }
-                else if (response != null)
-                {
-                    failureReason = $"Remote HTTP prediction status code {response.StatusCode} from URL '{predictionUrl}'.";
-                }
-                else
-                {
-                    failureReason = $"Unexpected exception: {failureException?.Message ?? "<null>"}";
-                }
                 predictionList.Add(new LabelSuggestionViewModel
                 {
                     RepoOwner = repoIssueResult.Owner,
                     RepoName = repoIssueResult.Repo,
                     Issue = issue,
-                    ErrorMessage = $"Could not retrieve label predictions for this issue. {failureReason}",
+                    ErrorMessage = predictionResult.ErrorMessage,
                 });
 
                 _logger.LogWarning("Failed to get prediction for {ITEM}", predictionCacheKey);
@@ -273,9 +408,10 @@ namespace Hubbup.Web.Services
 
         private static bool IsAreaLabel(string labelName) =>
             labelName.StartsWith("area-", StringComparison.OrdinalIgnoreCase) ||
-            labelName.StartsWith("area/", StringComparison.OrdinalIgnoreCase);
+            labelName.StartsWith("area/", StringComparison.OrdinalIgnoreCase) ||
+            labelName.StartsWith("area:", StringComparison.OrdinalIgnoreCase);
 
-        private async Task<List<Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)
+        private async Task<List<Octokit.Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)
         {
             return await _memoryCache.GetOrCreateAsync(
                 $"Labels/{owner}/{repo}",
@@ -299,7 +435,7 @@ namespace Hubbup.Web.Services
             public string Owner { get; set; }
             public IReadOnlyList<Issue> Issues { get; set; }
             public int TotalCount { get; set; }
-            public List<Label> AreaLabels { get; set; }
+            public List<Octokit.Label> AreaLabels { get; set; }
         }
 
         private sealed class RemoteLabelPrediction

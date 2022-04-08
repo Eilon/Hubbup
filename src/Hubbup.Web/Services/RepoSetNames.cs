@@ -18,6 +18,10 @@ namespace Hubbup.Web.Services
             {
                 ("dotnet", "maui"),
             }),
+            new RepoSet("NuGet", new[]
+            {
+                ("NuGet", "Home"),
+            }),
         };
 
         public static RepoSet GetReposInSet(string repoSetName)

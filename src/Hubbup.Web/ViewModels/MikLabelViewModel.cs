@@ -8,5 +8,6 @@ namespace Hubbup.Web.ViewModels
         public List<LabelSuggestionViewModel> PredictionList { get; set; }
         public int TotalIssuesFound { get; set; }
         public List<Label> AllAreaLabels { get; set; }
+        public List<string> LocalPredictionRepos { get; internal set; }
     }
 }

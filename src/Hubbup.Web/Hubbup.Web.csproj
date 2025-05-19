@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6</TargetFramework>
+    <TargetFramework>net8</TargetFramework>
     <UserSecretsId>hubbup</UserSecretsId>
     <LangVersion>preview</LangVersion> 
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
@@ -19,22 +19,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="NuGet-Home-only-issues-final-model.zip" />
+    <None Remove="*-final-model.zip" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="NuGet-Home-only-issues-final-model.zip">
+    <Content Include="*-final-model.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.4.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.25.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\issue-labeler\src\LabelPredictor\Microsoft.DotNet.Github.LabelPredictor.csproj" />
+    <ProjectReference Include="..\..\..\issue-labeler-dotnet\src\LabelPredictor\Microsoft.DotNet.Github.LabelPredictor.csproj" />
     <ProjectReference Include="..\Hubbup.IssueMoverClient\Hubbup.IssueMoverClient.csproj" />
     <ProjectReference Include="..\IssueMoverDto\IssueMoverDto.csproj" />
   </ItemGroup>

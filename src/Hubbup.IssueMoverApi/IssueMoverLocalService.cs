@@ -154,7 +154,7 @@ namespace Hubbup.IssueMoverApi
         {
             var gitHub = await GitHubAccessor.GetGitHubClient();
 
-            await gitHub.Issue.Lock(originalOwner,
+            await gitHub.Issue.LockUnlock.Lock(originalOwner,
                      originalRepo,
                      issueLockRequest.IssueNumber);
             return new IssueLockResult

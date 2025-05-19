@@ -135,7 +135,7 @@ namespace Hubbup.Web
 
         public void Configure(IApplicationBuilder app)
         {
-            if (HostingEnvironment.IsDevelopment())
+            if (HostingEnvironment.IsDevelopment() || HostingEnvironment.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
             }

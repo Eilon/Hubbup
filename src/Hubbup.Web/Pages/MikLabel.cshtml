@@ -240,4 +240,16 @@ else
             <button type="submit" class="btn btn-sm btn-primary">Apply Selected</button>
         }
     </div>
+    @if (labelModel.LocalPredictionRepos.Any())
+    {
+        <div style="padding: 1em;">
+            Note: The following repos were predicted using locally hosted prediction models and not Azure models:
+            <ul>
+                @foreach (var repo in labelModel.LocalPredictionRepos)
+                {
+                    <li>@repo</li>
+                }
+            </ul>
+        </div>
+    }
 }

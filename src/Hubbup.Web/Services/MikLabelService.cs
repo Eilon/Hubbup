@@ -6,6 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -41,6 +42,8 @@ namespace Hubbup.Web.Services
                 ("dotnet", "aspnetcore") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-aspnetcore-labeler.azurewebsites.net/api/WebhookIssue/dotnet/aspnetcore/{0}", issueNumber),
                 ("dotnet", "extensions") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-runtime-issue-labeler.azurewebsites.net/api/WebhookIssue/dotnet/Extensions/{0}", issueNumber),
                 ("dotnet", "maui") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-aspnetcore-labeler.azurewebsites.net/api/WebhookIssue/dotnet/maui/{0}", issueNumber),
+                ("dotnet", "msbuild") => string.Format(CultureInfo.InvariantCulture, "https://dotnet-aspnetcore-labeler.azurewebsites.net/api/WebhookIssue/dotnet/msbuild/{0}", issueNumber),
+                ("nuget", "home") => string.Format(CultureInfo.InvariantCulture, "https://nuget-home-labeler.azurewebsites.net/api/WebhookIssue/nuget/home/{0}", issueNumber),
                 _ => throw new ArgumentException($"Can't find remote prediction URL for issue {owner}/{repo}#{issueNumber}."),
             };
         }
@@ -52,9 +55,15 @@ namespace Hubbup.Web.Services
 
             var repoIssueTasks = new List<Task<RepoIssueResult>>();
 
+            var localPredictionsRepos = new List<string>();
+
             foreach (var (owner, repo) in repoSet.Repos)
             {
-                repoIssueTasks.Add(GetRepoIssues(accessToken, owner, repo));
+                if (repoSet.UseLocalPredictions)
+                {
+                    localPredictionsRepos.Add($"{owner}/{repo}");
+                }
+                repoIssueTasks.Add(GetRepoIssues(accessToken, owner, repo, repoSet.AreaPrefixes));
             }
 
             var repoIssueResults = await Task.WhenAll(repoIssueTasks);
@@ -69,7 +78,7 @@ namespace Hubbup.Web.Services
 
                 foreach (var issue in repoIssueResult.Issues)
                 {
-                    await AddIssuePrediction(predictionList, repoIssueResult, issue);
+                    await AddIssuePrediction(repoSet, predictionList, repoIssueResult, issue);
                 }
 
                 allAreaLabelsForRepoSet.AddRange(repoIssueResult.AreaLabels);
@@ -85,6 +94,7 @@ namespace Hubbup.Web.Services
                     allAreaLabelsForRepoSet
                         .OrderBy(label => label.Name, StringComparer.OrdinalIgnoreCase)
                         .ToList(),
+                LocalPredictionRepos = localPredictionsRepos,
             };
 
         }
@@ -201,17 +211,18 @@ namespace Hubbup.Web.Services
 
         public class LocalPredictionGetter : IPredictionGetter
         {
-            private static IModelHolder _holder;
+            private static ConcurrentDictionary<string, IModelHolder> _holders = new();
 
             public async Task<PredictionResult> GetPredictionResult(string owner, string repo, Octokit.Issue issue)
             {
-                if (_holder == null)
+                var holderKey = $"{owner}/{repo}";
+                var holder = _holders.GetOrAdd(holderKey, _ =>
                 {
-                    _holder = new LocalFileModelHolder(new FakeLogger(), configuration: null, owner, repo);
-                }
-                if (!_holder.LoadRequested)
+                    return new LocalFileModelHolder(new FakeLogger(), configuration: null, owner, repo);
+                });
+                if (!holder.LoadRequested)
                 {
-                    await _holder.LoadEnginesAsync();
+                    await holder.LoadEnginesAsync();
                 }
 
                 bool isPr = issue.PullRequest != null;
@@ -225,7 +236,7 @@ namespace Hubbup.Web.Services
                 var suggestion = Predictor.Predict(
                     CreateIssue(issue.Number, issue.Title, issue.Body, userMentions, issue.User.Login),
                     new FakeLogger(),
-                    _holder);
+                    holder);
 
                 return new PredictionResult
                 {
@@ -251,7 +262,7 @@ namespace Hubbup.Web.Services
             }
         }
 
-        private async Task AddIssuePrediction(List<LabelSuggestionViewModel> predictionList, RepoIssueResult repoIssueResult, Issue issue)
+        private async Task AddIssuePrediction(RepoSet repoSet, List<LabelSuggestionViewModel> predictionList, RepoIssueResult repoIssueResult, Issue issue)
         {
             // Check cache entry for previous successful prediction
             var issueLastModified = issue.UpdatedAt;
@@ -283,15 +294,15 @@ namespace Hubbup.Web.Services
             }
 
             PredictionResult predictionResult;
-            if (!string.Equals(repoIssueResult.Owner, "NuGet", StringComparison.OrdinalIgnoreCase))
+            if (!repoSet.UseLocalPredictions)
             {
                 var remoteGetter = new RemotePredictionGetter(_httpClientFactory);
                 predictionResult = await remoteGetter.GetPredictionResult(repoIssueResult.Owner, repoIssueResult.Repo, issue);
             }
             else
             {
-                var remoteGetter = new LocalPredictionGetter();
-                predictionResult = await remoteGetter.GetPredictionResult(repoIssueResult.Owner, repoIssueResult.Repo, issue);
+                var localGetter = new LocalPredictionGetter();
+                predictionResult = await localGetter.GetPredictionResult(repoIssueResult.Owner, repoIssueResult.Repo, issue);
             }
 
 
@@ -344,12 +355,12 @@ namespace Hubbup.Web.Services
             });
         }
 
-        private async Task<RepoIssueResult> GetRepoIssues(string accessToken, string owner, string repo)
+        private async Task<RepoIssueResult> GetRepoIssues(string accessToken, string owner, string repo, string[] areaLabelPrefixes)
         {
             var gitHub = GitHubUtils.GetGitHubClient(accessToken);
 
             _logger.LogDebug("Getting labels for {OWNER}/{REPO}...", owner, repo);
-            var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo);
+            var existingAreaLabels = await GetAreaLabelsForRepo(gitHub, owner, repo, areaLabelPrefixes);
             _logger.LogDebug("Got {COUNT} labels for {OWNER}/{REPO}", existingAreaLabels.Count, owner, repo);
 
             var excludeAllAreaLabelsQuery =
@@ -359,6 +370,7 @@ namespace Hubbup.Web.Services
 
             var getIssuesRequest = new SearchIssuesRequest($"{excludeAllAreaLabelsQuery} -milestone:Discussions")
             {
+                SortField = IssueSearchSort.Created,
                 Is = new[] { IssueIsQualifier.Open },
                 Repos = new RepositoryCollection
                 {
@@ -381,7 +393,7 @@ namespace Hubbup.Web.Services
             // results that _do_ have an area-XYZ label even though the search query excludes them, so we
             // remove any issues that have area-XYZ labels.
             trimmedResults = trimmedResults
-                .Where(i => !IssueHasAreaLabel(i))
+                .Where(i => !IssueHasAreaLabel(i, areaLabelPrefixes))
                 .ToList()
                 .AsReadOnly();
 
@@ -398,20 +410,18 @@ namespace Hubbup.Web.Services
             };
         }
 
-        private static bool IssueHasAreaLabel(Issue issue)
+        private static bool IssueHasAreaLabel(Issue issue, string[] areaLabelPrefixes)
         {
             return
                 issue.Labels.Any(
                     label =>
-                        IsAreaLabel(label.Name));
+                        IsAreaLabel(label.Name, areaLabelPrefixes));
         }
 
-        private static bool IsAreaLabel(string labelName) =>
-            labelName.StartsWith("area-", StringComparison.OrdinalIgnoreCase) ||
-            labelName.StartsWith("area/", StringComparison.OrdinalIgnoreCase) ||
-            labelName.StartsWith("area:", StringComparison.OrdinalIgnoreCase);
+        public static bool IsAreaLabel(string labelName, string[] areaLabelPrefixes) =>
+            areaLabelPrefixes.Any(prefix => labelName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 
-        private async Task<List<Octokit.Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo)
+        private async Task<List<Octokit.Label>> GetAreaLabelsForRepo(IGitHubClient gitHub, string owner, string repo, string[] areaLabelPrefixes)
         {
             return await _memoryCache.GetOrCreateAsync(
                 $"Labels/{owner}/{repo}",
@@ -420,7 +430,7 @@ namespace Hubbup.Web.Services
                     _logger.LogDebug("Cache MISS for labels for {OWNER}/{REPO}", owner, repo);
                     cacheEntry.SetAbsoluteExpiration(TimeSpan.FromHours(10));
                     return (await gitHub.Issue.Labels.GetAllForRepository(owner, repo))
-                        .Where(label => IsAreaLabel(label.Name))
+                        .Where(label => IsAreaLabel(label.Name, areaLabelPrefixes))
                         .OrderBy(label => label.Name, StringComparer.OrdinalIgnoreCase)
                         .ToList();
                 });
